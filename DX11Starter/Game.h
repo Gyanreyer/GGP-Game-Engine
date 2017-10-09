@@ -8,6 +8,7 @@
 #include "Lights.h"
 #include "Camera.h"
 #include "WICTextureLoader.h"
+#include "AssetManager.h"
 
 class Game 
 	: public DXCore
@@ -35,22 +36,15 @@ private:
 	void LoadShaders(); 
 	void CreateGameObjects();//Initializes GameObjects
 	void CreateMeshes();//Generates and assigns meshes for GameObjects
-	void LoadTextures();
+	void CreateMaterials();
 
-	// Wrappers for DirectX shaders to provide simplified functionality
-	SimpleVertexShader* vertexShader;
-	SimplePixelShader* pixelShader;
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
 
-	Material* defaultMaterial;
-
-	//Meshes used by GameObjects
-	Mesh* sphereMesh;
-	Mesh* torusMesh;
-	Mesh* cubeMesh;
+	//ASSET MANAGER
+	AssetManager assetManager;
 
 	//GameObjects in scene
 	GameObject sphere1;
@@ -67,8 +61,7 @@ private:
 	DirectionalLight light2;
 
 	Camera camera;
+	bool freeLookEnabled = false;	//tells whether freelook is enabled 
 
-	ID3D11ShaderResourceView* pebbleTextureSRV;
-	ID3D11SamplerState* sampler;
 };
 

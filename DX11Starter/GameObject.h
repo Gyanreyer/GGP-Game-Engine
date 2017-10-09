@@ -24,6 +24,7 @@ public:
 	void SetMaterial(Material * newMat);
 
 	ObjectTransform * GetTransform();//Get reference to this object's transform
+	Material* GetMaterial(); //Get objects Material
 
 private:
 	Mesh * mesh;//Mesh for drawing

@@ -20,9 +20,8 @@ Game::Game(HINSTANCE hInstance)
 		720,			   // Height of the window's client area
 		true)			   // Show extra stats (fps) in title bar?
 {
-	// Initialize fields
-	vertexShader = 0;
-	pixelShader = 0;
+	// Initialize Asset Manager
+	assetManager = AssetManager();
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -40,19 +39,8 @@ Game::Game(HINSTANCE hInstance)
 Game::~Game()
 {	// Delete our simple shader objects, which
 	// will clean up their own internal DirectX stuff
-	delete vertexShader;
-	delete pixelShader;
-
-	//Delete meshes
-	delete sphereMesh;
-	delete torusMesh;
-	delete cubeMesh;
-
-	//Delete materials
-	delete defaultMaterial;
-
-	if(pebbleTextureSRV) pebbleTextureSRV->Release();
-	if(sampler) sampler->Release();
+	
+	//asset manager cleans up assets when game is deleted
 }
 
 // --------------------------------------------------------
@@ -73,7 +61,7 @@ void Game::Init()
 	prevMousePos.y = height / 2;
 
 	LoadShaders();
-	LoadTextures();
+	CreateMaterials();
 	CreateMeshes();
 
 	CreateGameObjects();
@@ -93,11 +81,15 @@ void Game::Init()
 // --------------------------------------------------------
 void Game::LoadShaders()
 {
-	vertexShader = new SimpleVertexShader(device, context);
+	SimpleVertexShader* vertexShader = new SimpleVertexShader(device, context);
 	vertexShader->LoadShaderFile(L"VertexShader.cso");
 
-	pixelShader = new SimplePixelShader(device, context);
+	SimplePixelShader* pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
+
+	//Store Vertex and Pixel Shaders into the AssetManager
+	assetManager.ImportVShader("BasicVShader", vertexShader);
+	assetManager.ImportPShader("BasicPShader", pixelShader);
 }
 
 
@@ -108,32 +100,32 @@ void Game::LoadShaders()
 void Game::CreateGameObjects()
 {
 	//Create 2 circle GOs
-	sphere1 = GameObject(sphereMesh, defaultMaterial, context);
+	sphere1 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("StoneMat"), context);
 	sphere1.GetTransform()->SetScale(1.0f);
 
-	sphere2 = GameObject(sphereMesh, defaultMaterial, context);
+	sphere2 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("StoneMat"),context);
 	sphere2.GetTransform()->SetScale(0.25f);
 
 	sphere2.GetTransform()->SetPosition(0.75f, 0, 0);
 	sphere2.GetTransform()->SetParent(sphere1.GetTransform());
 
 	//Create 2 square GOs
-	cube1 = GameObject(cubeMesh, defaultMaterial, context);
+	/*cube1 = GameObject(assetManager.GetMesh("Cube"), assetManager.GetMaterial("StoneMat"), context);
 	cube1.GetTransform()->SetScale(0.5f);
 	cube1.GetTransform()->SetPosition(0.0f,0.0f, 1.0f);
 
-	cube1.GetTransform()->SetParent(camera.GetTransform());
+	cube1.GetTransform()->SetParent(camera.GetTransform());*/
 
-	cube2 = GameObject(cubeMesh, defaultMaterial, context);
+	cube2 = GameObject(assetManager.GetMesh("Cube"), assetManager.GetMaterial("StoneMat"), context);
 	cube2.GetTransform()->SetScale(0.5f);
 	cube2.GetTransform()->SetPosition(3.0f, -1.5f, 0.0f);
 
 	//Create 2 pentagon GOs
-	torus1 = GameObject(torusMesh, defaultMaterial, context);
+	torus1 = GameObject(assetManager.GetMesh("Torus"), assetManager.GetMaterial("StoneMat"), context);
 	torus1.GetTransform()->SetScale(0.5f);
 	torus1.GetTransform()->SetPosition(-3.0f, 1.5f, 0.0f);
 
-	torus2 = GameObject(torusMesh, defaultMaterial, context);
+	torus2 = GameObject(assetManager.GetMesh("Torus"), assetManager.GetMaterial("StoneMat"), context);
 	torus2.GetTransform()->SetScale(0.5f);
 	torus2.GetTransform()->SetPosition(-3.0f, -1.5f, 0.0f);
 
@@ -142,8 +134,8 @@ void Game::CreateGameObjects()
 	gameObjects[1] = &sphere2;
 	gameObjects[2] = &torus1;
 	gameObjects[3] = &torus2;
-	gameObjects[4] = &cube1;
-	gameObjects[5] = &cube2;
+	//gameObjects[4] = &cube1;
+	gameObjects[4] = &cube2;
 }
 
 // ---------------------------------------------------------
@@ -152,25 +144,59 @@ void Game::CreateGameObjects()
 void Game::CreateMeshes()
 {
 	//Create meshes
-	sphereMesh = new Mesh("Assets/Models/sphere.obj", device);
-	cubeMesh = new Mesh("Assets/Models/cube.obj", device);
-	torusMesh = new Mesh("Assets/Models/torus.obj", device);
+	assetManager.ImportMesh("Cone", new Mesh("../../DX11Starter/Assets/Models/cone.obj", device));
+	assetManager.ImportMesh("Cube", new Mesh("../../DX11Starter/Assets/Models/cube.obj", device));
+	assetManager.ImportMesh("Cylinder", new Mesh("../../DX11Starter/Assets/Models/cylinder.obj", device));
+	assetManager.ImportMesh("Helix", new Mesh("../../DX11Starter/Assets/Models/helix.obj", device));
+	assetManager.ImportMesh("Sphere", new Mesh("../../DX11Starter/Assets/Models/sphere.obj", device));
+	assetManager.ImportMesh("Torus", new Mesh("../../DX11Starter/Assets/Models/torus.obj", device));
+	assetManager.ImportMesh("Cactus", new Mesh("../../DX11Starter/Assets/Models/cactus.obj", device));
 }
 
-void Game::LoadTextures()
+///Loads in textures and makes them into materials
+void Game::CreateMaterials()
 {
-	CreateWICTextureFromFile(device, context, L"Assets/Textures/pebbles.png", 0, &pebbleTextureSRV);
+	//create Texture
+	ID3D11ShaderResourceView* hazardTexture;
+	HRESULT tResult = CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", 0, &hazardTexture);
+	if (tResult != S_OK) {
+		printf("Hazard Texture is could not be loaded");
+	}
+	assetManager.ImportTexture("HazardTexture", hazardTexture);
 
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	//Create Sampler State
+	ID3D11SamplerState* sample;
+	D3D11_SAMPLER_DESC sampleDesc = {};
+	//Describes how to handle addresses outside 0-1 UV range
+	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 
-	device->CreateSamplerState(&samplerDesc, &sampler);
+	sampleDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;	//Describes how to handle sampling between pixels
+	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	defaultMaterial = new Material(vertexShader, pixelShader, pebbleTextureSRV, sampler);//Create material with texture
+	HRESULT sampleResult = device->CreateSamplerState(&sampleDesc, &sample);
+	if (sampleResult != S_OK) {
+		printf("Sample State could not be created");
+	}
+
+	assetManager.ImportSampler("BasicSampler", sample);
+
+	//Create Material 
+	Material* genericMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("HazardTexture"), assetManager.GetSampler("BasicSampler"));
+	assetManager.ImportMaterial("HazardCrateMat", genericMat);
+
+	//create Texture
+	ID3D11ShaderResourceView* stoneTexture;
+	tResult = CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/GreyStoneTexture.jpg", 0, &stoneTexture);
+	if (tResult != S_OK) {
+		printf("Stone Texture is could not be loaded");
+	}
+
+	assetManager.ImportTexture("Stone", stoneTexture);
+
+	Material* stoneMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("Stone"), assetManager.GetSampler("BasicSampler"));
+	assetManager.ImportMaterial("StoneMat", stoneMat);
 }
 
 // --------------------------------------------------------
@@ -196,7 +222,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	float speed = 2.0f * deltaTime;//Movement speed
 
-								   //How much to move by in each direction this frame
+	//How much to move by in each direction this frame
 	float forwardSpeed = 0.0f;
 	float sideSpeed = 0.0f;
 	float upSpeed = 0.0f;
@@ -213,10 +239,10 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState('D') & 0x8000) {
 		sideSpeed -= speed;//If player pressed D to go right, subtract from side speed
 	}
-	if (GetAsyncKeyState(VK_LSHIFT) & 0x8000) {
+	if (GetAsyncKeyState('Z') & 0x8000) {
 		upSpeed += speed;//If player pressed left shift to go up, add to up speed
 	}
-	if (GetAsyncKeyState(VK_LCONTROL) & 0x8000) {
+	if (GetAsyncKeyState('X') & 0x8000) {
 		upSpeed -= speed;//If player pressed left control to go down, subtract from up speed
 	}
 
@@ -238,8 +264,8 @@ void Game::Update(float deltaTime, float totalTime)
 	torus2.GetTransform()->Rotate(0, 0, deltaTime*.5f);
 
 	//Make squares shrink/grow and rotate in opposite directions
-	cube1.GetTransform()->SetScale((2.f + cosTime)*.1f);
-	cube1.GetTransform()->Rotate(0, 0, deltaTime*.5f);
+	/*cube1.GetTransform()->SetScale((2.f + cosTime)*.1f);
+	cube1.GetTransform()->Rotate(0, 0, deltaTime*.5f);*/
 
 	cube2.GetTransform()->SetScale((2.f + cosTime)*.1f);
 	cube2.GetTransform()->Rotate(0, 0, -deltaTime*.5f);
@@ -266,21 +292,22 @@ void Game::Draw(float deltaTime, float totalTime)
 	XMFLOAT4X4 viewMat = camera.GetViewMatrix();
 	XMFLOAT4X4 projMat = camera.GetProjectionMatrix();
 
-	pixelShader->SetData(
-		"light1",
-		&light1,
-		sizeof(DirectionalLight));
-	pixelShader->CopyAllBufferData();
-
-	pixelShader->SetData(
-		"light2",
-		&light2,
-		sizeof(DirectionalLight));
-	pixelShader->CopyAllBufferData();
+	
 
 	//Loop through GameObjects and draw them
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 5; i++)
 	{
+		gameObjects[i]->GetMaterial()->GetPixelShader()->SetData(
+			"light1",
+			&light1,
+			sizeof(DirectionalLight));
+
+		gameObjects[i]->GetMaterial()->GetPixelShader()->SetData(
+			"light2",
+			&light2,
+			sizeof(DirectionalLight));
+
+		gameObjects[i]->GetMaterial()->GetPixelShader()->CopyAllBufferData();
 		gameObjects[i]->Draw(viewMat, projMat);
 	}
 
@@ -301,7 +328,7 @@ void Game::Draw(float deltaTime, float totalTime)
 void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 {
 	// Add any custom code here...
-
+	freeLookEnabled = true; //allows camera rotation with mouse
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;
 	prevMousePos.y = y;
@@ -318,7 +345,7 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 {
 	// Add any custom code here...
-
+	freeLookEnabled = false; 
 	// We don't care about the tracking the cursor outside
 	// the window anymore (we're not dragging if the mouse is up)
 	ReleaseCapture();
@@ -332,13 +359,15 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
 	float sensitivity = .002f;//Mouse sensitivity - higher = more sensitive
+	if (freeLookEnabled) 
+	{
+		//Get x and y change in mouse pos
+		float xChange = (x - prevMousePos.x)*sensitivity;
+		float yChange = (y - prevMousePos.y)*sensitivity;
 
-							  //Get x and y change in mouse pos
-	float xChange = (x - prevMousePos.x)*sensitivity;
-	float yChange = (y - prevMousePos.y)*sensitivity;
-
-	//Rotate camera based on mouse movement
-	camera.GetTransform()->Rotate(yChange,xChange,0);
+		//Rotate camera based on mouse movement
+		camera.GetTransform()->Rotate(yChange, xChange, 0);
+	}
 
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;

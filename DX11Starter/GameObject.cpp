@@ -72,3 +72,8 @@ ObjectTransform * GameObject::GetTransform()
 {
 	return &transform;
 }
+
+Material * GameObject::GetMaterial()
+{
+	return material;
+}
