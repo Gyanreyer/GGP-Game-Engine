@@ -307,7 +307,7 @@ void Game::Draw(float deltaTime, float totalTime)
 			&light2,
 			sizeof(DirectionalLight));
 
-		gameObjects[i]->GetMaterial()->GetPixelShader()->CopyAllBufferData();
+		//gameObjects[i]->GetMaterial()->GetPixelShader()->CopyAllBufferData(); //This is done through the draw call
 		gameObjects[i]->Draw(viewMat, projMat);
 	}
 

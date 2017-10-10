@@ -28,6 +28,7 @@ void GameObject::SetMesh(Mesh * mesh)
 //Draw the mesh!
 void GameObject::Draw(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
 {
+	UpdateWorldMatrix(); //Update here, removes additional method call
 	PrepareMaterial(viewMat, projMat);
 	context->DrawIndexed(meshIndexCount, 0, 0);
 }
@@ -42,7 +43,7 @@ void GameObject::PrepareMaterial(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
 	//Set up shader data
 	vertexShader->SetMatrix4x4("view", viewMat);
 	vertexShader->SetMatrix4x4("projection", projMat);
-	vertexShader->SetMatrix4x4("world", GetWorldMatrix());//Set vertex shader's world matrix to this object's wm
+	vertexShader->SetMatrix4x4("world", worldMatrix);//Set vertex shader's world matrix to this object's wm
 	vertexShader->CopyAllBufferData();
 	vertexShader->SetShader();
 
