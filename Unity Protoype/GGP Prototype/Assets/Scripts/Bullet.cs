@@ -11,7 +11,7 @@ public class Bullet : MonoBehaviour
     {
         transform.Translate(shooter.transform.forward * speed);
 
-        if(Vector3.Distance(transform.position,shooter.transform.position) > 500)
+        if(Vector3.Distance(transform.position,shooter.transform.position) > 300)
         {
             Destroy(gameObject);
         }
