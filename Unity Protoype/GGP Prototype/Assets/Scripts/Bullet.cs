@@ -10,6 +10,11 @@ public class Bullet : MonoBehaviour
     void FixedUpdate() //Physics
     {
         transform.Translate(shooter.transform.forward * speed);
+
+        if(Vector3.Distance(transform.position,shooter.transform.position) > 500)
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void OnCollisionEnter(Collision coll) //Colliding with objects
