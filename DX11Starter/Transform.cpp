@@ -1,13 +1,14 @@
 #include "Transform.h"
 
-Transform::Transform() : Transform(XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0))
+Transform::Transform() : Transform(XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1))
 {
 }
 
-Transform::Transform(XMFLOAT3 pos, XMFLOAT3 rot)
+Transform::Transform(XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale)
 {
 	SetPosition(pos);
 	SetRotation(rot);
+	SetScale(scale);
 
 	parent = nullptr;
 }
@@ -18,12 +19,13 @@ Transform::~Transform()
 
 void Transform::SetPosition(float x, float y, float z)
 {
-	SetPosition(XMVectorSet(x, y, z, 0.0f));
+	SetPosition(XMFLOAT3(x, y, z));
 }
 
 void Transform::SetPosition(XMFLOAT3 pos)
 {
-	SetPosition(XMLoadFloat3(&pos));
+	position = pos;
+	NotifyMatrixUpdate();
 }
 
 void Transform::SetPosition(XMVECTOR pos)
@@ -34,12 +36,14 @@ void Transform::SetPosition(XMVECTOR pos)
 
 void Transform::SetRotation(float roll, float pitch, float yaw)
 {
-	SetRotation(XMVectorSet(roll, pitch, yaw, 0.0f));
+	SetRotation(XMFLOAT3(roll, pitch, yaw));
 }
 
 void Transform::SetRotation(XMFLOAT3 rot)
 {
-	SetRotation(XMLoadFloat3(&rot));
+	rotation = rot;
+	UpdateDirectionVectors();
+	NotifyMatrixUpdate();
 }
 
 void Transform::SetRotation(XMVECTOR rot)
@@ -49,85 +53,121 @@ void Transform::SetRotation(XMVECTOR rot)
 	NotifyMatrixUpdate();
 }
 
+void Transform::SetScale(float scalar)
+{
+	SetScale(XMFLOAT3(scalar,scalar,scalar));
+}
+
+void Transform::SetScale(float x, float y, float z)
+{
+	SetScale(XMFLOAT3(x,y,z));
+}
+
+void Transform::SetScale(XMFLOAT3 scl)
+{
+	scale = scl;
+	NotifyMatrixUpdate();
+}
+
+void Transform::SetScale(XMVECTOR scl)
+{
+	XMStoreFloat3(&scale,scl);
+	NotifyMatrixUpdate();
+}
+
 void Transform::Move(float x, float y, float z)
 {
 	Move(XMVectorSet(x,y,z,0));
 }
 
+void Transform::Move(XMFLOAT3 moveVec)
+{
+	Move(XMLoadFloat3(&moveVec));
+}
+
 void Transform::Move(XMVECTOR moveVec)
 {
-	SetPosition(GetPosition() + moveVec);
+	SetPosition(XMLoadFloat3(&position) + moveVec);
 }
 
 void Transform::Rotate(float roll, float pitch, float yaw)
 {
-	SetRotation(GetRotation() + XMVectorSet(roll, pitch, yaw, 0.0f));
+	SetRotation(XMLoadFloat3(&rotation) + XMVectorSet(roll, pitch, yaw, 0.0f));
 }
 
 void Transform::MoveRelative(float fwdSpeed, float sideSpeed, float upSpeed)
 {
 	if (fwdSpeed == 0.0f && sideSpeed == 0.0f && upSpeed == 0.0f) return;//Return early if no movement
 
-	Move(GetForward() * fwdSpeed + GetRight() * sideSpeed + GetUp() * upSpeed);
+	Move(XMLoadFloat3(&forward) * fwdSpeed + XMLoadFloat3(&right) * sideSpeed + XMLoadFloat3(&up) * upSpeed);
 }
 
 void Transform::MoveRelativeAxes(float fwdSpeed, float sideSpeed, float upSpeed)
 {
 	if (fwdSpeed == 0.0f && sideSpeed == 0.0f && upSpeed == 0.0f) return;//Return early if no movement
 
-	Move(GetForwardXZ() * fwdSpeed + GetRight() * sideSpeed + UP * upSpeed);
+	Move(XMLoadFloat3(&GetForwardXZ()) * fwdSpeed + XMLoadFloat3(&right) * sideSpeed + UP * upSpeed);
 }
 
-XMVECTOR Transform::GetPosition()
+XMFLOAT3 Transform::GetPosition()
 {
-	return XMLoadFloat3(&position);
+	return position;
 }
 
-XMVECTOR Transform::GetRotation()
+XMFLOAT3 Transform::GetRotation()
 {
-	return XMLoadFloat3(&rotation);
+	return rotation;
 }
 
-XMVECTOR Transform::GetForward()
+XMFLOAT3 Transform::GetScale()
 {
-	return XMLoadFloat3(&forward);
+	return scale;
 }
 
-XMVECTOR Transform::GetForwardXZ()
+XMFLOAT3 Transform::GetForward()
 {
-	return XMVector3Normalize(XMVectorSet(1,0,1,0)*GetForward());
+	return forward;
 }
 
-XMVECTOR Transform::GetRight()
+XMFLOAT3 Transform::GetForwardXZ()
 {
-	return XMLoadFloat3(&right);
+	XMFLOAT3 fxz;
+
+	XMStoreFloat3(&fxz,XMVector3Normalize(XMVectorSet(1, 0, 1, 0)*XMLoadFloat3(&forward)));
+
+	return fxz;
 }
 
-XMVECTOR Transform::GetUp()
+XMFLOAT3 Transform::GetRight()
 {
-	return XMLoadFloat3(&up);
+	return right;
 }
 
-XMMATRIX Transform::GetPositionMatrix()
+XMFLOAT3 Transform::GetUp()
 {
-	return XMMatrixTranslationFromVector(GetPosition());
+	return up;
 }
 
-XMMATRIX Transform::GetRotationMatrix()
+bool Transform::MatrixNeedsUpdate()
 {
-	return XMMatrixRotationRollPitchYawFromVector(GetRotation());
+	return matrixNeedsUpdate;
+}
+
+void Transform::DoneUpdating()
+{
+	matrixNeedsUpdate = false;
 }
 
 void Transform::UpdateDirectionVectors()
 {
 	//Update forward vector by transforming forward vec w/ rotation matrix calculated from x/y rotation
-	XMStoreFloat3(&forward, XMVector3TransformNormal(FWD, GetRotationMatrix()));
+	XMStoreFloat3(&forward, XMVector3TransformNormal(FWD, XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&rotation))));
 	
 	//Update right vector by crossing forward vec w/ UP const
-	XMStoreFloat3(&right, XMVector3Normalize(XMVector3Cross(GetForward(), UP)));
+	XMStoreFloat3(&right, XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&forward), UP)));
 
 	//Update up vector by crossing forward w/ right
-	XMStoreFloat3(&up, XMVector3Normalize(XMVector3Cross(GetRight(), GetForward())));
+	XMStoreFloat3(&up, XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&right), XMLoadFloat3(&forward))));
 }
 
 //Set a parent transform for this transform which it will center its position/rotation around

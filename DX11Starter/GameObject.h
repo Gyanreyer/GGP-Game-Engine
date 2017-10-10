@@ -3,13 +3,13 @@
 #include "Mesh.h"
 #include "SimpleShader.h"
 #include "Material.h"
-#include "ObjectTransform.h"
+#include "Transform.h"
 
 class GameObject
 {
 public:
 	GameObject();//Default constructor does nothing
-	GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * context);//Constructor sets mesh/material/context for drawing and initializes transform
+	GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx);//Constructor sets mesh/material/context for drawing and initializes transform
 	~GameObject();
 
 	//Takes a Mesh pointer to use for drawing this object
@@ -23,8 +23,10 @@ public:
 
 	void SetMaterial(Material * newMat);
 
-	ObjectTransform * GetTransform();//Get reference to this object's transform
+	Transform * GetTransform();//Get reference to this object's transform
 	Material* GetMaterial(); //Get objects Material
+
+	XMFLOAT4X4 GetWorldMatrix();
 
 private:
 	Mesh * mesh;//Mesh for drawing
@@ -37,6 +39,9 @@ private:
 
 	ID3D11DeviceContext * context;
 
-	ObjectTransform transform;//Transform determines position/rotation/scale this object is drawn at
+	Transform transform;//Transform determines position/rotation/scale this object is drawn at
+
+	XMFLOAT4X4 worldMatrix;
+	void UpdateWorldMatrix();
 };
 

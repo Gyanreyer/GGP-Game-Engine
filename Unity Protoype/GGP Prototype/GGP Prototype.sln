@@ -1,12 +1,30 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2017
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GGP Prototype.Plugins", "GGP Prototype.Plugins.csproj", "{F35BF619-9D08-B72E-C908-B883781871E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GGP Prototype.Editor", "GGP Prototype.Editor.csproj", "{F0B7BD54-D729-D432-55AB-1A2975D42A52}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GGP Prototype.Editor.Plugins", "GGP Prototype.Editor.Plugins.csproj", "{C5AA11A9-4142-06D9-D1FC-784787BC5AF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F35BF619-9D08-B72E-C908-B883781871E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F35BF619-9D08-B72E-C908-B883781871E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F35BF619-9D08-B72E-C908-B883781871E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F35BF619-9D08-B72E-C908-B883781871E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0B7BD54-D729-D432-55AB-1A2975D42A52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0B7BD54-D729-D432-55AB-1A2975D42A52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0B7BD54-D729-D432-55AB-1A2975D42A52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0B7BD54-D729-D432-55AB-1A2975D42A52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5AA11A9-4142-06D9-D1FC-784787BC5AF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5AA11A9-4142-06D9-D1FC-784787BC5AF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5AA11A9-4142-06D9-D1FC-784787BC5AF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5AA11A9-4142-06D9-D1FC-784787BC5AF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,18 +3,17 @@
 
 GameObject::GameObject() {}
 
-GameObject::GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * context)
+GameObject::GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx)
 {
 	SetMesh(mesh);//Set mesh to given mesh
 	SetMaterial(material);//Set material to given material
 
-	this->context = context;
+	context = ctx;
 
-	transform = ObjectTransform();//Initialize transform
+	transform = Transform();//Initialize transform
 }
 
 GameObject::~GameObject() {}
-
 
 //Set given mesh to be this object's mesh and store relevant info for drawing it
 void GameObject::SetMesh(Mesh * mesh)
@@ -25,7 +24,6 @@ void GameObject::SetMesh(Mesh * mesh)
 
 	meshIndexCount = mesh->GetIndexCount();
 }
-
 
 //Draw the mesh!
 void GameObject::Draw(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
@@ -41,13 +39,10 @@ void GameObject::PrepareMaterial(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
 	SimpleVertexShader * vertexShader = material->GetVertexShader();
 	SimplePixelShader * pixelShader = material->GetPixelShader();
 
-	XMFLOAT4X4 test;
-	XMStoreFloat4x4(&test, XMMatrixIdentity());
-
 	//Set up shader data
 	vertexShader->SetMatrix4x4("view", viewMat);
 	vertexShader->SetMatrix4x4("projection", projMat);
-	vertexShader->SetMatrix4x4("world", transform.GetWorldMatrixFloat());//Set vertex shader's world matrix to this object's wm
+	vertexShader->SetMatrix4x4("world", GetWorldMatrix());//Set vertex shader's world matrix to this object's wm
 	vertexShader->CopyAllBufferData();
 	vertexShader->SetShader();
 
@@ -68,7 +63,7 @@ void GameObject::SetMaterial(Material * newMat)
 	material = newMat;
 }
 
-ObjectTransform * GameObject::GetTransform()
+Transform * GameObject::GetTransform()
 {
 	return &transform;
 }
@@ -76,4 +71,32 @@ ObjectTransform * GameObject::GetTransform()
 Material * GameObject::GetMaterial()
 {
 	return material;
+}
+
+XMFLOAT4X4 GameObject::GetWorldMatrix()
+{
+	UpdateWorldMatrix();//Make sure world matrix is up to date before returning
+	return worldMatrix;
+}
+
+//Update the world matrix if transform has changed
+void GameObject::UpdateWorldMatrix()
+{
+	if (transform.MatrixNeedsUpdate()) {
+		//World matrix from scale, rot, and pos of transform
+		XMMATRIX newWM = XMMatrixScalingFromVector(XMLoadFloat3(&transform.GetScale())) *
+			XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&transform.GetRotation())) *
+			XMMatrixTranslationFromVector(XMLoadFloat3(&transform.GetPosition()));
+
+		//If transform has a parent, apply its rot and pos to matrix too
+		if (transform.GetParent()) {
+			newWM *= XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&transform.GetParent()->GetRotation())) *
+				XMMatrixTranslationFromVector(XMLoadFloat3(&transform.GetParent()->GetPosition()));
+		}		
+
+		//Store transposed matrix as worldMatrix
+		XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(newWM));
+
+		transform.DoneUpdating();//Notify transform that matrix has been updated successfully
+	}
 }
