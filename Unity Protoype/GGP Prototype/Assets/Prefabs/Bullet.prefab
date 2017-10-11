@@ -106,10 +106,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1645839186494686}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4761f02de2a7ca45b5dfe14f52e5247, type: 3}
+  m_Script: {fileID: 11500000, guid: 5143d57973e62014ea05b95aaed91c06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shooter: {fileID: 1748667059910414, guid: ea65223bfca8a5a4e9fe6de979cbec9e, type: 2}
+  shooter: {fileID: 1726587546417924, guid: 45d64b37171a360448c53af483f35e44, type: 2}
 --- !u!135 &135336278033690690
 SphereCollider:
   m_ObjectHideFlags: 1
