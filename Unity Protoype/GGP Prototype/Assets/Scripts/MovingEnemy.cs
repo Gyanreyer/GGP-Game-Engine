@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MovingEnemy : MonoBehaviour {
-
+[RequireComponent(typeof(Enemy))]
+public class MovingEnemy : MonoBehaviour
+{
     Vector3 startPt;
 
 	// Use this for initialization

@@ -11,7 +11,6 @@ public class Shoot : MonoBehaviour
     {
 		if (Input.GetButtonDown("Fire1"))
         {
-            Debug.Log("Pew");
             Instantiate(bullet, bulletPoint.position, bulletPoint.rotation);
         }
 	}
