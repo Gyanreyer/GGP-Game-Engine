@@ -220,33 +220,7 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	float speed = 2.0f * deltaTime;//Movement speed
-
-	//How much to move by in each direction this frame
-	float forwardSpeed = 0.0f;
-	float sideSpeed = 0.0f;
-	float upSpeed = 0.0f;
-
-	if (GetAsyncKeyState('W') & 0x8000) {
-		forwardSpeed += speed;//If player pressed W to go forward, add to forward speed
-	}
-	if (GetAsyncKeyState('S') & 0x8000) {
-		forwardSpeed -= speed;//If player pressed S to go backwards, subtract from forward speed
-	}
-	if (GetAsyncKeyState('A') & 0x8000) {
-		sideSpeed += speed;//If player pressed A to go left, add to side speed
-	}
-	if (GetAsyncKeyState('D') & 0x8000) {
-		sideSpeed -= speed;//If player pressed D to go right, subtract from side speed
-	}
-	if (GetAsyncKeyState('Z') & 0x8000) {
-		upSpeed += speed;//If player pressed left shift to go up, add to up speed
-	}
-	if (GetAsyncKeyState('X') & 0x8000) {
-		upSpeed -= speed;//If player pressed left control to go down, subtract from up speed
-	}
-
-	camera.GetTransform()->MoveRelative(forwardSpeed, sideSpeed, upSpeed);//Move the camera with directional speeds from input
+	camera.Update(deltaTime);
 
 	//Get sin and cos of current time for manipulating position and scale of objects
 	float sinTime = XMScalarSin(totalTime);
@@ -291,8 +265,6 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	XMFLOAT4X4 viewMat = camera.GetViewMatrix();
 	XMFLOAT4X4 projMat = camera.GetProjectionMatrix();
-
-	
 
 	//Loop through GameObjects and draw them
 	for (int i = 0; i < 5; i++)
@@ -358,20 +330,34 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
-	float sensitivity = .002f;//Mouse sensitivity - higher = more sensitive
-	if (freeLookEnabled) 
+	//float sensitivity = .002f;//Mouse sensitivity - higher = more sensitive
+	//if (freeLookEnabled) 
+	//{
+	//	//Get x and y change in mouse pos
+	//	float xChange = (x - prevMousePos.x)*sensitivity;
+	//	float yChange = (y - prevMousePos.y)*sensitivity;
+	//
+	//	//Rotate camera based on mouse movement
+	//	camera.GetTransform()->Rotate(yChange, xChange, 0);
+	//}
+	//
+	//// Save the previous mouse position, so we have it for the future
+	//prevMousePos.x = x;
+	//prevMousePos.y = y;
+
+	//When the left mouse button is held down and freelook is enabled
+	if (freeLookEnabled && buttonState && 0x0001)
 	{
-		//Get x and y change in mouse pos
-		float xChange = (x - prevMousePos.x)*sensitivity;
-		float yChange = (y - prevMousePos.y)*sensitivity;
+		//Move the camera with the mouse
+		float nextX = x - (float)prevMousePos.x;
+		float nextY = y - (float)prevMousePos.y;
 
-		//Rotate camera based on mouse movement
-		camera.GetTransform()->Rotate(yChange, xChange, 0);
+		camera.MouseInput(nextX, nextY);
+
+		// Save the previous mouse position, so we have it for the future
+		prevMousePos.x = x;
+		prevMousePos.y = y;
 	}
-
-	// Save the previous mouse position, so we have it for the future
-	prevMousePos.x = x;
-	prevMousePos.y = y;
 }
 
 // --------------------------------------------------------
