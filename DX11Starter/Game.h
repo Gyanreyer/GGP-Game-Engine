@@ -61,7 +61,9 @@ private:
 	DirectionalLight light2;
 
 	Camera camera;
-	bool freeLookEnabled = false;	//tells whether freelook is enabled 
+
+	//Don't need this due to some thing I did but forgot how it works
+	//bool freeLookEnabled = false;	//tells whether freelook is enabled 
 
 };
 

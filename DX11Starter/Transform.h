@@ -61,13 +61,13 @@ public:
 	Transform * GetChild(int index);//Return reference to transform at given index
 	int GetChildCount();//Get number of children on this transform
 
-private:
 	//Vectors for position/rotation/scale
 	XMFLOAT3 position, rotation, scale;
 
 	//Direction vectors
 	XMFLOAT3 forward, right, up;
 
+private:
 	//Matrix for object's world mat or camera's view mat
 	XMFLOAT4X4 matrix;
 

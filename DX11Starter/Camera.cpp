@@ -38,7 +38,7 @@ void Camera::Update(float deltaTime)
 {
 	UpdateViewMatrix();
 
-	KeyboardInput(deltaTime); //Handle keybaord input
+	KeyboardInput(deltaTime); //Handle keyboard input
 }
 
 void Camera::UpdateProjectionMatrix(unsigned int width, unsigned int height)
@@ -56,22 +56,59 @@ void Camera::UpdateProjectionMatrix(unsigned int width, unsigned int height)
 void Camera::MouseInput(float xAxis, float yAxis)
 {
 	//Scale the rotations in terms of radians
-	float xRadianized = -xAxis / 200;
-	float yRadianized = -yAxis / 200;
+	//FPS controlls, mouse moves in the direction the camera moves
+	float xRadianized = xAxis / 200;
+	float yRadianized = yAxis / 200;
+
+	XMVECTOR quaternion = XMQuaternionRotationRollPitchYaw(yRadianized * rotationSpeed, xRadianized * rotationSpeed, 0);
+
+	XMVECTOR forward = XMVectorSet(0, 0, 1, 0);
+	XMVECTOR right = XMVectorSet(1, 0, 0, 0);
+	XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+
+	XMVECTOR updatedForward = XMVector3Rotate(forward, quaternion);
+	XMVECTOR updatedRight = XMVector3Rotate(right, quaternion);
+	XMVECTOR updatedUp = XMVector3Rotate(up, quaternion);
+
+	XMFLOAT3 storedQuaternion;
+	XMStoreFloat3(&storedQuaternion, quaternion);
+	//transform.Rotate(storedQuaternion.x, storedQuaternion.y, storedQuaternion.z);
+
+	XMStoreFloat3(&transform.forward, forward);
+	XMStoreFloat3(&transform.right, right);
+	XMStoreFloat3(&transform.up, up);
 
 	//Rotate around the X and Y axis
-	transform.Rotate(yRadianized * rotationSpeed, xRadianized * rotationSpeed, 0);
+	//transform.Rotate(yRadianized * rotationSpeed, xRadianized * rotationSpeed, 0);
 
-	//"Clamp" the rotation within 360 and -360
-	if (transform.GetRotation().x > 360)
-		transform.SetRotation(360, 0, 0);
-	else if (transform.GetRotation().x < -360)
-		transform.SetRotation(-360, 0, 0);
+	////"Clamp" the rotation within 360 and -360
+	////Except these are radians, so clamp between 3.14159 and -3.14159
+	////Rotation only occurs on the X and Y axes, so the Z axis can always be 0
+	//if (transform.rotation.x > TWO_PI || transform.rotation.x < -TWO_PI)
+	//	transform.SetRotation(0, transform.rotation.y, 0);
+	//if (transform.rotation.y > TWO_PI || transform.rotation.y < -TWO_PI)
+	//	transform.SetRotation(transform.rotation.x, 0, 0);
 
-	if (transform.GetRotation().y > 360)
-		transform.SetRotation(0, 360, 0);
-	else if (transform.GetRotation().y < -360)
-		transform.SetRotation(0, -360, 0);
+	////If the camera is twisted around itself
+	//if (abs(transform.rotation.x) > PI && abs(transform.rotation.y) > PI)
+	//{
+	//	if (transform.rotation.x > transform.rotation.y)
+	//		transform.SetRotation(abs(transform.rotation.x) - PI, 0, 0);
+	//	else if (transform.rotation.x < transform.rotation.y)
+	//		transform.SetRotation(0, abs(transform.rotation.y) - PI, 0);
+	//	else
+	//		transform.SetRotation(0, 0, 0);
+	//}
+
+	printf("Rotation ");
+	printVector(transform.rotation);
+	//printf("Up ");
+	//printVector(transform.up);
+	//printf("Forward ");
+	//printVector(transform.forward);
+	//printf("Right ");
+	//printVector(transform.right);
+	//printf("\n");
 }
 
 //Handles keyboard input

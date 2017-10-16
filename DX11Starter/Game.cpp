@@ -300,7 +300,7 @@ void Game::Draw(float deltaTime, float totalTime)
 void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 {
 	// Add any custom code here...
-	freeLookEnabled = true; //allows camera rotation with mouse
+
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;
 	prevMousePos.y = y;
@@ -317,7 +317,7 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 {
 	// Add any custom code here...
-	freeLookEnabled = false; 
+
 	// We don't care about the tracking the cursor outside
 	// the window anymore (we're not dragging if the mouse is up)
 	ReleaseCapture();
@@ -346,7 +346,7 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	//prevMousePos.y = y;
 
 	//When the left mouse button is held down and freelook is enabled
-	if (freeLookEnabled && buttonState && 0x0001)
+	if (buttonState && 0x0001)
 	{
 		//Move the camera with the mouse
 		float nextX = x - (float)prevMousePos.x;

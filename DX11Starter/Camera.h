@@ -2,6 +2,7 @@
 #include <DirectXMath.h>
 #include <Windows.h> //Input
 #include "Transform.h"
+#include "Macro.h" //Macros
 
 using namespace DirectX;
 
