@@ -4,6 +4,7 @@
 
 #include <DirectXMath.h> //DXMath library
 #include <Windows.h> //Input
+#include "Macro.h"
 
 using namespace DirectX; //Less unnecessary repetition
 

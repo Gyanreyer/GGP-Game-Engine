@@ -55,47 +55,53 @@ void Camera::SetRotation(XMFLOAT3 rot)
 //Handles keyboard input
 void Camera::KeyboardInput(float deltaTime)
 {
-	XMVECTOR normalizedForward = XMVector3Normalize(XMLoadFloat3(&forward)); //Create a normalized forward vector for movement
-	XMVECTOR up = XMVectorSet(0, 1, 0, 0); //The camera's up vector
+	//Load vectors from the camera
+	XMVECTOR pos = XMLoadFloat3(&position); //Load the position FLOAT3 as an XMVECTOR
+	XMVECTOR cameraForward = XMVector3Normalize(XMLoadFloat3(&forward)); //Load the camera's forward vector and normalize it
+	XMVECTOR cameraRight = XMVector3Normalize(XMLoadFloat3(&right)); //Load the camera's right vector and normalize it
 
-	//Load the position FLOAT3 as an XMVECTOR
-	XMVECTOR pos = XMLoadFloat3(&position);
+	//Create a unit up vector for vertical movement and cross product-based WASD movement
+	XMVECTOR unitUp = XMVectorSet(0, 1, 0, 0);
 
 	//Keyboard inputs use a bit mask because we only need the high bit
 	//Move the camera for WASD controls
 	//Space and X control vertical movement
+	//FPS controls, this will seem strange without the ground and other objects for context
 	//Move forward
 	if (GetAsyncKeyState('W') & 0x8000)
-		pos += normalizedForward * movementSpeed * deltaTime;
+		pos += XMVector3Cross(cameraRight, unitUp) * movementSpeed * deltaTime; //Cross the camera's right vector and the unit up vector to move forward
 	//Strafe left
 	if (GetAsyncKeyState('A') & 0x8000)
-		pos += XMVector3Cross(normalizedForward, up) * movementSpeed * deltaTime; //Cross the forward vector and the up axis
+		pos += XMVector3Cross(cameraForward, unitUp) * movementSpeed * deltaTime; //Cross the camera's forward vector and the unit up vector to move left
 	//Move backward
 	if (GetAsyncKeyState('S') & 0x8000)
-		pos -= normalizedForward * movementSpeed * deltaTime;
+		pos -= XMVector3Cross(cameraRight, unitUp) * movementSpeed * deltaTime; //Cross the camera's right vector and the unit up vector to move backwards
 	//Strafe right
 	if (GetAsyncKeyState('D') & 0x8000)
-		pos -= XMVector3Cross(normalizedForward, up) * movementSpeed * deltaTime; //Cross the forward vector and the up axis
+		pos -= XMVector3Cross(cameraForward, unitUp) * movementSpeed * deltaTime; //Cross the camera's forward vector and the unit up vector to move right
 	//Move down
 	if (GetAsyncKeyState('X') & 0x8000)
-		pos -= up * movementSpeed * deltaTime;
+		pos -= unitUp * movementSpeed * deltaTime; //Use the unit up vector for flying up
 	//Move up
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000)
-		pos += up * movementSpeed * deltaTime;
+		pos += unitUp * movementSpeed * deltaTime; //Use the unit up vector for flying down
 
 	//Store the position back into an XMVECTOR
+	//The camera's forward and right vectors do not need to be stored, they're probably updated in UpdateViewMatrix
 	XMStoreFloat3(&position, pos);
 }
 
 //Updates the view matrix
 void Camera::UpdateViewMatrix()
 {
-	XMFLOAT3 unitForward = XMFLOAT3(0, 0, 1); //Create a unit forward vector for transformations
-
 	XMVECTOR updatedRotation = XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, rotation.z); //Create a new rotation quaternion
-	XMLoadFloat3(&forward) = XMVector3Rotate(XMLoadFloat3(&unitForward), updatedRotation); //Apply the new rotation matrix to the camera's forward vector
 
-	XMMATRIX updatedViewMatrix = XMMatrixLookToLH(XMLoadFloat3(&position), XMLoadFloat3(&forward), XMVectorSet(0, 1, 0, 0)); //Update the view matrix
+	//Apply the new rotation matrix to the camera's forward vector
+	//Pass in a unit forward vector and the camera's forward vector
+	XMLoadFloat3(&forward) = XMVector3Rotate(XMVectorSet(0, 0, 1, 0), updatedRotation);
+
+	//Update the view matrix using the camera's position, forward vector, and a unit up vector
+	XMMATRIX updatedViewMatrix = XMMatrixLookToLH(XMLoadFloat3(&position), XMLoadFloat3(&forward), XMVectorSet(0, 1, 0, 0));
 
 	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(updatedViewMatrix)); //Transpose and update the camera's view matrix
 }
@@ -119,7 +125,7 @@ void Camera::UpdateProjectionMatrix(unsigned int width, unsigned int height)
 	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f * 3.1415926535f, (float)width / height, 0.1f, 100.0f);
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); //Transpose for HLSL
 }
-
+#include <stdio.h>
 //Handles mouse input
 void Camera::MouseInput(float xAxis, float yAxis)
 {
@@ -132,18 +138,20 @@ void Camera::MouseInput(float xAxis, float yAxis)
 	rotation.x += yRadianized * rotationSpeed; //Rotate around the Y axis
 	rotation.y += xRadianized * rotationSpeed; //Rotate around the X axis
 
+	//Clamp the rotation looking up and down (prevents stupid mouse things)
+	if (rotation.x > HALF_PI)
+		rotation.x = HALF_PI;
+	else if (rotation.x < -HALF_PI)
+		rotation.x = -HALF_PI;
+
 	//Calculate quaternion
 	XMVECTOR quaternion = XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, 0);
 
-	//Unit vectors
-	XMVECTOR unitForward = XMVectorSet(0, 0, 1, 0);
-	XMVECTOR unitRight = XMVectorSet(1, 0, 0, 0);
-	XMVECTOR unitUp = XMVectorSet(0, 1, 0, 0);
-
 	//Update vectors
-	XMVECTOR updatedForward = XMVector3Rotate(unitForward, quaternion);
-	XMVECTOR updatedRight = XMVector3Rotate(unitRight, quaternion);
-	XMVECTOR updatedUp = XMVector3Rotate(unitUp, quaternion);
+	//Pass in unit vectors for the corresponding update along with the quaternion
+	XMVECTOR updatedForward = XMVector3Rotate(XMVectorSet(0, 0, 1, 0), quaternion);
+	XMVECTOR updatedRight = XMVector3Rotate(XMVectorSet(1, 0, 0, 0), quaternion);
+	XMVECTOR updatedUp = XMVector3Rotate(XMVectorSet(0, 1, 0, 0), quaternion);
 
 	//Store the updated vectors
 	XMStoreFloat3(&forward, updatedForward);

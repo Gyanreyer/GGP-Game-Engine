@@ -238,7 +238,7 @@ Transform * Transform::GetChild(int index)
 }
 
 //Get number of children that transform has
-int Transform::GetChildCount()
+size_t Transform::GetChildCount()
 {
 	return children.size();
 }

@@ -59,7 +59,7 @@ public:
 	void RemoveChild(int index);//Remove a child at a given index
 	void RemoveChild(Transform * child);//Search for and remove a given transform from children
 	Transform * GetChild(int index);//Return reference to transform at given index
-	int GetChildCount();//Get number of children on this transform
+	size_t GetChildCount();//Get number of children on this transform
 
 	//Vectors for position/rotation/scale
 	XMFLOAT3 position, rotation, scale;
