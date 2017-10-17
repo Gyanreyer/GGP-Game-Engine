@@ -59,8 +59,9 @@ void Camera::KeyboardInput(float deltaTime)
 	XMVECTOR pos = XMLoadFloat3(&position); //Load the position FLOAT3 as an XMVECTOR
 	XMVECTOR cameraForward = XMVector3Normalize(XMLoadFloat3(&forward)); //Load the camera's forward vector and normalize it
 	XMVECTOR cameraRight = XMVector3Normalize(XMLoadFloat3(&right)); //Load the camera's right vector and normalize it
+	XMVECTOR cameraUp = XMVector3Normalize(XMLoadFloat3(&up)); //Load the camera's up vector and normalize it
 
-	//Create a unit up vector for vertical movement and cross product-based WASD movement
+	//Create a unit up vector for vertical movement and cross product-based forward and backwards movement
 	XMVECTOR unitUp = XMVectorSet(0, 1, 0, 0);
 
 	//Keyboard inputs use a bit mask because we only need the high bit
@@ -72,13 +73,13 @@ void Camera::KeyboardInput(float deltaTime)
 		pos += XMVector3Cross(cameraRight, unitUp) * movementSpeed * deltaTime; //Cross the camera's right vector and the unit up vector to move forward
 	//Strafe left
 	if (GetAsyncKeyState('A') & 0x8000)
-		pos += XMVector3Cross(cameraForward, unitUp) * movementSpeed * deltaTime; //Cross the camera's forward vector and the unit up vector to move left
+		pos += XMVector3Cross(cameraForward, cameraUp) * movementSpeed * deltaTime; //Cross the camera's forward vector and the camera's up vector to move left
 	//Move backward
 	if (GetAsyncKeyState('S') & 0x8000)
-		pos -= XMVector3Cross(cameraRight, unitUp) * movementSpeed * deltaTime; //Cross the camera's right vector and the unit up vector to move backwards
+		pos -= XMVector3Cross(cameraRight, unitUp) * movementSpeed * deltaTime; //Cross the camera's right vector and the unit camera's vector to move backwards
 	//Strafe right
 	if (GetAsyncKeyState('D') & 0x8000)
-		pos -= XMVector3Cross(cameraForward, unitUp) * movementSpeed * deltaTime; //Cross the camera's forward vector and the unit up vector to move right
+		pos -= XMVector3Cross(cameraForward, cameraUp) * movementSpeed * deltaTime; //Cross the camera's forward vector and the unit up vector to move right
 	//Move down
 	if (GetAsyncKeyState('X') & 0x8000)
 		pos -= unitUp * movementSpeed * deltaTime; //Use the unit up vector for flying up
@@ -89,6 +90,8 @@ void Camera::KeyboardInput(float deltaTime)
 	//Store the position back into an XMVECTOR
 	//The camera's forward and right vectors do not need to be stored, they're probably updated in UpdateViewMatrix
 	XMStoreFloat3(&position, pos);
+
+	printFloat3(position);
 }
 
 //Updates the view matrix
