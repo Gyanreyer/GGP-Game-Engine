@@ -16,16 +16,16 @@ private:
 
 	//XMVECTOR and XMMATRIX are used for calculation
 	//XMFLOAT3 is used for storage/passing the data around
-	//Could make these XMFLOAT3, but this would require more method calls in the class
 	XMFLOAT3 position; //The camera's position
-
+	XMFLOAT3 rotation; //The camera's rotation
 	XMFLOAT3 forward; //The camera's forward vector
 	XMFLOAT3 right; //The camera's right vector
 	XMFLOAT3 up; //The camera's up vector
 
-	XMFLOAT3 rotation; //The camera's rotation
-	float movementSpeed; //The camera's movement speed
-	float rotationSpeed; //The camera's rotation speed
+	//BYTE VALUES MUST BE BETWEEN 0 AND 255
+	//UNSIGNED SHORT VALUES MUST BE BETWEEN 0 AND 65535
+	byte movementSpeed; //The camera's movement speed
+	unsigned short mouseSensitivity; //Mouse sensitivity, determines the camera's rotation speed
 
 	void KeyboardInput(float deltaTime); //Handles keyboard input
 	void UpdateViewMatrix(); //Updates the view matrix

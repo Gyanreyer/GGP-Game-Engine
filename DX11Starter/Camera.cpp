@@ -12,15 +12,17 @@ Camera::Camera(unsigned int width, unsigned int height)
 {
 	XMStoreFloat4x4(&viewMatrix, XMMatrixIdentity()); //Store the identity matrix in the view matrix
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixIdentity()); //Store the identity matrix in the projection matrix
-	position = XMFLOAT3(0, 0, -5); //Default position is at world origin
 
+	position = XMFLOAT3(0, 0, -5); //Default position is at world origin
+	rotation = XMFLOAT3(0, 0, 0); //Default rotation is none
 	forward = XMFLOAT3(0, 0, 1); //The camera's forward vector
 	right = XMFLOAT3(1, 0, 0); //The camera's right vector
 	up = XMFLOAT3(0, 1, 0); //The camera's up vector
 
-	rotation = XMFLOAT3(0, 0, 0); //Default rotation is none
+	//BYTE VALUES MUST BE BETWEEN 0 AND 255
+	//UNSIGNED SHORT VALUES MUST BE BETWEEN 0 AND 65535
 	movementSpeed = 2; //The camera's movement speed
-	rotationSpeed = .5f; //The camera's rotation speed
+	mouseSensitivity = 400; //Mouse sensitivity, determines the camera's rotation speed
 
 	//Initialize the view matrix
 	UpdateViewMatrix();
@@ -90,8 +92,6 @@ void Camera::KeyboardInput(float deltaTime)
 	//Store the position back into an XMVECTOR
 	//The camera's forward and right vectors do not need to be stored, they're probably updated in UpdateViewMatrix
 	XMStoreFloat3(&position, pos);
-
-	printFloat3(position);
 }
 
 //Updates the view matrix
@@ -128,18 +128,14 @@ void Camera::UpdateProjectionMatrix(unsigned int width, unsigned int height)
 	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f * 3.1415926535f, (float)width / height, 0.1f, 100.0f);
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); //Transpose for HLSL
 }
-#include <stdio.h>
+
 //Handles mouse input
 void Camera::MouseInput(float xAxis, float yAxis)
 {
-	//Scale the rotations in terms of radians
+	//Calculate the rotations, scaled in terms of radians
 	//FPS controlls, mouse moves in the direction the camera moves
-	float xRadianized = xAxis / 200;
-	float yRadianized = yAxis / 200;
-
-	//Calculate rotations
-	rotation.x += yRadianized * rotationSpeed; //Rotate around the Y axis
-	rotation.y += xRadianized * rotationSpeed; //Rotate around the X axis
+	rotation.x += yAxis / mouseSensitivity;
+	rotation.y += xAxis / mouseSensitivity;
 
 	//Clamp the rotation looking up and down (prevents stupid mouse things)
 	if (rotation.x > HALF_PI)
