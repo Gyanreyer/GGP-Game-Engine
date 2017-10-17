@@ -3,15 +3,6 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-# Unity Metadata
-Unity Protoype/GGP Prototype/Library/metadata/
-/[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
-/Assets/AssetStoreTools*
-
 # User-specific files
 *.suo
 *.user
