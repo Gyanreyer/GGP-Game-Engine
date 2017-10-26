@@ -1,5 +1,13 @@
 #pragma once
-
+//ImGui Includes//////////////
+#include "Imgui\imconfig.h"
+#include "Imgui\imgui.h"
+#include "Imgui\imgui_impl_dx11.h"
+#include "Imgui\imgui_internal.h"
+#include "Imgui\stb_rect_pack.h"
+#include "Imgui\stb_textedit.h"
+#include "Imgui\stb_truetype.h"
+/////////////////////////////
 #include <Windows.h>
 #include <d3d11.h>
 #include <string>

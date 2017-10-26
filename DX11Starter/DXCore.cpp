@@ -515,6 +515,8 @@ void DXCore::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowL
 // --------------------------------------------------------
 LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	ImGuiIO& io = ImGui::GetIO();
+
 	// Check the incoming message and handle any we care about
 	switch (uMsg)
 	{
@@ -551,15 +553,32 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 	// Mouse button being pressed (while the cursor is currently over our window)
 	case WM_LBUTTONDOWN:
+		io.MouseDown[0] = true;
+		OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+
 	case WM_MBUTTONDOWN:
+		io.MouseDown[2] = true;
+		OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
 	case WM_RBUTTONDOWN:
+		io.MouseDown[1] = true;
 		OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 	// Mouse button being released (while the cursor is currently over our window)
 	case WM_LBUTTONUP:
+		io.MouseDown[0] = false;
+		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+
 	case WM_MBUTTONUP:
+		io.MouseDown[2] = false;
+		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+
 	case WM_RBUTTONUP:
+		io.MouseDown[1] = false;
 		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 

@@ -61,9 +61,12 @@ private:
 	DirectionalLight light2;
 
 	Camera camera;
+	bool freelookEnabled;
 
 	//Don't need this due to some thing I did but forgot how it works
 	//bool freeLookEnabled = false;	//tells whether freelook is enabled 
 
+	//imgui Variables
+	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 };
 

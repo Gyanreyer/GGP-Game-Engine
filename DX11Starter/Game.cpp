@@ -40,6 +40,9 @@ Game::~Game()
 {	// Delete our simple shader objects, which
 	// will clean up their own internal DirectX stuff
 	
+	//Releases and Shuts Down Imgui
+	ImGui_ImplDX11_Shutdown();
+
 	//asset manager cleans up assets when game is deleted
 }
 
@@ -49,6 +52,9 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	//Initialize ImGui
+	ImGui_ImplDX11_Init(hWnd, device, context);
+
 	//Create camera object
 	camera = Camera(width, height);
 
@@ -216,6 +222,12 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	ImGuiIO& io = ImGui::GetIO();
+	io.DeltaTime = deltaTime;
+
+	//All Imgui UI stuff must be done between imgui newFrame() and imgui render()
+	ImGui_ImplDX11_NewFrame();
+
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
@@ -251,7 +263,7 @@ void Game::Update(float deltaTime, float totalTime)
 void Game::Draw(float deltaTime, float totalTime)
 {
 	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
+	const float color[4] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w };
 
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
@@ -283,6 +295,21 @@ void Game::Draw(float deltaTime, float totalTime)
 		gameObjects[i]->Draw(viewMat, projMat);
 	}
 
+	 
+	// 1. Show a simple window
+	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+	{
+		static float f = 0.0f;
+		ImGui::Text("Hello, world!");
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("clear color", (float*)&clear_color);
+		ImGui::Checkbox("Free Look Enabled", &freelookEnabled);
+		//if (ImGui::Button("Test Window")) show_test_window ^= 1;
+		//if (ImGui::Button("Another Window")) show_another_window ^= 1;
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
+
+	ImGui::Render();
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
 	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
@@ -299,7 +326,9 @@ void Game::Draw(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-	// Add any custom code here...
+	ImGuiIO& io = ImGui::GetIO();
+	//io.MouseDown[0] = true;
+	//io.MouseDown[1] = true;
 
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;
@@ -316,6 +345,10 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 {
+	ImGuiIO& io = ImGui::GetIO();
+	//io.MouseDown[0] = false;
+	//io.MouseDown[1] = false;
+
 	// Add any custom code here...
 
 	// We don't care about the tracking the cursor outside
@@ -330,6 +363,9 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
+	ImGuiIO& io = ImGui::GetIO();
+	io.MousePos = ImVec2((float)x,(float)y);
+
 	//float sensitivity = .002f;//Mouse sensitivity - higher = more sensitive
 	//if (freeLookEnabled) 
 	//{
@@ -346,7 +382,7 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	//prevMousePos.y = y;
 
 	//When the left mouse button is held down and freelook is enabled
-	if (buttonState && 0x0001)
+	if (buttonState && 0x0001 && freelookEnabled)
 	{
 		//Move the camera with the mouse
 		float nextX = x - (float)prevMousePos.x;
