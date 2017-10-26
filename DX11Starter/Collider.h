@@ -7,10 +7,10 @@ using namespace DirectX;
 
 //The type of collider this is
 enum ColliderType {
-	BOX =0,
-	SPHERE =1,
-	MESH =2, //Probably will never implement
-	NONE = 3
+	BOX,
+	SPHERE,
+	MESH, //Probably will never implement
+	NONE
 };
 
 //Base collider
@@ -18,45 +18,24 @@ struct Collider
 {
 	ColliderType collType;
 	XMFLOAT3 center; //The position of the collider
+	XMFLOAT3 dimensions; //Collider dimensions
 	bool isTrigger; //Is this collider a trigger
 
 	//Constructor
 	Collider()
 	{
 		collType = ColliderType::NONE;
-		center = XMFLOAT3();
+		center = XMFLOAT3(0, 0, 0);
+		dimensions = XMFLOAT3(1, 1, 1);
 		isTrigger = false;
 	}
 
-	//Constructor 
-	Collider(XMFLOAT3 cent, ColliderType coltype, bool trigger)
+	//Parameterized constructor 
+	Collider(ColliderType coltype, XMFLOAT3 cent, XMFLOAT3 dims, bool trigger)
 	{
-		center = cent;
-		isTrigger = trigger;
 		collType = coltype;
-	}
-};
-
-//Box collider
-struct BoxCollider : Collider
-{
-	XMFLOAT3 dimensions; //Collider dimensions
-
-	//Constructor 
-	BoxCollider(XMFLOAT3 cent, bool trigger, XMFLOAT3 dim) : Collider(cent, ColliderType::BOX, trigger)
-	{
-		dimensions = dim;
-	}
-};
-
-//Sphere collider
-struct SphereCollider : Collider
-{
-	float radius; //Collider radius
-
-	//Constructor 
-	SphereCollider(XMFLOAT3 cent, bool trigger, float rad) : Collider(cent,  ColliderType::SPHERE, trigger)
-	{
-		radius = rad;
+		center = cent;
+		dimensions = dims;
+		isTrigger = trigger;
 	}
 };

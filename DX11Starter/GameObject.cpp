@@ -20,19 +20,7 @@ GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderTy
 
 	transform = Transform();//Initialize transform
 
-	switch (colliderType) {
-	case ColliderType::BOX:
-		coll = BoxCollider(transform.position, false, XMFLOAT3(1, 1, 1));
-		break;
-
-	case ColliderType::SPHERE:
-		coll = SphereCollider(transform.position, false, 1);
-		break;
-
-	default:
-		coll = Collider();
-		break;
-	}
+	coll = Collider(colliderType, transform.position, transform.scale, false);
 
 	context = ctx;
 }
@@ -130,5 +118,6 @@ void GameObject::UpdateWorldMatrix()
 		transform.DoneUpdating();//Notify transform that matrix has been updated successfully
 
 		coll.center = transform.position;
+		coll.dimensions = transform.scale;
 	}
 }

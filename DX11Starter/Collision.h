@@ -6,6 +6,6 @@ class Collision
 {
 public:
 	static bool CheckCollision(Collider* collider1, Collider* collider2);
-	static bool CheckCollision(BoxCollider* box1, BoxCollider* box2);
-	static bool CheckCollision(SphereCollider* sphere1, SphereCollider* sphere2);
+	static bool CheckCollisionBoxBox(Collider* box1, Collider* box2);
+	static bool CheckCollisionSphereSphere(Collider* sphere1, Collider* sphere2);
 };
