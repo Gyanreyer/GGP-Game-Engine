@@ -106,14 +106,13 @@ void Game::LoadShaders()
 void Game::CreateGameObjects()
 {
 	//Create 2 circle GOs
-	sphere1 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("StoneMat"), context);
+	sphere1 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("StoneMat"), ColliderType::SPHERE, context);
 	sphere1.GetTransform()->SetScale(1.0f);
 
-	sphere2 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("StoneMat"),context);
-	sphere2.GetTransform()->SetScale(0.25f);
+	sphere2 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("HazardCrateMat"), ColliderType::SPHERE, context);
+	sphere2.GetTransform()->SetScale(0.75f);
 
 	sphere2.GetTransform()->SetPosition(0.75f, 0, 0);
-	sphere2.GetTransform()->SetParent(sphere1.GetTransform());
 
 	//Create 2 square GOs
 	/*cube1 = GameObject(assetManager.GetMesh("Cube"), assetManager.GetMaterial("StoneMat"), context);
@@ -241,6 +240,9 @@ void Game::Update(float deltaTime, float totalTime)
 	//Rotate circle1 and make it float up and down
 	sphere1.GetTransform()->Rotate(0.0f, 0.0f, 2*deltaTime);
 	sphere1.GetTransform()->SetPosition(0.0f, sinTime*0.5f, 0.0f);
+
+	SphereCollider* sp = (SphereCollider*)sphere1.GetCollider();
+	Collision::CheckCollision((SphereCollider*)sphere1.GetCollider(), (SphereCollider*)sphere2.GetCollider());
 
 	//Make pentagons shrink/grow and rotate in opposite directions
 	torus1.GetTransform()->SetScale((2.f + cosTime)*.1f);

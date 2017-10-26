@@ -5,6 +5,8 @@
 #include <DirectXMath.h>
 #include "Mesh.h"
 #include "GameObject.h"
+#include "Collider.h"
+#include "Collision.h"
 #include "Lights.h"
 #include "Camera.h"
 #include "WICTextureLoader.h"

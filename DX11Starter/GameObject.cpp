@@ -7,9 +7,34 @@ GameObject::GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * c
 	SetMesh(mesh);//Set mesh to given mesh
 	SetMaterial(material);//Set material to given material
 
+	coll = Collider();
 	context = ctx;
 
 	transform = Transform();//Initialize transform
+}
+
+GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderType, ID3D11DeviceContext * ctx)
+{
+	SetMesh(mesh);//Set mesh to given mesh
+	SetMaterial(material);//Set material to given material
+
+	transform = Transform();//Initialize transform
+
+	switch (colliderType) {
+	case ColliderType::BOX:
+		coll = BoxCollider(transform.position, false, XMFLOAT3(1, 1, 1));
+		break;
+
+	case ColliderType::SPHERE:
+		coll = SphereCollider(transform.position, false, 1);
+		break;
+
+	default:
+		coll = Collider();
+		break;
+	}
+
+	context = ctx;
 }
 
 GameObject::~GameObject() {}
@@ -73,6 +98,11 @@ Material * GameObject::GetMaterial()
 	return material;
 }
 
+Collider* GameObject::GetCollider()
+{
+	return &coll;
+}
+
 XMFLOAT4X4 GameObject::GetWorldMatrix()
 {
 	UpdateWorldMatrix();//Make sure world matrix is up to date before returning
@@ -98,5 +128,7 @@ void GameObject::UpdateWorldMatrix()
 		XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(newWM));
 
 		transform.DoneUpdating();//Notify transform that matrix has been updated successfully
+
+		coll.center = transform.position;
 	}
 }

@@ -62,9 +62,6 @@
     <ClCompile Include="Imgui\imgui_impl_dx11.cpp">
       <Filter>External Libraries\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Collider.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

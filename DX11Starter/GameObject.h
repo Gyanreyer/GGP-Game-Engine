@@ -11,6 +11,7 @@ class GameObject
 public:
 	GameObject();//Default constructor does nothing
 	GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx);//Constructor sets mesh/material/context for drawing and initializes transform
+	GameObject(Mesh * mesh, Material * material, ColliderType colliderType, ID3D11DeviceContext * ctx);
 	~GameObject();
 
 	//Takes a Mesh pointer to use for drawing this object
@@ -26,7 +27,7 @@ public:
 
 	Transform * GetTransform();//Get reference to this object's transform
 	Material* GetMaterial(); //Get objects Material
-
+	Collider* GetCollider();
 	XMFLOAT4X4 GetWorldMatrix();
 
 private:
