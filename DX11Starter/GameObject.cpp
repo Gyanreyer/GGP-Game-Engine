@@ -1,6 +1,5 @@
 #include "GameObject.h"
 
-
 GameObject::GameObject() {}
 
 GameObject::GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx)

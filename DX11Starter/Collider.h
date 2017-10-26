@@ -19,6 +19,11 @@ struct Collider
 	XMFLOAT3 center; //The position of the collider
 	bool isTrigger; //Is this collider a trigger
 
+	//Constructor
+	Collider()
+	{
+	}
+
 	//Constructor 
 	Collider(XMFLOAT3 cent, bool trigger)
 	{
