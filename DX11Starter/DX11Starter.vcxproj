@@ -114,6 +114,7 @@
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="DXCore.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Game.cpp" />
@@ -130,6 +131,7 @@
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Collider.h" />
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Game.h" />

@@ -4,6 +4,7 @@
 #include "SimpleShader.h"
 #include "Material.h"
 #include "Transform.h"
+#include "Collider.h" //Colliders
 
 class GameObject
 {
@@ -31,6 +32,7 @@ public:
 private:
 	Mesh * mesh;//Mesh for drawing
 	Material * material;//Material to apply to mesh
+	Collider coll; //The collider on this object
 
 	//Buffers and index count for drawing mesh
 	ID3D11Buffer * vertexBuffer;
