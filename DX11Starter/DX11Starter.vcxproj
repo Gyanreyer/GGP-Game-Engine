@@ -115,6 +115,7 @@
     <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Collider.cpp" />
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DXCore.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Game.cpp" />
@@ -125,6 +126,8 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Projectile.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
@@ -132,6 +135,7 @@
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Collider.h" />
+    <ClInclude Include="Collision.h" />
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Game.h" />
@@ -146,6 +150,8 @@
     <ClInclude Include="Macro.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="Projectile.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Vertex.h" />
