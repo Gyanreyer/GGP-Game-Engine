@@ -99,14 +99,20 @@ void Transform::Rotate(float roll, float pitch, float yaw)
 void Transform::RotateClamped(float roll, float pitch, float yaw, 
 	float minAngle, float maxAngle)
 {
-	Rotate(roll, pitch, yaw);
-	
-	if (rotation.x < minAngle) {
+	//Calculate new rotation after applying rpy	
+	XMFLOAT3 newRotation;
+	XMStoreFloat3(&newRotation, XMLoadFloat3(&rotation) + XMVectorSet(roll, pitch, yaw, 0.0f));
+
+	//Clamp x rotation between given min and max
+	if (newRotation.x < minAngle) {
 		rotation.x = minAngle;
 	}
-	else if (rotation.x > maxAngle) {
+	else if (newRotation.x > maxAngle) {
 		rotation.x = maxAngle;
 	}
+
+	//Set new rotation
+	SetRotation(newRotation);
 }
 
 void Transform::MoveRelative(float fwdSpeed, float sideSpeed, float upSpeed)

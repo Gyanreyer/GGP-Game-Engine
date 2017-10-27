@@ -29,6 +29,11 @@ void Projectile::Update(float deltaTime)
 //Get distance traveled from start point since fired
 float Projectile::GetDistanceTraveled()
 {
-	//Return estimate of distance from start point, sacrifices accuracy for performance
-	return XMVector3LengthEst(XMLoadFloat3(&transform.GetPosition())-XMLoadFloat3(&startPosition));
+	XMFLOAT3 lengthEst;
+	//Helper method optimized to get an efficient but not perfectly accurate estimate of dist
+	//Its return value is an XMVECTOR of three identical floats for the result, the fuck
+	XMStoreFloat3(&lengthEst,
+		XMVector3LengthEst(XMLoadFloat3(&transform.GetPosition())-XMLoadFloat3(&startPosition)));
+
+	return lengthEst.x;
 }

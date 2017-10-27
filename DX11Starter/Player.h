@@ -10,9 +10,6 @@ public:
 	~Player();
 
 	void Update(float deltaTime);
-
-	//Move based on keyboard input
-	void UpdateKeyInput(float deltaTime);
 	void UpdateMouseInput(float xAxis, float yAxis);
 
 	void Jump();//Jump w/ some sort of physics
@@ -21,8 +18,8 @@ public:
 	void UpdateProjectionMatrix(unsigned int width, unsigned int height);
 	void UpdateViewMatrix();
 
-	XMFLOAT4X4 * GetViewMatrix();
-	XMFLOAT4X4 * GetProjectionMatrix();
+	XMFLOAT4X4 GetViewMatrix();
+	XMFLOAT4X4 GetProjectionMatrix();
 
 private:
 	//BYTE VALUES MUST BE BETWEEN 0 AND 255
@@ -32,5 +29,8 @@ private:
 
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projectionMatrix;
+
+	//Move based on keyboard input
+	void UpdateKeyInput(float deltaTime);
 };
 

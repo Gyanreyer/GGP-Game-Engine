@@ -40,7 +40,7 @@ void Player::UpdateKeyInput(float deltaTime)
 	}
 	//Move right relative to forward on XZ plane when D pressed
 	if (GetAsyncKeyState('D') & 0x8000) {
-		sideSpeed += movementSpeed * deltaTime;
+		sideSpeed -= movementSpeed * deltaTime;
 	}
 	//Move left relative to forward on XZ plane when A pressed
 	if (GetAsyncKeyState('A') & 0x8000) {
@@ -87,7 +87,7 @@ void Player::UpdateProjectionMatrix(unsigned int width, unsigned int height) {
 void Player::UpdateViewMatrix()
 {
 	//Only update when transform properties have been modified
-	if (!transform.MatrixNeedsUpdate) return;
+	if (!transform.MatrixNeedsUpdate()) return;
 
 	//Store view matrix based on transform's position and direction
 	XMStoreFloat4x4(&viewMatrix,
@@ -101,12 +101,12 @@ void Player::UpdateViewMatrix()
 	transform.DoneUpdating();//Notify transform that matrix has been updated
 }
 
-XMFLOAT4X4 * Player::GetViewMatrix()
+XMFLOAT4X4 Player::GetViewMatrix()
 {
-	return &viewMatrix;
+	return viewMatrix;
 }
 
-XMFLOAT4X4 * Player::GetProjectionMatrix()
+XMFLOAT4X4 Player::GetProjectionMatrix()
 {
-	return &projectionMatrix;
+	return projectionMatrix;
 }

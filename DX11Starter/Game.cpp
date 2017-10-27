@@ -61,7 +61,8 @@ void Game::Init()
 	ImGui_ImplDX11_Init(hWnd, device, context);
 
 	//Create camera object
-	camera = Camera(width, height);
+	//camera = Camera(width, height);
+	player = Player(ColliderType::SPHERE, width, height);
 
 	//Create directional lights
 	light1 = { XMFLOAT4(0.1f,0.1f,0.1f,1.0f),XMFLOAT4(1.0f,1.0f,1.0f,1.0f),XMFLOAT3(1.0f,-1.0f,0.5f) };
@@ -218,7 +219,8 @@ void Game::OnResize()
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 
-	camera.UpdateProjectionMatrix(width, height);
+	player.UpdateProjectionMatrix(width,height);
+	//camera.UpdateProjectionMatrix(width, height);
 }
 
 // --------------------------------------------------------
@@ -236,7 +238,8 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	camera.Update(deltaTime);
+    //camera.Update(deltaTime);
+	player.Update(deltaTime);
 
 	//Get sin and cos of current time for manipulating position and scale of objects
 	float sinTime = XMScalarSin(totalTime);
@@ -282,8 +285,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
-	XMFLOAT4X4 viewMat = camera.GetViewMatrix();
-	XMFLOAT4X4 projMat = camera.GetProjectionMatrix();
+	XMFLOAT4X4 viewMat = player.GetViewMatrix();//camera.GetViewMatrix();
+	XMFLOAT4X4 projMat = player.GetProjectionMatrix();//camera.GetProjectionMatrix();
 
 	//Loop through GameObjects and draw them
 	for (int i = 0; i < 5; i++)
@@ -311,7 +314,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 		ImGui::SliderFloat3("Sphere2 Pos", pos, -5, 5);
 		ImGui::ColorEdit3("clear color", (float*)&clear_color);
-		ImGui::Checkbox("Free Look Enabled", &freelookEnabled);
+		//ImGui::Checkbox("Free Look Enabled", &freelookEnabled);//implement later
 		//if (ImGui::Button("Test Window")) show_test_window ^= 1;
 		//if (ImGui::Button("Another Window")) show_another_window ^= 1;
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -346,6 +349,9 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 	// events even if the mouse leaves the window.  we'll be
 	// releasing the capture once a mouse button is released
 	SetCapture(hWnd);
+
+	//Make player shoot
+	//player.Shoot();?
 }
 
 // --------------------------------------------------------
@@ -390,7 +396,7 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	//prevMousePos.y = y;
 
 	//When the left mouse button is held down and freelook is enabled
-	if (buttonState && 0x0001 && freelookEnabled)
+	/*if (buttonState && 0x0001 && freelookEnabled)
 	{
 		//Move the camera with the mouse
 		float nextX = x - (float)prevMousePos.x;
@@ -401,7 +407,15 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 		// Save the previous mouse position, so we have it for the future
 		prevMousePos.x = x;
 		prevMousePos.y = y;
-	}
+	}*/
+
+	float nextX = x - prevMousePos.x;
+	float nextY = y - prevMousePos.y;
+
+	player.UpdateMouseInput(nextX, nextY);
+
+	prevMousePos.x = x;
+	prevMousePos.y = y;
 }
 
 // --------------------------------------------------------
