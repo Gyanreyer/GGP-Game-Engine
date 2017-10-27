@@ -12,6 +12,7 @@ public:
 	GameObject();//Default constructor does nothing
 	GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx);//Constructor sets mesh/material/context for drawing and initializes transform
 	GameObject(Mesh * mesh, Material * material, ColliderType colliderType, ID3D11DeviceContext * ctx);
+	GameObject(ColliderType colliderType);//Constructor for object with no mesh (do we need this...?)
 	~GameObject();
 
 	//Takes a Mesh pointer to use for drawing this object
@@ -42,9 +43,12 @@ private:
 
 	ID3D11DeviceContext * context;
 
-	Transform transform;//Transform determines position/rotation/scale this object is drawn at
-
 	XMFLOAT4X4 worldMatrix;
 	void UpdateWorldMatrix();
+
+	bool hasMesh;
+
+protected:
+	Transform transform;//Transform determines position/rotation/scale this object is drawn at
 };
 

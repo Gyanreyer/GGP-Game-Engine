@@ -95,6 +95,20 @@ void Transform::Rotate(float roll, float pitch, float yaw)
 	SetRotation(XMLoadFloat3(&rotation) + XMVectorSet(roll, pitch, yaw, 0.0f));
 }
 
+//Rotate object and clamp vertical rotation
+void Transform::RotateClamped(float roll, float pitch, float yaw, 
+	float minAngle, float maxAngle)
+{
+	Rotate(roll, pitch, yaw);
+	
+	if (rotation.x < minAngle) {
+		rotation.x = minAngle;
+	}
+	else if (rotation.x > maxAngle) {
+		rotation.x = maxAngle;
+	}
+}
+
 void Transform::MoveRelative(float fwdSpeed, float sideSpeed, float upSpeed)
 {
 	if (fwdSpeed == 0.0f && sideSpeed == 0.0f && upSpeed == 0.0f) return;//Return early if no movement

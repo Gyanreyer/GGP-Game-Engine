@@ -25,6 +25,15 @@ GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderTy
 	context = ctx;
 }
 
+GameObject::GameObject(ColliderType colliderType)
+{
+	transform = Transform();
+
+	coll = Collider(colliderType, transform.position, transform.scale, false);
+
+	hasMesh = false;//This object doesn't have a mesh to be drawn
+}
+
 GameObject::~GameObject() {}
 
 //Set given mesh to be this object's mesh and store relevant info for drawing it
@@ -35,6 +44,8 @@ void GameObject::SetMesh(Mesh * mesh)
 	indexBuffer = mesh->GetIndexBuffer();
 
 	meshIndexCount = mesh->GetIndexCount();
+
+	hasMesh = true;
 }
 
 //Draw the mesh!

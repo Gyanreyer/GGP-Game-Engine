@@ -32,6 +32,7 @@ public:
 	void Move(XMFLOAT3 moveVec);
 	void Move(XMVECTOR moveVec);
 	void Rotate(float roll, float pitch, float yaw);
+	void RotateClamped(float roll, float pitch, float yaw, float minAngle, float maxAngle);
 	void MoveRelative(float fwdSpeed, float sideSpeed, float upSpeed);//Move relative to forward and left dir vectors
 	void MoveRelativeAxes(float fwdSpeed, float sideSpeed, float upSpeed);//Move relative to direction where fwd is always on xz plane and up is always y axis
 
