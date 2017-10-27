@@ -35,7 +35,7 @@ struct Collider
 	{
 		collType = coltype;
 		center = cent;
-		dimensions = dims;
+		dimensions = XMFLOAT3(dims.x / 2, dims.y / 2, dims.z / 2); //DIVIDE HERE BECAUSE NOT DOING IT HERE HAS ALREADY TORN THIS FAMILY APART
 		isTrigger = trigger;
 	}
 };

@@ -244,10 +244,10 @@ void Game::Update(float deltaTime, float totalTime)
 
 	//Rotate circle1 and make it float up and down
 	sphere1.GetTransform()->Rotate(0.0f, 0.0f, 2*deltaTime);
-	sphere1.GetTransform()->SetPosition(0.0f, sinTime*0.5f, 0.0f);
+	//sphere1.GetTransform()->SetPosition(0.0f, sinTime*0.5f, 0.0f);
 
 	sphere2.GetTransform()->SetPosition(pos[0], pos[1], pos[2]);
-	Collision::CheckCollisionSphereSphere(sphere1.GetCollider(), sphere2.GetCollider());
+	Collision::CheckCollisionBoxBox(sphere1.GetCollider(), sphere2.GetCollider());
 
 	//Make pentagons shrink/grow and rotate in opposite directions
 	torus1.GetTransform()->SetScale((2.f + cosTime)*.1f);
@@ -309,7 +309,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		static float f = 0.0f;
 		ImGui::Text("Hello, world!");
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-		ImGui::SliderFloat3("Sphere2 Pos", pos, 0, 10);
+		ImGui::SliderFloat3("Sphere2 Pos", pos, -5, 5);
 		ImGui::ColorEdit3("clear color", (float*)&clear_color);
 		ImGui::Checkbox("Free Look Enabled", &freelookEnabled);
 		//if (ImGui::Button("Test Window")) show_test_window ^= 1;
