@@ -114,7 +114,7 @@ void Game::CreateGameObjects()
 	sphere1 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("StoneMat"), ColliderType::SPHERE, context);
 	sphere1.GetTransform()->SetScale(1.0f);
 
-	sphere2 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("HazardCrateMat"), ColliderType::SPHERE, context);
+	sphere2 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("HazardCrateMat"), ColliderType::BOX, context);
 	sphere2.GetTransform()->SetScale(0.75f);
 
 	sphere2.GetTransform()->SetPosition(0.75f, 0, 0);
