@@ -41,6 +41,10 @@ bool Collision::CheckCollisionBoxBox(Collider* box1, Collider* box2)
 //Sphere-Sphere collisions
 bool Collision::CheckCollisionSphereSphere(Collider* sphere1, Collider* sphere2)
 {
+	//Divide all incoming dimensions by 2
+	sphere1->dimensions.x /= 2;
+	sphere2->dimensions.x /= 2;
+
 	XMFLOAT3 pow2 = XMFLOAT3(2, 2, 2); //Vector for squaring
 	XMVECTOR distanceBetweenCenter = XMLoadFloat3(&sphere1->center) - XMLoadFloat3(&sphere2->center); //Get the distance between the center of the two colliders
 	float magnitude;
@@ -48,7 +52,7 @@ bool Collision::CheckCollisionSphereSphere(Collider* sphere1, Collider* sphere2)
 
 	//Calculate the combined radius
 	//Incomine dimension is a diameter
-	float combinedRadius = sphere1->dimensions.x / 2 + sphere2->dimensions.x / 2;
+	float combinedRadius = sphere1->dimensions.x + sphere2->dimensions.x;
 
 	if (magnitude > combinedRadius)  //spheres are not colliding
 	{
@@ -62,44 +66,70 @@ bool Collision::CheckCollisionSphereSphere(Collider* sphere1, Collider* sphere2)
 
 bool Collision::CheckCollisionSphereBox(Collider * sphere, Collider * box)
 {
-	float distanceSquared = 0.0f;
-
 	//Divide all incoming dimensions by 2
 	sphere->dimensions.x /= 2;
 	box->dimensions.x /= 2;
 	box->dimensions.y /= 2;
 	box->dimensions.z /= 2;
 
-	if ((sphere->center.x - sphere->dimensions.x) > (box->center.x + box->dimensions.x)) //If the sphere collides from the right of the box
-	{
-		distanceSquared += pow(sphere->center.x - (box->center.x + box->dimensions.x), 2); //Add to the distance squared
-	}
-	if ((sphere->center.x + sphere->dimensions.x) < (box->center.x - box->dimensions.x)) //If the sphere collides from the left of the box
-	{
-		distanceSquared += pow((box->center.x + box->dimensions.x) - sphere->center.x, 2); //Add to the distance squared
-	}
+	//This is a much better option than all the if statements used in the previous solution
+	//https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection#Sphere_versus_AABB
+	//Get the closest point from the box to the sphere by clamping
+	float x = fmaxf(box->center.x - box->dimensions.x, fminf(sphere->center.x, box->center.x + box->dimensions.x));
+	float y = fmaxf(box->center.y - box->dimensions.y, fminf(sphere->center.y, box->center.y + box->dimensions.y));
+	float z = fmaxf(box->center.z - box->dimensions.z, fminf(sphere->center.z, box->center.z + box->dimensions.z));
 
-	if ((sphere->center.y - sphere->dimensions.x) > (box->center.y + box->dimensions.y)) //If the sphere collides from the top of the box
-	{
-		distanceSquared += pow(sphere->center.y - (box->center.y + box->dimensions.y), 2); //Add to the distance squared
-	}
-	if ((sphere->center.y + sphere->dimensions.x) < (box->center.y - box->dimensions.y)) //If the sphere collides from the bottom of the box
-	{
-		distanceSquared += pow((box->center.y + box->dimensions.y) - sphere->center.y, 2); //Add to the distance squared
-	}
+	//We don't sqrt here, since using pow later is more efficient
+	float distance = pow(x - sphere->center.x, 2) + pow(y - sphere->center.y, 2) + pow(z - sphere->center.z, 2);
 
-	if ((sphere->center.z - sphere->dimensions.x) > (box->center.z + box->dimensions.z)) //If the sphere collides from the front of the box
+	//If the distance squared is greater than the sphere's radius squared, there is no collision
+	if (distance > pow(sphere->dimensions.x, 2))
 	{
-		distanceSquared += pow(sphere->center.z - (box->center.z + box->dimensions.z), 2); //Add to the distance squared
-	}
-	if ((sphere->center.z + sphere->dimensions.x) < (box->center.z - box->dimensions.z)) //If the sphere collides from the back of the box
-	{
-		distanceSquared += pow((box->center.z + box->dimensions.z) - sphere->center.z, 2); //Add to the distance squared
-	}
-
-	if (distanceSquared > pow(sphere->dimensions.x, 2))
-	{
+		printf("Not Colliding: \n");
 		return false;
 	}
+
+	printf("Colliding: \n");
 	return true;
+
+
+	//Unoptimized version of the code above
+	//float distanceSquared = 0.0f;
+	//
+	//if ((sphere->center.x - sphere->dimensions.x) > (box->center.x + box->dimensions.x)) //If the sphere collides from the right of the box
+	//{
+	//	distanceSquared += pow(sphere->center.x - (box->center.x + box->dimensions.x), 2); //Add to the distance squared
+	//}
+	//if ((sphere->center.x + sphere->dimensions.x) < (box->center.x - box->dimensions.x)) //If the sphere collides from the left of the box
+	//{
+	//	distanceSquared += pow((box->center.x + box->dimensions.x) - sphere->center.x, 2); //Add to the distance squared
+	//}
+	//
+	//if ((sphere->center.y - sphere->dimensions.x) > (box->center.y + box->dimensions.y)) //If the sphere collides from the top of the box
+	//{
+	//	distanceSquared += pow(sphere->center.y - (box->center.y + box->dimensions.y), 2); //Add to the distance squared
+	//}
+	//if ((sphere->center.y + sphere->dimensions.x) < (box->center.y - box->dimensions.y)) //If the sphere collides from the bottom of the box
+	//{
+	//	distanceSquared += pow((box->center.y + box->dimensions.y) - sphere->center.y, 2); //Add to the distance squared
+	//}
+	//
+	//if ((sphere->center.z - sphere->dimensions.x) > (box->center.z + box->dimensions.z)) //If the sphere collides from the front of the box
+	//{
+	//	distanceSquared += pow(sphere->center.z - (box->center.z + box->dimensions.z), 2); //Add to the distance squared
+	//}
+	//if ((sphere->center.z + sphere->dimensions.x) < (box->center.z - box->dimensions.z)) //If the sphere collides from the back of the box
+	//{
+	//	distanceSquared += pow((box->center.z + box->dimensions.z) - sphere->center.z, 2); //Add to the distance squared
+	//}
+	//
+	////If the distance squared is greater than the sphere's radius squared, there is no collision
+	//if (distanceSquared > pow(sphere->dimensions.x, 2))
+	//{
+	//	printf("Not Colliding: \n");
+	//	return false;
+	//}
+	//
+	//printf("Colliding: \n");
+	//return true;
 }

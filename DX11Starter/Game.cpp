@@ -247,7 +247,7 @@ void Game::Update(float deltaTime, float totalTime)
 	//sphere1.GetTransform()->SetPosition(0.0f, sinTime*0.5f, 0.0f);
 
 	sphere2.GetTransform()->SetPosition(pos[0], pos[1], pos[2]);
-	Collision::CheckCollisionBoxBox(sphere1.GetCollider(), sphere2.GetCollider());
+	Collision::CheckCollisionSphereBox(sphere1.GetCollider(), sphere2.GetCollider());
 
 	//Make pentagons shrink/grow and rotate in opposite directions
 	torus1.GetTransform()->SetScale((2.f + cosTime)*.1f);
