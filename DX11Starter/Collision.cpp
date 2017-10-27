@@ -59,3 +59,47 @@ bool Collision::CheckCollisionSphereSphere(Collider* sphere1, Collider* sphere2)
 	printf("Colliding: %f\n", magnitude);
 	return true;
 }
+
+bool Collision::CheckCollisionSphereBox(Collider * sphere, Collider * box)
+{
+	float distanceSquared = 0.0f;
+
+	//Divide all incoming dimensions by 2
+	sphere->dimensions.x /= 2;
+	box->dimensions.x /= 2;
+	box->dimensions.y /= 2;
+	box->dimensions.z /= 2;
+
+	if ((sphere->center.x - sphere->dimensions.x) > (box->center.x + box->dimensions.x)) //If the sphere collides from the right of the box
+	{
+		distanceSquared += pow(sphere->center.x - (box->center.x + box->dimensions.x), 2); //Add to the distance squared
+	}
+	if ((sphere->center.x + sphere->dimensions.x) < (box->center.x - box->dimensions.x)) //If the sphere collides from the left of the box
+	{
+		distanceSquared += pow((box->center.x + box->dimensions.x) - sphere->center.x, 2); //Add to the distance squared
+	}
+
+	if ((sphere->center.y - sphere->dimensions.x) > (box->center.y + box->dimensions.y)) //If the sphere collides from the top of the box
+	{
+		distanceSquared += pow(sphere->center.y - (box->center.y + box->dimensions.y), 2); //Add to the distance squared
+	}
+	if ((sphere->center.y + sphere->dimensions.x) < (box->center.y - box->dimensions.y)) //If the sphere collides from the bottom of the box
+	{
+		distanceSquared += pow((box->center.y + box->dimensions.y) - sphere->center.y, 2); //Add to the distance squared
+	}
+
+	if ((sphere->center.z - sphere->dimensions.x) > (box->center.z + box->dimensions.z)) //If the sphere collides from the front of the box
+	{
+		distanceSquared += pow(sphere->center.z - (box->center.z + box->dimensions.z), 2); //Add to the distance squared
+	}
+	if ((sphere->center.z + sphere->dimensions.x) < (box->center.z - box->dimensions.z)) //If the sphere collides from the back of the box
+	{
+		distanceSquared += pow((box->center.z + box->dimensions.z) - sphere->center.z, 2); //Add to the distance squared
+	}
+
+	if (distanceSquared > pow(sphere->dimensions.x, 2))
+	{
+		return false;
+	}
+	return true;
+}
