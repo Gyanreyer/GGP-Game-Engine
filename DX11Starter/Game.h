@@ -12,6 +12,7 @@
 #include "WICTextureLoader.h"
 #include "AssetManager.h"
 #include "Player.h"
+#include "ProjectileManager.h"
 
 class Game 
 	: public DXCore
@@ -68,6 +69,8 @@ private:
 	//bool freelookEnabled;
 
 	Player player;
+
+	ProjectileManager projectileManager;
 
 	//Don't need this due to some thing I did but forgot how it works
 	//bool freeLookEnabled = false;	//tells whether freelook is enabled 

@@ -66,10 +66,6 @@ void Player::Jump()
 	//Make sure not already in air and then jump somehow
 }
 
-void Player::Shoot()
-{
-}
-
 //Update projection matrix on window resize to match aspect ratio
 void Player::UpdateProjectionMatrix(unsigned int width, unsigned int height) {
 	//Store projection matrix with new aspect ratio
@@ -109,4 +105,11 @@ XMFLOAT4X4 Player::GetViewMatrix()
 XMFLOAT4X4 Player::GetProjectionMatrix()
 {
 	return projectionMatrix;
+}
+
+bool Player::CheckProjectileCollisions(GameObject other)
+{
+
+	//Collision::CheckCollision(other,);
+	return false;
 }

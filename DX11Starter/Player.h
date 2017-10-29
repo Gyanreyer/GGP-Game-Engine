@@ -1,6 +1,7 @@
 #pragma once
 #include "GameObject.h"
 #include <Windows.h>
+#include "Collision.h"
 
 class Player: public GameObject
 {
@@ -13,13 +14,15 @@ public:
 	void UpdateMouseInput(float xAxis, float yAxis);
 
 	void Jump();//Jump w/ some sort of physics
-	void Shoot();//Spawn a projectile that moves in direction player is facing
 
 	void UpdateProjectionMatrix(unsigned int width, unsigned int height);
 	void UpdateViewMatrix();
 
 	XMFLOAT4X4 GetViewMatrix();
 	XMFLOAT4X4 GetProjectionMatrix();
+
+	//Check collider against all player projectile colliders
+	bool CheckProjectileCollisions(GameObject other);
 
 private:
 	//BYTE VALUES MUST BE BETWEEN 0 AND 255

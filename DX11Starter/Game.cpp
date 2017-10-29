@@ -63,6 +63,7 @@ void Game::Init()
 	//Create camera object
 	//camera = Camera(width, height);
 	player = Player(ColliderType::SPHERE, width, height);
+	player.GetTransform()->SetPosition(0,0.8f,-5);
 
 	//Create directional lights
 	light1 = { XMFLOAT4(0.1f,0.1f,0.1f,1.0f),XMFLOAT4(1.0f,1.0f,1.0f,1.0f),XMFLOAT3(1.0f,-1.0f,0.5f) };
@@ -78,6 +79,11 @@ void Game::Init()
 
 	CreateGameObjects();
 
+	//Set up projectile manager
+	projectileManager = ProjectileManager(assetManager.GetMesh("Sphere"),
+		assetManager.GetMaterial("HazardCrateMat"),//Placeholder until make new mats for bullets
+		assetManager.GetMaterial("HazardCrateMat"),
+		context);
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -265,6 +271,8 @@ void Game::Update(float deltaTime, float totalTime)
 
 	cube2.GetTransform()->SetScale((2.f + cosTime)*.1f);
 	cube2.GetTransform()->Rotate(0, 0, -deltaTime*.5f);
+
+	projectileManager.UpdateProjectiles(deltaTime);
 }
 
 // --------------------------------------------------------
@@ -285,8 +293,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
-	XMFLOAT4X4 viewMat = player.GetViewMatrix();//camera.GetViewMatrix();
-	XMFLOAT4X4 projMat = player.GetProjectionMatrix();//camera.GetProjectionMatrix();
+	XMFLOAT4X4 viewMat = player.GetViewMatrix();
+	XMFLOAT4X4 projMat = player.GetProjectionMatrix();
 
 	//Loop through GameObjects and draw them
 	for (int i = 0; i < 5; i++)
@@ -301,10 +309,15 @@ void Game::Draw(float deltaTime, float totalTime)
 			&light2,
 			sizeof(DirectionalLight));
 
-		//gameObjects[i]->GetMaterial()->GetPixelShader()->CopyAllBufferData(); //This is done through the draw call
 		gameObjects[i]->Draw(viewMat, projMat);
 	}
 
+	//Set up light data for projectile materials
+	projectileManager.SetProjectileShaderData("light1",&light1,sizeof(DirectionalLight));
+	projectileManager.SetProjectileShaderData("light2", &light2, sizeof(DirectionalLight));
+
+	//Draw all projectiles
+	projectileManager.DrawProjectiles(viewMat,projMat);
 	 
 	// 1. Show a simple window
 	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
@@ -350,8 +363,14 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 	// releasing the capture once a mouse button is released
 	SetCapture(hWnd);
 
+	Transform* pt = player.GetTransform();
+	XMFLOAT3 startPt;
+
+	XMStoreFloat3(&startPt,
+		XMLoadFloat3(&pt->GetPosition()) + XMLoadFloat3(&pt->GetForward())*0.1f);
+
 	//Make player shoot
-	//player.Shoot();?
+	projectileManager.SpawnPlayerProjectile(startPt,pt->GetRotation());
 }
 
 // --------------------------------------------------------
@@ -379,35 +398,6 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	io.MousePos = ImVec2((float)x,(float)y);
-
-	//float sensitivity = .002f;//Mouse sensitivity - higher = more sensitive
-	//if (freeLookEnabled) 
-	//{
-	//	//Get x and y change in mouse pos
-	//	float xChange = (x - prevMousePos.x)*sensitivity;
-	//	float yChange = (y - prevMousePos.y)*sensitivity;
-	//
-	//	//Rotate camera based on mouse movement
-	//	camera.GetTransform()->Rotate(yChange, xChange, 0);
-	//}
-	//
-	//// Save the previous mouse position, so we have it for the future
-	//prevMousePos.x = x;
-	//prevMousePos.y = y;
-
-	//When the left mouse button is held down and freelook is enabled
-	/*if (buttonState && 0x0001 && freelookEnabled)
-	{
-		//Move the camera with the mouse
-		float nextX = x - (float)prevMousePos.x;
-		float nextY = y - (float)prevMousePos.y;
-
-		camera.MouseInput(nextX, nextY);
-
-		// Save the previous mouse position, so we have it for the future
-		prevMousePos.x = x;
-		prevMousePos.y = y;
-	}*/
 
 	float nextX = x - prevMousePos.x;
 	float nextY = y - prevMousePos.y;

@@ -20,7 +20,7 @@ GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderTy
 
 	transform = Transform();//Initialize transform
 
-	coll = Collider(colliderType, transform.position, transform.scale, false);
+	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false);
 
 	context = ctx;
 }
@@ -29,7 +29,7 @@ GameObject::GameObject(ColliderType colliderType)
 {
 	transform = Transform();
 
-	coll = Collider(colliderType, transform.position, transform.scale, false);
+	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false);
 
 	hasMesh = false;//This object doesn't have a mesh to be drawn
 }
@@ -128,7 +128,7 @@ void GameObject::UpdateWorldMatrix()
 
 		transform.DoneUpdating();//Notify transform that matrix has been updated successfully
 
-		coll.center = transform.position;
-		coll.dimensions = transform.scale;
+		coll.center = transform.GetPosition();
+		coll.dimensions = transform.GetScale();
 	}
 }
