@@ -32,16 +32,10 @@ public:
 	XMFLOAT4X4 GetWorldMatrix();
 
 private:
-	Mesh * mesh;//Mesh for drawing
-	Material * material;//Material to apply to mesh
-	Collider coll; //The collider on this object
-
 	//Buffers and index count for drawing mesh
 	ID3D11Buffer * vertexBuffer;
 	ID3D11Buffer * indexBuffer;
 	int meshIndexCount;
-
-	ID3D11DeviceContext * context;
 
 	XMFLOAT4X4 worldMatrix;
 	void UpdateWorldMatrix();
@@ -50,5 +44,11 @@ private:
 
 protected:
 	Transform transform;//Transform determines position/rotation/scale this object is drawn at
+
+	Mesh * mesh;//Mesh for drawing
+	Material * material;//Material to apply to mesh
+	Collider coll; //The collider on this object
+
+	ID3D11DeviceContext * context; //Render target (I think)
 };
 

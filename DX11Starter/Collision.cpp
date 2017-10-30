@@ -30,11 +30,13 @@ bool Collision::CheckCollisionBoxBox(Collider* box1, Collider* box2)
 	//If there 
 	if (right1Left2Check && left1Right2Check && top1Bottom2Check && bottom1Top2Check && front1Back2Check && back2Front1Check)
 	{
-		printf("Colliding: \n");
+		//TODO: COLLISION RESOLUTION & REMOVING printf
+		//printf("Colliding: \n");
 		return true;
 	}
 
-	printf("Not Colliding: \n");
+	//TODO: COLLISION RESOLUTION & REMOVING printf
+	//printf("Not Colliding: \n");
 	return false;
 }
 
@@ -56,11 +58,13 @@ bool Collision::CheckCollisionSphereSphere(Collider* sphere1, Collider* sphere2)
 
 	if (magnitude > combinedRadius)  //spheres are not colliding
 	{
-		printf("Not Colliding: %f\n", magnitude);
+		//TODO: COLLISION RESOLUTION & REMOVING printf
+		//printf("Not Colliding: %f\n", magnitude);
 		return false;
 	}
 
-	printf("Colliding: %f\n", magnitude);
+	//TODO: COLLISION RESOLUTION & REMOVING printf
+	//printf("Colliding: %f\n", magnitude);
 	return true;
 }
 
@@ -85,11 +89,13 @@ bool Collision::CheckCollisionSphereBox(Collider * sphere, Collider * box)
 	//If the distance squared is greater than the sphere's radius squared, there is no collision
 	if (distance > pow(sphere->dimensions.x, 2))
 	{
-		printf("Not Colliding: \n");
+		//TODO: COLLISION RESOLUTION & REMOVING printf
+		//printf("Not Colliding: \n");
 		return false;
 	}
 
-	printf("Colliding: \n");
+	//TODO: COLLISION RESOLUTION & REMOVING printf
+	//printf("Colliding: \n");
 	return true;
 
 

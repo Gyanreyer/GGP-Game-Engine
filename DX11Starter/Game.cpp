@@ -117,6 +117,10 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateGameObjects()
 {
+	//Create an enemy
+	goon = Enemy(assetManager.GetMesh("Cylinder"), assetManager.GetMaterial("EnemyMaterial"), BOX, context);
+	goon.GetTransform()->SetPosition(2, 0, 0);
+
 	//Create 2 circle GOs
 	sphere1 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("StoneMat"), ColliderType::SPHERE, context);
 	sphere1.GetTransform()->SetScale(1.0f);
@@ -153,6 +157,7 @@ void Game::CreateGameObjects()
 	gameObjects[3] = &torus2;
 	//gameObjects[4] = &cube1;
 	gameObjects[4] = &cube2;
+	gameObjects[5] = &goon;
 }
 
 // ---------------------------------------------------------
@@ -173,14 +178,6 @@ void Game::CreateMeshes()
 ///Loads in textures and makes them into materials
 void Game::CreateMaterials()
 {
-	//create Texture
-	ID3D11ShaderResourceView* hazardTexture;
-	HRESULT tResult = CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", 0, &hazardTexture);
-	if (tResult != S_OK) {
-		printf("Hazard Texture is could not be loaded");
-	}
-	assetManager.ImportTexture("HazardTexture", hazardTexture);
-
 	//Create Sampler State
 	ID3D11SamplerState* sample;
 	D3D11_SAMPLER_DESC sampleDesc = {};
@@ -199,6 +196,14 @@ void Game::CreateMaterials()
 
 	assetManager.ImportSampler("BasicSampler", sample);
 
+	//create Texture
+	ID3D11ShaderResourceView* hazardTexture;
+	HRESULT tResult = CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", 0, &hazardTexture);
+	if (tResult != S_OK) {
+		printf("Hazard Texture is could not be loaded");
+	}
+	assetManager.ImportTexture("HazardTexture", hazardTexture);
+
 	//Create Material 
 	Material* genericMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("HazardTexture"), assetManager.GetSampler("BasicSampler"));
 	assetManager.ImportMaterial("HazardCrateMat", genericMat);
@@ -209,11 +214,17 @@ void Game::CreateMaterials()
 	if (tResult != S_OK) {
 		printf("Stone Texture is could not be loaded");
 	}
-
 	assetManager.ImportTexture("Stone", stoneTexture);
 
 	Material* stoneMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("Stone"), assetManager.GetSampler("BasicSampler"));
 	assetManager.ImportMaterial("StoneMat", stoneMat);
+
+	//Create enemy texture and material
+	ID3D11ShaderResourceView* enemyTexture;
+	CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/aaaaaa.png", 0, &enemyTexture);
+	assetManager.ImportTexture("EnemyTexture", enemyTexture);
+	Material* enemyMaterial = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("EnemyTexture"), assetManager.GetSampler("BasicSampler"));
+	assetManager.ImportMaterial("EnemyMaterial", enemyMaterial);
 }
 
 // --------------------------------------------------------
@@ -297,7 +308,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	XMFLOAT4X4 projMat = player.GetProjectionMatrix();
 
 	//Loop through GameObjects and draw them
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 6; i++)
 	{
 		gameObjects[i]->GetMaterial()->GetPixelShader()->SetData(
 			"light1",
@@ -399,8 +410,8 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 	ImGuiIO& io = ImGui::GetIO();
 	io.MousePos = ImVec2((float)x,(float)y);
 
-	float nextX = x - prevMousePos.x;
-	float nextY = y - prevMousePos.y;
+	float nextX = x - (float)prevMousePos.x;
+	float nextY = y - (float)prevMousePos.y;
 
 	player.UpdateMouseInput(nextX, nextY);
 

@@ -12,6 +12,7 @@
 #include "WICTextureLoader.h"
 #include "AssetManager.h"
 #include "Player.h"
+#include "Enemy.h"
 #include "ProjectileManager.h"
 
 class Game 
@@ -34,8 +35,8 @@ public:
 	void OnMouseUp	 (WPARAM buttonState, int x, int y);
 	void OnMouseMove (WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta,   int x, int y);
-private:
 
+private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
 	void CreateGameObjects();//Initializes GameObjects
@@ -58,7 +59,7 @@ private:
 	GameObject cube1;
 	GameObject cube2;
 
-	GameObject* gameObjects[6];//Array of pointers to GameObjects so we can draw them in an easy loop	
+	GameObject* gameObjects[6]; //Array of pointers to GameObjects so we can draw them in an easy loop	
 
 	//Directional light
 	DirectionalLight light1;
@@ -68,7 +69,9 @@ private:
 	//Camera camera;
 	//bool freelookEnabled;
 
+	//The player and enemy
 	Player player;
+	Enemy goon;
 
 	ProjectileManager projectileManager;
 
