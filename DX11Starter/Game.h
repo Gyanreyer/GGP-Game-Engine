@@ -1,8 +1,9 @@
 #pragma once
 
+#include <DirectXMath.h>
+#include <vector>
 #include "DXCore.h"
 #include "SimpleShader.h"
-#include <DirectXMath.h>
 #include "Mesh.h"
 #include "GameObject.h"
 #include "Collider.h"
@@ -32,17 +33,22 @@ public:
 
 	// Overridden mouse input helper methods
 	void OnMouseDown (WPARAM buttonState, int x, int y);
-	void OnMouseUp	 (WPARAM buttonState, int x, int y);
+	void OnMouseUp (WPARAM buttonState, int x, int y);
 	void OnMouseMove (WPARAM buttonState, int x, int y);
-	void OnMouseWheel(float wheelDelta,   int x, int y);
+	void OnMouseWheel (float wheelDelta,   int x, int y);
 
 private:
+	//Screen coordinates
+	RECT screen;
+
+	//The real coordinates of the mouse
+	//POINT realMouse;
+
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
 	void CreateGameObjects();//Initializes GameObjects
 	void CreateMeshes();//Generates and assigns meshes for GameObjects
 	void CreateMaterials();
-
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
@@ -59,7 +65,8 @@ private:
 	GameObject cube1;
 	GameObject cube2;
 
-	GameObject* gameObjects[6]; //Array of pointers to GameObjects so we can draw them in an easy loop	
+	vector<GameObject*> gameObjects; //Array of pointers to GameObjects so we can draw them in an easy loop
+	vector<Enemy*> enemies; //Array of pointers to Enemies so we can draw them in an easy loop
 
 	//Directional light
 	DirectionalLight light1;

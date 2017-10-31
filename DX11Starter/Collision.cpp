@@ -1,6 +1,6 @@
 //Resolve collisions between entities
 #include "Collision.h"
-#include <stdio.h> //I NEED IT
+//#include <stdio.h> //I NEED IT
 
 //Collisions that don't
 bool Collision::CheckCollision(Collider* collider1, Collider* collider2)

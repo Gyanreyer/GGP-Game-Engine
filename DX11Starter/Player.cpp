@@ -57,8 +57,8 @@ void Player::UpdateKeyInput(float deltaTime)
 
 void Player::UpdateMouseInput(float xAxis, float yAxis)
 {
-	//Rotate and clamp vertically between -pi/2 and pi/2
-	transform.RotateClamped(yAxis/mouseSensitivity,xAxis/mouseSensitivity,0,-XM_1DIV2PI,XM_1DIV2PI);
+	//Rotate and clamp vertically between -PI/2 and PI/2
+	transform.RotateClamped(yAxis/mouseSensitivity, xAxis/mouseSensitivity, 0, -XM_1DIV2PI, XM_1DIV2PI);
 }
 
 void Player::Jump()

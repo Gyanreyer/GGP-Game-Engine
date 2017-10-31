@@ -28,6 +28,13 @@ Game::Game(HINSTANCE hInstance)
 	// Initialize Asset Manager
 	assetManager = AssetManager();
 
+	//Set cursor position to center of window
+	//https://stackoverflow.com/questions/8690619/how-to-get-screen-resolution-in-c
+	//Hide cursor
+	GetWindowRect(GetDesktopWindow(), &screen); //Get the dimensions of the desktop
+	SetCursorPos(screen.right / 2, screen.bottom / 2);
+	//ShowCursor(false);
+
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
 	CreateConsoleWindow(500, 120, 32, 120);
@@ -42,9 +49,7 @@ Game::Game(HINSTANCE hInstance)
 //  - Delete any objects to prevent memory leaks
 // --------------------------------------------------------
 Game::~Game()
-{	// Delete our simple shader objects, which
-	// will clean up their own internal DirectX stuff
-	
+{
 	//Releases and Shuts Down Imgui
 	ImGui_ImplDX11_Shutdown();
 
@@ -72,6 +77,10 @@ void Game::Init()
 	//Default prevMousePos to center of screen
 	prevMousePos.x = width / 2;
 	prevMousePos.y = height / 2;
+
+	//Set the starting point for the real mouth coordinates
+	//realMouse.x = screen.right / 2;
+	//realMouse.y = screen.bottom / 2;
 
 	LoadShaders();
 	CreateMaterials();
@@ -120,6 +129,7 @@ void Game::CreateGameObjects()
 	//Create an enemy
 	goon = Enemy(assetManager.GetMesh("Cylinder"), assetManager.GetMaterial("EnemyMaterial"), BOX, context);
 	goon.GetTransform()->SetPosition(2, 0, 0);
+	enemies.push_back(&goon);
 
 	//Create 2 circle GOs
 	sphere1 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("StoneMat"), ColliderType::SPHERE, context);
@@ -151,13 +161,13 @@ void Game::CreateGameObjects()
 	torus2.GetTransform()->SetPosition(-3.0f, -1.5f, 0.0f);
 
 	//Store references to all GOs in array
-	gameObjects[0] = &sphere1;
-	gameObjects[1] = &sphere2;
-	gameObjects[2] = &torus1;
-	gameObjects[3] = &torus2;
+	gameObjects.push_back(&sphere1);
+	gameObjects.push_back(&sphere2);
+	gameObjects.push_back(&torus1);
+	gameObjects.push_back(&torus2);
 	//gameObjects[4] = &cube1;
-	gameObjects[4] = &cube2;
-	gameObjects[5] = &goon;
+	gameObjects.push_back(&cube2);
+	gameObjects.push_back(&goon);
 }
 
 // ---------------------------------------------------------
@@ -308,7 +318,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	XMFLOAT4X4 projMat = player.GetProjectionMatrix();
 
 	//Loop through GameObjects and draw them
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < gameObjects.size(); i++)
 	{
 		gameObjects[i]->GetMaterial()->GetPixelShader()->SetData(
 			"light1",
@@ -323,8 +333,24 @@ void Game::Draw(float deltaTime, float totalTime)
 		gameObjects[i]->Draw(viewMat, projMat);
 	}
 
+	//Loop through Enemies and draw them
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		enemies[i]->GetMaterial()->GetPixelShader()->SetData(
+			"light1",
+			&light1,
+			sizeof(DirectionalLight));
+
+		enemies[i]->GetMaterial()->GetPixelShader()->SetData(
+			"light2",
+			&light2,
+			sizeof(DirectionalLight));
+
+		enemies[i]->Draw(viewMat, projMat);
+	}
+
 	//Set up light data for projectile materials
-	projectileManager.SetProjectileShaderData("light1",&light1,sizeof(DirectionalLight));
+	projectileManager.SetProjectileShaderData("light1", &light1,sizeof(DirectionalLight));
 	projectileManager.SetProjectileShaderData("light2", &light2, sizeof(DirectionalLight));
 
 	//Draw all projectiles
@@ -369,19 +395,24 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 	prevMousePos.x = x;
 	prevMousePos.y = y;
 
-	// Caputure the mouse so we keep getting mouse move
+	// Capture the mouse so we keep getting mouse move
 	// events even if the mouse leaves the window.  we'll be
 	// releasing the capture once a mouse button is released
 	SetCapture(hWnd);
 
-	Transform* pt = player.GetTransform();
-	XMFLOAT3 startPt;
+	//When the left mouse button is pressed
+	//Duh, it's a bitwise &
+	if (buttonState & MK_LBUTTON)
+	{
+		Transform* pt = player.GetTransform();
+		XMFLOAT3 startPt;
 
-	XMStoreFloat3(&startPt,
-		XMLoadFloat3(&pt->GetPosition()) + XMLoadFloat3(&pt->GetForward())*0.1f);
+		XMStoreFloat3(&startPt,
+			XMLoadFloat3(&pt->GetPosition()) + XMLoadFloat3(&pt->GetForward())*0.1f);
 
-	//Make player shoot
-	projectileManager.SpawnPlayerProjectile(startPt,pt->GetRotation());
+		//Make player shoot
+		projectileManager.SpawnPlayerProjectile(startPt, pt->GetRotation());
+	}
 }
 
 // --------------------------------------------------------
@@ -407,16 +438,36 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
-	ImGuiIO& io = ImGui::GetIO();
-	io.MousePos = ImVec2((float)x,(float)y);
+	//When the right mouse button is pressed
+	//Duh, it's a bitwise &
+	if (buttonState & MK_RBUTTON)
+	{
+		//Distance the mouse moves in one frame
+		float deltaX = x - (float)prevMousePos.x;
+		float deltaY = y - (float)prevMousePos.y;
 
-	float nextX = x - (float)prevMousePos.x;
-	float nextY = y - (float)prevMousePos.y;
+		////Save the actual distance from the center of the screen to the cursor
+		//realMouse.x += deltaX;
+		//realMouse.y += deltaY;
 
-	player.UpdateMouseInput(nextX, nextY);
+		//Rotate player
+		player.UpdateMouseInput(deltaX, deltaY);
 
-	prevMousePos.x = x;
-	prevMousePos.y = y;
+		//Update previous mose position
+		prevMousePos.x = x;
+		prevMousePos.y = y;
+		//prevMousePos.x = realMouse.x - x;
+		//prevMousePos.y = realMouse.y - y;
+
+		//SetCursorPos(screen.right / 2, screen.bottom / 2);
+
+		//printf("Previous Mouse: %d, %d\n", prevMousePos.x, prevMousePos.y);
+		//printf("Real Mouse: %d, %d\n", realMouse.x, realMouse.y);
+		//printf("%d, %d\n", x, y);
+		//printf("%f, %f\n", deltaX, deltaY);
+
+		//printf("XY: %f, %f Next: %f, %f Previous: %f, %f\n", (float)x, (float)y, (float)nextX, (float)nextY, (float)prevMousePos.x, (float)prevMousePos.y);
+	}
 }
 
 // --------------------------------------------------------
