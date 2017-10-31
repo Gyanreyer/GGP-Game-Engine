@@ -520,22 +520,22 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	// Check the incoming message and handle any we care about
 	switch (uMsg)
 	{
-	// This is the message that signifies the window closing
+		// This is the message that signifies the window closing
 	case WM_DESTROY:
 		PostQuitMessage(0); // Send a quit message to our own program
 		return 0;
 
-	// Prevent beeping when we "alt-enter" into fullscreen
-	case WM_MENUCHAR: 
+		// Prevent beeping when we "alt-enter" into fullscreen
+	case WM_MENUCHAR:
 		return MAKELRESULT(0, MNC_CLOSE);
 
-	// Prevent the overall window from becoming too small
+		// Prevent the overall window from becoming too small
 	case WM_GETMINMAXINFO:
 		((MINMAXINFO*)lParam)->ptMinTrackSize.x = 200;
 		((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
 		return 0;
 
-	// Sent when the window size changes
+		// Sent when the window size changes
 	case WM_SIZE:
 		if (wParam == SIZE_MINIMIZED)
 			return 0;
@@ -546,12 +546,12 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 		// If DX is initialized, resize 
 		// our required buffers
-		if (device) 
+		if (device)
 			OnResize();
 
 		return 0;
 
-	// Mouse button being pressed (while the cursor is currently over our window)
+		// Mouse button being pressed (while the cursor is currently over our window)
 	case WM_LBUTTONDOWN:
 		io.MouseDown[0] = true;
 		OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
@@ -566,7 +566,7 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
-	// Mouse button being released (while the cursor is currently over our window)
+		// Mouse button being released (while the cursor is currently over our window)
 	case WM_LBUTTONUP:
 		io.MouseDown[0] = false;
 		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
@@ -582,17 +582,33 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
-	// Cursor moves over the window (or outside, while we're currently capturing it)
+		// Cursor moves over the window (or outside, while we're currently capturing it)
 	case WM_MOUSEMOVE:
+		io.MousePos = ImVec2(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
-	// Mouse wheel is scrolled
+		// Mouse wheel is scrolled
 	case WM_MOUSEWHEEL:
 		OnMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
-	}
 
+	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN:
+		if (wParam < 256)			
+			io.KeysDown[wParam] = 1; 
+		return 0;
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		if (wParam < 256)
+			io.KeysDown[wParam] = 0;
+		return 0;
+	case WM_CHAR:
+		// You can also use ToAscii()+GetKeyboardState() to retrieve characters.
+		if (wParam > 0 && wParam < 0x10000)
+			io.AddInputCharacter((unsigned short)wParam);
+		return 0;
+	}
 	// Let Windows handle any messages we're not touching
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }

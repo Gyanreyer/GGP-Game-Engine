@@ -360,10 +360,12 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
 	{
 		static float f = 0.0f;
+		static char testText = char();
 		ImGui::Text("Hello, world!");
 		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 		ImGui::SliderFloat3("Sphere2 Pos", pos, -5, 5);
 		ImGui::ColorEdit3("clear color", (float*)&clear_color);
+		ImGui::InputText("Text Test", &testText, sizeof(char)* 50);
 		//ImGui::Checkbox("Free Look Enabled", &freelookEnabled);//implement later
 		//if (ImGui::Button("Test Window")) show_test_window ^= 1;
 		//if (ImGui::Button("Another Window")) show_another_window ^= 1;
@@ -387,9 +389,6 @@ void Game::Draw(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-	ImGuiIO& io = ImGui::GetIO();
-	//io.MouseDown[0] = true;
-	//io.MouseDown[1] = true;
 
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;
@@ -420,9 +419,6 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 {
-	ImGuiIO& io = ImGui::GetIO();
-	//io.MouseDown[0] = false;
-	//io.MouseDown[1] = false;
 
 	// Add any custom code here...
 
@@ -438,6 +434,7 @@ void Game::OnMouseUp(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 {
+
 	//When the right mouse button is pressed
 	//Duh, it's a bitwise &
 	if (buttonState & MK_RBUTTON)
