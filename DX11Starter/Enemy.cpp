@@ -12,12 +12,17 @@ Enemy::Enemy(XMFLOAT3 position, Mesh * mesh, Material * material, ColliderType c
 	moveXAxis = moveX;
 	moveYAxis = moveY;
 	transform.SetPosition(position);
-	originPos = transform.GetPosition();
+	originPos = position;
+	isOffset = isColliderOffset;
 	
 	time(&nowTime); //gets current time when game is launched
 	lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
 
-	GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(transform.GetPosition(), transform.GetRotation());
+	//Move the shoot point if the collider is offset
+	if (!isOffset)
+		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(originPos, transform.GetRotation());
+	else
+		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z), transform.GetRotation());
 }
 
 Enemy::~Enemy()
@@ -59,8 +64,13 @@ void Enemy::Update(float deltaTime)
 	time(&nowTime); //get current time in game
 
 	double seconds = difftime(nowTime, mktime(&lastShotTime));
-	if (seconds >= 4) {
-		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(transform.GetPosition(), transform.GetRotation());
+	if (seconds >= 4)
+	{
+		//Move the shoot point if the collider is offset
+		if (!isOffset)
+			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(originPos, transform.GetRotation());
+		else
+			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z), transform.GetRotation());
 		time(&nowTime); //gets current time when shot is launched
 		lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
 	}

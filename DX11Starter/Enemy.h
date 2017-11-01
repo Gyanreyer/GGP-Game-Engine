@@ -21,6 +21,7 @@ private:
 
 	//The number of points this enemy is worth
 	int points;
+
 	XMFLOAT3 originPos;
 	int xOffset = 2;
 	int yOffset = 2;
@@ -28,4 +29,7 @@ private:
 	bool moveRight = true;
 	bool moveUp = true;
 	bool moveYAxis = false;
+
+	//If the collider is offset
+	bool isOffset;
 };
