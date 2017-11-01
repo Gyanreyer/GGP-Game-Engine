@@ -12,6 +12,15 @@ Projectile::Projectile(Mesh * mesh, Material * material, ColliderType colliderTy
 	transform.SetPosition(startPos);
 	transform.SetRotation(rotation);
 	transform.SetScale(0.1f);
+
+	//Reassign collider information here, it gets set to default values when going
+	//through the GameObject constructor, but doesn't update when the transforms are changed
+	//above until the GameObject's UpdateWorldMatrix function is called. That doesn't happen
+	//before collisions can occur, so we just set it here to avoid that entirely.
+	//(This resolves the issue of the projectile spawning at the center and immediately
+	//getting destroyed because it collides with the ground)
+	coll.center = startPos;
+	coll.dimensions = XMFLOAT3(0.1f, 0.1f, 0.1f);
 }
 
 Projectile::~Projectile()

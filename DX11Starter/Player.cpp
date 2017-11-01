@@ -18,7 +18,7 @@ Player::Player(ColliderType colliderType, unsigned int projectionWidth, unsigned
 
 	playerHeight = 0.8f;
 
-	transform.SetPosition(0,playerHeight,-5);
+	transform.SetPosition(0, playerHeight, -5);
 }
 
 Player::~Player()
@@ -29,6 +29,11 @@ void Player::Update(float deltaTime)
 {
 	UpdateKeyInput(deltaTime);
 	UpdateViewMatrix();
+
+	//Update collider information
+	//Collider probably won't be offset, so we won't even worry about that
+	coll.center = transform.GetPosition();
+	coll.dimensions = transform.GetScale();
 }
 
 void Player::UpdateKeyInput(float deltaTime)

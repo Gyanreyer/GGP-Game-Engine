@@ -48,9 +48,9 @@ private:
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
-	void CreateGameObjects();//Initializes GameObjects
 	void CreateMeshes();//Generates and assigns meshes for GameObjects
 	void CreateMaterials();
+	void CreateGameObjects();//Initializes GameObjects
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
@@ -77,6 +77,7 @@ private:
 	//The player and enemy
 	Player player;
 	GameObject floor;
+	GameObject obstacle;
 	ProjectileManager projectileManager;
 
 	//Don't need this due to some thing I did but forgot how it works

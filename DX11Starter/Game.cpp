@@ -120,30 +120,6 @@ void Game::LoadShaders()
 	assetManager.ImportPShader("BasicPShader", pixelShader);
 }
 
-
-// --------------------------------------------------------
-// Creates the GameObjects we will draw in the scene and
-// stores references to them in an array
-// --------------------------------------------------------
-void Game::CreateGameObjects()
-{
-	///ENEMIES
-	//Create an enemy
-	enemies.push_back(Enemy(XMFLOAT3(2,0,0), assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 10, false, false));
-
-	//"Another one"
-	enemies.push_back(Enemy(XMFLOAT3(-2,2,0), assetManager.GetMesh("PurpleGhost"), assetManager.GetMaterial("PurpleGhost"), BOX, false, context, 20, false, true));
-
-	enemies.push_back(Enemy(XMFLOAT3(0,0,-2), assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 20, true, false));
-
-	///OTHER GAMEOBJECTS
-	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, false, context);
-	floor.GetTransform()->SetScale(10, 1, 10);
-
-	//Store references to all GOs in array
-	gameObjects.push_back(&floor);
-}
-
 // ---------------------------------------------------------
 // Create meshes that GameObjects will use
 // ---------------------------------------------------------
@@ -229,6 +205,33 @@ void Game::CreateMaterials()
 }
 
 // --------------------------------------------------------
+// Creates the GameObjects we will draw in the scene and
+// stores references to them in an array
+// --------------------------------------------------------
+void Game::CreateGameObjects()
+{
+	///ENEMIES
+	//Create an enemy
+	enemies.push_back(Enemy(XMFLOAT3(2, 0, 0), assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 10, false, false));
+
+	//"Another one"
+	enemies.push_back(Enemy(XMFLOAT3(-2, 2, 0), assetManager.GetMesh("PurpleGhost"), assetManager.GetMaterial("PurpleGhost"), BOX, false, context, 20, false, true));
+
+	enemies.push_back(Enemy(XMFLOAT3(0, 0, -2), assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 20, true, false));
+
+	///OTHER GAMEOBJECTS
+	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, false, context);
+	floor.GetTransform()->SetScale(10, .001f, 10); //Plane should be hella flat, for the collider's sake
+
+	obstacle = GameObject(assetManager.GetMesh("Cube"), assetManager.GetMaterial("StoneMat"), BOX, false, context);
+	obstacle.GetTransform()->SetPosition(2, .5f, -2);
+
+	//Store references to all GOs in vector
+	gameObjects.push_back(&floor);
+	gameObjects.push_back(&obstacle);
+}
+
+// --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
 // --------------------------------------------------------
@@ -258,7 +261,6 @@ void Game::Update(float deltaTime, float totalTime)
 	////Game update Loop
 	//1. Make sure game is has not ended
 	if (!GameManager::getInstance().isGameOver()) {
-
 		player.Update(deltaTime);
 
 		projectileManager.UpdateProjectiles(deltaTime);
@@ -267,29 +269,92 @@ void Game::Update(float deltaTime, float totalTime)
 			enemies[i].Update(deltaTime);
 		}
 
-		//Check for collisions with player projectiles and enemies
+		//PLAYER PROJECTILE COLLISIONS
 		for (byte i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)
 		{
+			Collider projCollider = *projectileManager.GetPlayerProjectiles()[i].GetCollider(); //The projectile's collider
+
+			//WITH ENEMIES
 			for (byte j = 0; j < enemies.size(); j++)
 			{
-				if (Collision::CheckCollisionSphereBox(projectileManager.GetPlayerProjectiles()[i].GetCollider(), enemies[j].GetCollider()))
+				if (Collision::CheckCollisionSphereBox(&projCollider, enemies[j].GetCollider()))
 				{
 					//Add score to player score
 					GameManager::getInstance().AddScore(enemies[j].GetPoints());
 					enemies.erase(enemies.begin() + j);
 					projectileManager.RemovePlayerProjectile(i);
-					break;
+					goto break1; //Get out of the loop to prevent vector subscript errors
+				}
+			}
+
+			//WITH OTHER GAMEOBJECTS
+			for (byte j = 0; j < gameObjects.size(); j++)
+			{
+				Collider* goCollider = gameObjects[j]->GetCollider(); //The GameObject's collider
+
+				if (goCollider->collType == BOX && Collision::CheckCollisionSphereBox(&projCollider, goCollider))
+				{
+					projectileManager.RemovePlayerProjectile(i); //Simply delete projectile
+					goto break1; //Get out of the loop to prevent vector subscript errors
+				}
+				else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereSphere(&projCollider, goCollider))
+				{
+					projectileManager.RemovePlayerProjectile(i); //Simply delete projectile
+					goto break1; //Get out of the loop to prevent vector subscript errors
 				}
 			}
 		}
 
-		//Check for collisions with enemy projectiles and the player
+		break1: //This is super useful and I'm sad I didn't know about it sooner
+		//ENEMY PROJECTILE COLLISIONS
 		for (byte i = 0; i < projectileManager.GetEnemyProjectiles().size(); i++)
 		{
-			if (Collision::CheckCollisionSphereBox(projectileManager.GetEnemyProjectiles()[i].GetCollider(), player.GetCollider()))
+			Collider projCollider = *projectileManager.GetEnemyProjectiles()[i].GetCollider(); //The projectile's collider
+
+			//WITH OTHER GAMEOBJECTS
+			for (byte j = 0; j < gameObjects.size(); j++)
+			{
+				Collider* goCollider = gameObjects[j]->GetCollider(); //The GameObject's collider
+
+				if (goCollider->collType == BOX && Collision::CheckCollisionSphereBox(&projCollider, goCollider))
+				{
+					projectileManager.RemoveEnemyProjectile(i); //Simply delete projectile
+					goto break2; //Get out of the loop to prevent vector subscript errors
+				}
+				else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereSphere(&projCollider, goCollider))
+				{
+					projectileManager.RemoveEnemyProjectile(i); //Simply delete projectile
+					goto break2; //Get out of the loop to prevent vector subscript errors
+				}
+			}
+
+			//WITH PLAYER
+			if (Collision::CheckCollisionSphereBox(&projCollider, player.GetCollider()))
 			{
 				player.DecrementHealth();
 				projectileManager.RemoveEnemyProjectile(i); //Remove the enemy's projectile, prevents multi-frame collisions
+				goto break2; //Get out of the loop to prevent vector subscript errors
+			}
+		}
+
+		break2: //This is super useful and I'm sad I didn't know about it sooner
+		//GAMEOBJECT COLLISIONS
+		//Start at 1, 0 is the ground
+		for (byte i = 1; i < gameObjects.size(); i++)
+		{
+			//WITH PLAYER
+			Collider* goCollider = gameObjects[i]->GetCollider(); //The GameObject's collider
+			Collider* pCollider = player.GetCollider(); //The player's collider
+
+			if (goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, pCollider))
+			{
+				//TODO: collision resolution
+				printf("Here\n");
+				break;
+			}
+			else if(goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, pCollider))
+			{
+				//TODO: collision resolution
 				break;
 			}
 		}

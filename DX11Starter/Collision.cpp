@@ -31,12 +31,12 @@ bool Collision::CheckCollisionBoxBox(Collider* box1, Collider* box2)
 	if (right1Left2Check && left1Right2Check && top1Bottom2Check && bottom1Top2Check && front1Back2Check && back2Front1Check)
 	{
 		//TODO: COLLISION RESOLUTION & REMOVING printf
-		//printf("Colliding: \n");
+		printf("Colliding: \n");
 		return true;
 	}
 
 	//TODO: COLLISION RESOLUTION & REMOVING printf
-	printf("Not Colliding: \n");
+	//printf("Not Colliding: \n");
 	return false;
 }
 
