@@ -129,7 +129,6 @@ void Game::CreateGameObjects()
 	//Create an enemy
 	goon = Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context);
 	goon.GetTransform()->SetPosition(2, 0, 0);
-	goon.GetTransform()->SetScale(1, 2, .5f);
 	enemies.push_back(&goon);
 
 	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context);
