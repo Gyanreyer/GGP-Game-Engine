@@ -59,14 +59,6 @@ private:
 	//ASSET MANAGER
 	AssetManager assetManager;
 
-	//GameObjects in scene
-	GameObject sphere1;
-	GameObject sphere2;
-	GameObject torus1;
-	GameObject torus2;
-	GameObject cube1;
-	GameObject cube2;
-
 	//Array of pointers to GameObjects so we can draw them in an easy loop
 	vector<GameObject*> gameObjects;
 

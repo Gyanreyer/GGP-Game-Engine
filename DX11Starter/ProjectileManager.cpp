@@ -90,6 +90,11 @@ void ProjectileManager::DrawProjectiles(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
 		iter->Draw(viewMat, projMat);
 }
 
+void ProjectileManager::RemovePlayerProjectile(int i)
+{
+	playerProjectiles.erase(playerProjectiles.begin() + i);
+}
+
 ////Player projectiles colliding with the enemies
 //bool ProjectileManager::CheckPlayerProjectileCollision(GameObject* other)
 //{

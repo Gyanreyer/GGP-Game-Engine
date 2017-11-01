@@ -10,9 +10,9 @@ public:
 	~Enemy();
 
 	//Return how many points this enemy is worth
-	byte GetPoints();
+	int GetPoints();
 
 private:
 	//The number of points this enemy is worth
-	byte points;
+	int points;
 };

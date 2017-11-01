@@ -15,7 +15,8 @@ Enemy::~Enemy()
 }
 
 //Return how many points this enemy is worth
-byte Enemy::GetPoints()
+int Enemy::GetPoints()
 {
 	return points;
 }
+

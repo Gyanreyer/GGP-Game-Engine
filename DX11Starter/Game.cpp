@@ -98,6 +98,8 @@ void Game::Init()
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	GameManager::getInstance().StartGame();
 }
 
 // --------------------------------------------------------
@@ -134,6 +136,9 @@ void Game::CreateGameObjects()
 	//"Another one"
 	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 20));
 	enemies[1].GetTransform()->SetPosition(-2, 0, 0);
+
+	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 20));
+	enemies[2].GetTransform()->SetPosition(0, 0, -2);
 
 	///OTHER GAMEOBJECTS
 	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, false, context);
@@ -246,19 +251,31 @@ void Game::Update(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
+	////Game update Loop
+	//1. Make sure game is has not ended
+	if (!GameManager::getInstance().isGameOver()) {
 
-    //camera.Update(deltaTime);
-	player.Update(deltaTime);
+		player.Update(deltaTime);
 
-	projectileManager.UpdateProjectiles(deltaTime);
+		projectileManager.UpdateProjectiles(deltaTime);
 
-	//Check for collisions with player projectiles and enemies
-	for (byte i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)
-	{
-		for (byte j = 0; j < enemies.size(); j++)
+		//Check for collisions with player projectiles and enemies
+		for (int i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)
 		{
-			Collision::CheckCollisionSphereBox(projectileManager.GetPlayerProjectiles()[i].GetCollider(), enemies[j].GetCollider());
+			for (int j = 0; j < enemies.size(); j++)
+			{
+				if (Collision::CheckCollisionSphereBox(projectileManager.GetPlayerProjectiles()[i].GetCollider(), enemies[j].GetCollider()))
+				{
+					//Add score to player score
+					GameManager::getInstance().AddScore(enemies[i].GetPoints());
+					enemies.erase(enemies.begin() + j);
+					projectileManager.RemovePlayerProjectile(i);
+				}
+			}
 		}
+	}
+	else {
+		ImGui::OpenPopup("EndGame");
 	}
 }
 
@@ -338,9 +355,21 @@ void Game::Draw(float deltaTime, float totalTime)
 	std::string score = "Score: ";
 	char intChar[10];
 	score += itoa(GameManager::getInstance().GetGameScore() ,intChar, 10);
+	std::string timeLeft = "Time Left: ";
+	timeLeft += itoa(GameManager::getInstance().getTimeLeft(), intChar, 10);
 	ImGui::Begin("GGP Game", (bool*)1);
+	ImGui::Text(timeLeft.c_str());
 	ImGui::Text(score.c_str());
 	ImGui::End();
+
+	
+	if (ImGui::BeginPopup("EndGame")) {
+		ImGui::TextColored(ImVec4(1, 0, 0, 1), "Game is over");
+		std::string finalScore = "Final Score: ";
+		finalScore += itoa(GameManager::getInstance().GetGameScore(), intChar, 10);
+		ImGui::Text(finalScore.c_str());
+		ImGui::EndPopup();
+	}
 	ImGui::Render();
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
