@@ -67,7 +67,7 @@ void Game::Init()
 
 	//Create camera object
 	//camera = Camera(width, height);
-	player = Player(ColliderType::SPHERE, width, height);
+	player = Player(BOX, width, height);
 	player.GetTransform()->SetPosition(0,0.8f,-5);
 
 	//Create directional lights
