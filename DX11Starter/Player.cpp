@@ -15,6 +15,10 @@ Player::Player(ColliderType colliderType, unsigned int projectionWidth, unsigned
 	health = 3;
 
 	UpdateProjectionMatrix(projectionWidth,projectionHeight);
+
+	playerHeight = 0.8f;
+
+	transform.SetPosition(0,playerHeight,-5);
 }
 
 Player::~Player()
@@ -29,6 +33,18 @@ void Player::Update(float deltaTime)
 
 void Player::UpdateKeyInput(float deltaTime)
 {
+	float yPos = transform.GetPosition().y;
+
+	if (yPos > playerHeight) {
+		verticalSpeed -= 3*deltaTime;
+	}
+	else if (yPos < playerHeight) {
+		verticalSpeed = 0;
+		XMFLOAT3 newPos = transform.GetPosition();
+		newPos.y = 0.8f;
+		transform.SetPosition(newPos);
+	}
+
 	float fwdSpeed = 0;//+ forward, - backward
 	float sideSpeed = 0;//+ right, - left
 
@@ -51,21 +67,29 @@ void Player::UpdateKeyInput(float deltaTime)
 	//Jump when spacebar pressed
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000) {
 		Jump();
+		jumpButtonHeld = true;
+	}
+	else {
+		jumpButtonHeld = false;
 	}
 
 	//Move relative to direction we're facing, with no movement on y axis
-	transform.MoveRelativeAxes(fwdSpeed, sideSpeed, 0);
+	transform.MoveRelativeAxes(fwdSpeed, sideSpeed, verticalSpeed*deltaTime);
 }
 
 void Player::UpdateMouseInput(float xAxis, float yAxis)
 {
-	//Rotate and clamp vertically between -PI/2 and PI/2
-	transform.RotateClamped(yAxis/mouseSensitivity, xAxis/mouseSensitivity, 0, -XM_1DIV2PI, XM_1DIV2PI);
+	//Rotate and clamp vertically between -PI/2 and PI/2 (it can bug out at the extremes so added padding)
+	transform.RotateClamped(yAxis / mouseSensitivity, xAxis / mouseSensitivity, 0, -XM_PIDIV2+0.1f, XM_PIDIV2-0.1f);
 }
 
 void Player::Jump()
 {
-	//Make sure not already in air and then jump somehow
+	//Make sure not already in air and jump button was not previously held
+	//Give a small cushion from ground where players can jump again, this feels way better
+	if (!jumpButtonHeld && transform.GetPosition().y <= playerHeight + 0.1f) {
+		verticalSpeed = 2;
+	}
 }
 
 //Update projection matrix on window resize to match aspect ratio

@@ -68,7 +68,6 @@ void Game::Init()
 	//Create camera object
 	//camera = Camera(width, height);
 	player = Player(BOX, width, height);
-	player.GetTransform()->SetPosition(0,0.8f,-5);
 
 	//Create directional lights
 	light1 = { XMFLOAT4(0.1f,0.1f,0.1f,1.0f),XMFLOAT4(1.0f,1.0f,1.0f,1.0f),XMFLOAT3(1.0f,-1.0f,0.5f) };

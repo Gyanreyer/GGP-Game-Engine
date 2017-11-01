@@ -38,6 +38,11 @@ private:
 
 	byte health;
 
+	float verticalSpeed;//Current speed of player
+	float playerHeight;
+
+	bool jumpButtonHeld;
+
 	//Move based on keyboard input
 	void UpdateKeyInput(float deltaTime);
 };
