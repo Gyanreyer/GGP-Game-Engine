@@ -11,7 +11,7 @@ Projectile::Projectile(Mesh * mesh, Material * material, ColliderType colliderTy
 	startPosition = startPos;
 	transform.SetPosition(startPos);
 	transform.SetRotation(rotation);
-	transform.SetScale(0.05f);
+	transform.SetScale(0.1f);
 }
 
 Projectile::~Projectile()
