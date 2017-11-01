@@ -130,15 +130,12 @@ void Game::CreateGameObjects()
 {
 	///ENEMIES
 	//Create an enemy
-	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 10));
-	enemies[0].GetTransform()->SetPosition(2, 0, 0);
+	enemies.push_back(Enemy(XMFLOAT3(2,0,0), assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 10, false, false));
 
 	//"Another one"
-	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 20));
-	enemies[1].GetTransform()->SetPosition(-2, 0, 0);
+	enemies.push_back(Enemy(XMFLOAT3(-2,2,0), assetManager.GetMesh("PurpleGhost"), assetManager.GetMaterial("PurpleGhost"), BOX, false, context, 20, false, true));
 
-	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 20));
-	enemies[2].GetTransform()->SetPosition(0, 0, -2);
+	enemies.push_back(Enemy(XMFLOAT3(0,0,-2), assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 20, true, false));
 
 	///OTHER GAMEOBJECTS
 	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, false, context);
@@ -162,6 +159,7 @@ void Game::CreateMeshes()
 	assetManager.ImportMesh("Torus", new Mesh("../../DX11Starter/Assets/Models/torus.obj", device));
 	assetManager.ImportMesh("Cactus", new Mesh("../../DX11Starter/Assets/Models/cactus.obj", device));
 	assetManager.ImportMesh("RustyPete", new Mesh("../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device));
+	assetManager.ImportMesh("PurpleGhost", new Mesh("../../DX11Starter/Assets/Models/ghost.obj", device));
 	assetManager.ImportMesh("Plane", new Mesh("../../DX11Starter/Assets/Models/Quad.obj", device));
 }
 
@@ -222,6 +220,12 @@ void Game::CreateMaterials()
 	assetManager.ImportTexture("EnemyTexture", enemyTexture);
 	Material* enemyMaterial = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("EnemyTexture"), assetManager.GetSampler("BasicSampler"));
 	assetManager.ImportMaterial("EnemyMaterial", enemyMaterial);
+
+	ID3D11ShaderResourceView* purpleGhostTexture;
+	CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/ghost-dark.png", 0, &purpleGhostTexture);
+	assetManager.ImportTexture("PurpleGhost", purpleGhostTexture);
+	Material* purpleGhostMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("PurpleGhost"), assetManager.GetSampler("BasicSampler"));
+	assetManager.ImportMaterial("PurpleGhost", purpleGhostMat);
 }
 
 // --------------------------------------------------------
@@ -258,6 +262,10 @@ void Game::Update(float deltaTime, float totalTime)
 		player.Update(deltaTime);
 
 		projectileManager.UpdateProjectiles(deltaTime);
+
+		for (int i = 0; i < enemies.size(); i++) {
+			enemies[i].Update(deltaTime);
+		}
 
 		//Check for collisions with player projectiles and enemies
 		for (int i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)
