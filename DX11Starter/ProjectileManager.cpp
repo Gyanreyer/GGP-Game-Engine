@@ -22,14 +22,18 @@ ProjectileManager::~ProjectileManager()
 void ProjectileManager::SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 rotation)
 {
 	//Add new player projectile
-	playerProjectiles.push_back(
-		Projectile(projectileMesh,
-			playerProjectileMaterial,//Use player proj material
-			ColliderType::SPHERE,//Use sphere collider
-			context,
-			startPt,//Point bullet will start from
-			rotation,//Rotation for bullet to move in
-			5.0f));//Move at speed of 5 units/second
+	//Only spawn new projectiles when there aren't too many on screen
+	if (playerProjectiles.size() < 3)
+	{
+		playerProjectiles.push_back(
+			Projectile(projectileMesh,
+				playerProjectileMaterial,//Use player proj material
+				ColliderType::SPHERE,//Use sphere collider
+				context,
+				startPt,//Point bullet will start from
+				rotation,//Rotation for bullet to move in
+				5.0f));//Move at speed of 5 units/second
+	}
 }
 
 void ProjectileManager::SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 rotation)
@@ -93,6 +97,11 @@ void ProjectileManager::DrawProjectiles(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
 void ProjectileManager::RemovePlayerProjectile(int i)
 {
 	playerProjectiles.erase(playerProjectiles.begin() + i);
+}
+
+void ProjectileManager::RemoveEnemyProjectile(int i)
+{
+	enemyProjectiles.erase(enemyProjectiles.begin() + i);
 }
 
 ////Player projectiles colliding with the enemies

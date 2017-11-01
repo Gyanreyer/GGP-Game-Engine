@@ -19,6 +19,7 @@ public:
 	//Draw all projectiles
 	void DrawProjectiles(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat);
 	void RemovePlayerProjectile(int i);
+	void RemoveEnemyProjectile(int i);
 
 	//Investigate spatial partitioning?
 	//Not sure what current state of collision detection is so will leave this for now

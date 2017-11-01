@@ -171,6 +171,7 @@ void Game::CreateMaterials()
 	//Create Sampler State
 	ID3D11SamplerState* sample;
 	D3D11_SAMPLER_DESC sampleDesc = {};
+
 	//Describes how to handle addresses outside 0-1 UV range
 	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -234,7 +235,6 @@ void Game::OnResize()
 	DXCore::OnResize();
 
 	player.UpdateProjectionMatrix(width,height);
-	//camera.UpdateProjectionMatrix(width, height);
 }
 
 // --------------------------------------------------------
@@ -251,6 +251,7 @@ void Game::Update(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
+
 	////Game update Loop
 	//1. Make sure game is has not ended
 	if (!GameManager::getInstance().isGameOver()) {
@@ -260,9 +261,9 @@ void Game::Update(float deltaTime, float totalTime)
 		projectileManager.UpdateProjectiles(deltaTime);
 
 		//Check for collisions with player projectiles and enemies
-		for (int i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)
+		for (byte i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)
 		{
-			for (int j = 0; j < enemies.size(); j++)
+			for (byte j = 0; j < enemies.size(); j++)
 			{
 				if (Collision::CheckCollisionSphereBox(projectileManager.GetPlayerProjectiles()[i].GetCollider(), enemies[j].GetCollider()))
 				{
@@ -270,8 +271,19 @@ void Game::Update(float deltaTime, float totalTime)
 					GameManager::getInstance().AddScore(enemies[j].GetPoints());
 					enemies.erase(enemies.begin() + j);
 					projectileManager.RemovePlayerProjectile(i);
-					break; //Stop subscript error
+					break;
 				}
+			}
+		}
+
+		//Check for collisions with enemy projectiles and the player
+		for (byte i = 0; i < projectileManager.GetEnemyProjectiles().size(); i++)
+		{
+			if (Collision::CheckCollisionSphereBox(projectileManager.GetEnemyProjectiles()[i].GetCollider(), player.GetCollider()))
+			{
+				player.DecrementHealth();
+				projectileManager.RemoveEnemyProjectile(i); //Remove the enemy's projectile, prevents multi-frame collisions
+				break;
 			}
 		}
 	}
@@ -353,13 +365,17 @@ void Game::Draw(float deltaTime, float totalTime)
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	}
 
+	//Display game stats
 	std::string score = "Score: ";
 	char intChar[10];
 	score += itoa(GameManager::getInstance().GetGameScore() ,intChar, 10);
+	std::string health = "Health: ";
+	health += itoa(player.GetHealth(), intChar, 10);
 	std::string timeLeft = "Time Left: ";
-	timeLeft += itoa(GameManager::getInstance().getTimeLeft(), intChar, 10);
+	timeLeft += itoa((int)GameManager::getInstance().getTimeLeft(), intChar, 10);
 	ImGui::Begin("GGP Game", (bool*)1);
 	ImGui::Text(timeLeft.c_str());
+	ImGui::Text(health.c_str());
 	ImGui::Text(score.c_str());
 	ImGui::End();
 
