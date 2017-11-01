@@ -12,6 +12,8 @@ Player::Player(ColliderType colliderType, unsigned int projectionWidth, unsigned
 	movementSpeed = 2; //The camera's movement speed
 	mouseSensitivity = 400; //Mouse sensitivity, determines the camera's rotation speed
 
+	health = 3;
+
 	UpdateProjectionMatrix(projectionWidth,projectionHeight);
 }
 
@@ -105,6 +107,18 @@ XMFLOAT4X4 Player::GetViewMatrix()
 XMFLOAT4X4 Player::GetProjectionMatrix()
 {
 	return projectionMatrix;
+}
+
+//Get the player's health
+byte Player::GetHealth()
+{
+	return health;
+}
+
+//Decrement the player's health when they are hit
+void Player::DecrementHealth()
+{
+	health--;
 }
 
 bool Player::CheckProjectileCollisions(GameObject other)

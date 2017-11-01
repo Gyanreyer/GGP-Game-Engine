@@ -21,6 +21,9 @@ public:
 	XMFLOAT4X4 GetViewMatrix();
 	XMFLOAT4X4 GetProjectionMatrix();
 
+	byte GetHealth();
+	void DecrementHealth();
+
 	//Check collider against all player projectile colliders
 	bool CheckProjectileCollisions(GameObject other);
 
@@ -32,6 +35,8 @@ private:
 
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projectionMatrix;
+
+	byte health;
 
 	//Move based on keyboard input
 	void UpdateKeyInput(float deltaTime);

@@ -121,17 +121,17 @@ Mesh::Mesh(char * modelFile, ID3D11Device * drawDevice)
 			//    corresponding data from vectors
 			// - OBJ File indices are 1-based, so
 			//    they need to be adusted
-			Vertex v1;
+			Vertex v1 = Vertex();
 			v1.Position = positions[i[0] - 1];
 			v1.UV = uvs[i[1] - 1];
 			v1.Normal = normals[i[2] - 1];
 
-			Vertex v2;
+			Vertex v2 = Vertex();
 			v2.Position = positions[i[3] - 1];
 			v2.UV = uvs[i[4] - 1];
 			v2.Normal = normals[i[5] - 1];
 
-			Vertex v3;
+			Vertex v3 = Vertex();
 			v3.Position = positions[i[6] - 1];
 			v3.UV = uvs[i[7] - 1];
 			v3.Normal = normals[i[8] - 1];
@@ -176,7 +176,7 @@ Mesh::Mesh(char * modelFile, ID3D11Device * drawDevice)
 			if (facesRead == 12)
 			{
 				// Make the last vertex
-				Vertex v4;
+				Vertex v4 = Vertex();
 				v4.Position = positions[i[9] - 1];
 				v4.UV = uvs[i[10] - 1];
 				v4.Normal = normals[i[11] - 1];
