@@ -1,8 +1,8 @@
 #include "Projectile.h"
 
 Projectile::Projectile(Mesh * mesh, Material * material, ColliderType colliderType, ID3D11DeviceContext * ctx,
-	XMFLOAT3 startPos, XMFLOAT3 rotation, float speed):
-	GameObject(mesh,material,colliderType,ctx)
+	XMFLOAT3 startPos, XMFLOAT3 rotation, float speed) :
+	GameObject(mesh, material, colliderType, false, ctx)
 {
 	timeAlive = 0;
 	moveSpeed = speed;//Store speed that will move by each frame

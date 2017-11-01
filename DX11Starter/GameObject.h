@@ -11,7 +11,7 @@ class GameObject
 public:
 	GameObject();//Default constructor does nothing
 	GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx);//Constructor sets mesh/material/context for drawing and initializes transform
-	GameObject(Mesh * mesh, Material * material, ColliderType colliderType, ID3D11DeviceContext * ctx);
+	GameObject(Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx);
 	GameObject(ColliderType colliderType);//Constructor for object with no mesh (do we need this...?)
 	~GameObject();
 

@@ -128,15 +128,15 @@ void Game::CreateGameObjects()
 {
 	///ENEMIES
 	//Create an enemy
-	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context, 10));
+	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 10));
 	enemies[0].GetTransform()->SetPosition(2, 0, 0);
 
 	//"Another one"
-	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context, 20));
+	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 20));
 	enemies[1].GetTransform()->SetPosition(-2, 0, 0);
 
 	///OTHER GAMEOBJECTS
-	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context);
+	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, false, context);
 	floor.GetTransform()->SetScale(10, 1, 10);
 
 	//Store references to all GOs in array

@@ -7,7 +7,7 @@ class Player: public GameObject
 {
 public:
 	Player();
-	Player(ColliderType colliderType,unsigned int projectionWidth, unsigned int projectionHeight);
+	Player(ColliderType colliderType, unsigned int projectionWidth, unsigned int projectionHeight);
 	~Player();
 
 	void Update(float deltaTime);

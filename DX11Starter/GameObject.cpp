@@ -2,6 +2,7 @@
 
 GameObject::GameObject() {}
 
+//GameObject without collider
 GameObject::GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx)
 {
 	SetMesh(mesh);//Set mesh to given mesh
@@ -13,23 +14,25 @@ GameObject::GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * c
 	transform = Transform();//Initialize transform
 }
 
-GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderType, ID3D11DeviceContext * ctx)
+//GameObject with collider
+GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx)
 {
 	SetMesh(mesh);//Set mesh to given mesh
 	SetMaterial(material);//Set material to given material
 
 	transform = Transform();//Initialize transform
 
-	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false);
+	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false, isColliderOffset);
 
 	context = ctx;
 }
 
+//Just a collider, no visible object
 GameObject::GameObject(ColliderType colliderType)
 {
 	transform = Transform();
 
-	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false);
+	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false, false);
 
 	hasMesh = false;//This object doesn't have a mesh to be drawn
 }
@@ -128,7 +131,16 @@ void GameObject::UpdateWorldMatrix()
 
 		transform.DoneUpdating();//Notify transform that matrix has been updated successfully
 
-		coll.center = transform.GetPosition();
 		coll.dimensions = transform.GetScale();
+
+		//Check if the collider is offset
+		if (!coll.isOffset)
+			//If the collider is not offset, proceed as normal
+			coll.center = transform.GetPosition();
+		else
+			//Adjust for offset here
+			//Right now, this assumes that the collider is at the "feet" of a model
+			//If the need arises, this can be generalized
+			coll.center = XMFLOAT3(transform.GetPosition().x, transform.GetPosition().y + (coll.dimensions.y / 2), transform.GetPosition().z);
 	}
 }
