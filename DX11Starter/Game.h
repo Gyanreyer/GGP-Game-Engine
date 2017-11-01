@@ -58,13 +58,12 @@ private:
 
 	//ASSET MANAGER
 	AssetManager assetManager;
+	GameManager* gameManager;
 
 	//Array of pointers to GameObjects so we can draw them in an easy loop
 	vector<GameObject*> gameObjects;
 
-	//Array of Enemies so we can draw them in an easy loop
-	//Not pointers, just do these directly
-	vector<Enemy> enemies;
+
 
 	//Directional light
 	DirectionalLight light1;
@@ -75,9 +74,9 @@ private:
 	//bool freelookEnabled;
 
 	//The player and enemy
-	Player player;
+	Player* player;
 	GameObject floor;
-	ProjectileManager projectileManager;
+	ProjectileManager* projectileManager;
 
 	//Don't need this due to some thing I did but forgot how it works
 	//bool freeLookEnabled = false;	//tells whether freelook is enabled 

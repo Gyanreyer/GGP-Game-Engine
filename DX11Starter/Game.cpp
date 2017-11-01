@@ -65,9 +65,11 @@ void Game::Init()
 	//Initialize ImGui
 	ImGui_ImplDX11_Init(hWnd, device, context);
 
+	gameManager = &GameManager::getInstance();
+
 	//Create camera object
 	//camera = Camera(width, height);
-	player = Player(BOX, width, height);
+
 
 	//Create directional lights
 	light1 = { XMFLOAT4(0.1f,0.1f,0.1f,1.0f),XMFLOAT4(1.0f,1.0f,1.0f,1.0f),XMFLOAT3(1.0f,-1.0f,0.5f) };
@@ -87,18 +89,18 @@ void Game::Init()
 
 	CreateGameObjects();
 
+	gameManager->StartGame(&assetManager, width, height, context);
+	player = gameManager->GetPlayer();
+
 	//Set up projectile manager
-	projectileManager = ProjectileManager(assetManager.GetMesh("Sphere"),
-		assetManager.GetMaterial("HazardCrateMat"),//Placeholder until make new mats for bullets
-		assetManager.GetMaterial("HazardCrateMat"),
-		context);
+	projectileManager = gameManager->GetProjectileManager();
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	GameManager::getInstance().StartGame();
+
 }
 
 // --------------------------------------------------------
@@ -127,14 +129,7 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateGameObjects()
 {
-	///ENEMIES
-	//Create an enemy
-	enemies.push_back(Enemy(XMFLOAT3(2,0,0), assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 10, false, false));
-
-	//"Another one"
-	enemies.push_back(Enemy(XMFLOAT3(-2,2,0), assetManager.GetMesh("PurpleGhost"), assetManager.GetMaterial("PurpleGhost"), BOX, false, context, 20, false, true));
-
-	enemies.push_back(Enemy(XMFLOAT3(0,0,-2), assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, true, context, 20, true, false));
+	
 
 	///OTHER GAMEOBJECTS
 	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, false, context);
@@ -237,7 +232,7 @@ void Game::OnResize()
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 
-	player.UpdateProjectionMatrix(width,height);
+	player->UpdateProjectionMatrix(width,height);
 }
 
 // --------------------------------------------------------
@@ -257,39 +252,40 @@ void Game::Update(float deltaTime, float totalTime)
 
 	////Game update Loop
 	//1. Make sure game is has not ended
-	if (!GameManager::getInstance().isGameOver()) {
+	if (!gameManager->isGameOver()) {
 
-		player.Update(deltaTime);
+		player->Update(deltaTime);
 
-		projectileManager.UpdateProjectiles(deltaTime);
+		projectileManager->UpdateProjectiles(deltaTime);
+		vector<Enemy>* enemies = gameManager->GetEnemyVector(); //get enemies
 
-		for (int i = 0; i < enemies.size(); i++) {
-			enemies[i].Update(deltaTime);
+		for (int i = 0; i < enemies->size(); i++) {
+			(*enemies)[i].Update(deltaTime);
 		}
 
 		//Check for collisions with player projectiles and enemies
-		for (byte i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)
+		for (byte i = 0; i < projectileManager->GetPlayerProjectiles().size(); i++)
 		{
-			for (byte j = 0; j < enemies.size(); j++)
+			for (byte j = 0; j < enemies->size(); j++)
 			{
-				if (Collision::CheckCollisionSphereBox(projectileManager.GetPlayerProjectiles()[i].GetCollider(), enemies[j].GetCollider()))
+				if (Collision::CheckCollisionSphereBox(projectileManager->GetPlayerProjectiles()[i].GetCollider(), (*enemies)[j].GetCollider()))
 				{
 					//Add score to player score
-					GameManager::getInstance().AddScore(enemies[j].GetPoints());
-					enemies.erase(enemies.begin() + j);
-					projectileManager.RemovePlayerProjectile(i);
+					gameManager->AddScore((*enemies)[j].GetPoints());
+					enemies->erase(enemies->begin() + j);
+					projectileManager->RemovePlayerProjectile(i);
 					break;
 				}
 			}
 		}
 
 		//Check for collisions with enemy projectiles and the player
-		for (byte i = 0; i < projectileManager.GetEnemyProjectiles().size(); i++)
+		for (byte i = 0; i < projectileManager->GetEnemyProjectiles().size(); i++)
 		{
-			if (Collision::CheckCollisionSphereBox(projectileManager.GetEnemyProjectiles()[i].GetCollider(), player.GetCollider()))
+			if (Collision::CheckCollisionSphereBox(projectileManager->GetEnemyProjectiles()[i].GetCollider(), player->GetCollider()))
 			{
-				player.DecrementHealth();
-				projectileManager.RemoveEnemyProjectile(i); //Remove the enemy's projectile, prevents multi-frame collisions
+				player->DecrementHealth();
+				projectileManager->RemoveEnemyProjectile(i); //Remove the enemy's projectile, prevents multi-frame collisions
 				break;
 			}
 		}
@@ -317,9 +313,10 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
-	XMFLOAT4X4 viewMat = player.GetViewMatrix();
-	XMFLOAT4X4 projMat = player.GetProjectionMatrix();
+	XMFLOAT4X4 viewMat = player->GetViewMatrix();
+	XMFLOAT4X4 projMat = player->GetProjectionMatrix();
 
+	vector<Enemy>* enemies = gameManager->GetEnemyVector(); //get enemies
 	//Loop through GameObjects and draw them
 	for (byte i = 0; i < gameObjects.size(); i++)
 	{
@@ -337,27 +334,27 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	//Loop through Enemies and draw them
-	for (byte i = 0; i < enemies.size(); i++)
+	for (byte i = 0; i < enemies->size(); i++)
 	{
-		enemies[i].GetMaterial()->GetPixelShader()->SetData(
+		(*enemies)[i].GetMaterial()->GetPixelShader()->SetData(
 			"light1",
 			&light1,
 			sizeof(DirectionalLight));
 
-		enemies[i].GetMaterial()->GetPixelShader()->SetData(
+		(*enemies)[i].GetMaterial()->GetPixelShader()->SetData(
 			"light2",
 			&light2,
 			sizeof(DirectionalLight));
 
-		enemies[i].Draw(viewMat, projMat);
+		(*enemies)[i].Draw(viewMat, projMat);
 	}
 
 	//Set up light data for projectile materials
-	projectileManager.SetProjectileShaderData("light1", &light1, sizeof(DirectionalLight));
-	projectileManager.SetProjectileShaderData("light2", &light2, sizeof(DirectionalLight));
+	projectileManager->SetProjectileShaderData("light1", &light1, sizeof(DirectionalLight));
+	projectileManager->SetProjectileShaderData("light2", &light2, sizeof(DirectionalLight));
 
 	//Draw all projectiles
-	projectileManager.DrawProjectiles(viewMat, projMat);
+	projectileManager->DrawProjectiles(viewMat, projMat);
 
 	// 1. Show a simple window
 	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
@@ -375,11 +372,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	//Display game stats
 	std::string score = "Score: ";
 	char intChar[10];
-	score += itoa(GameManager::getInstance().GetGameScore() ,intChar, 10);
+	score += itoa(gameManager->GetGameScore() ,intChar, 10);
 	std::string health = "Health: ";
-	health += itoa(player.GetHealth(), intChar, 10);
+	health += itoa(player->GetHealth(), intChar, 10);
 	std::string timeLeft = "Time Left: ";
-	timeLeft += itoa((int)GameManager::getInstance().getTimeLeft(), intChar, 10);
+	timeLeft += itoa((int)gameManager->getTimeLeft(), intChar, 10);
 	ImGui::Begin("GGP Game", (bool*)1);
 	ImGui::Text(timeLeft.c_str());
 	ImGui::Text(health.c_str());
@@ -390,7 +387,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	if (ImGui::BeginPopup("EndGame")) {
 		ImGui::TextColored(ImVec4(1, 0, 0, 1), "Game is over");
 		std::string finalScore = "Final Score: ";
-		finalScore += itoa(GameManager::getInstance().GetGameScore(), intChar, 10);
+		finalScore += itoa(gameManager->GetGameScore(), intChar, 10);
 		ImGui::Text(finalScore.c_str());
 		ImGui::EndPopup();
 	}
@@ -425,14 +422,14 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 	//Duh, it's a bitwise &
 	if (buttonState & MK_LBUTTON)
 	{
-		Transform* pt = player.GetTransform();
+		Transform* pt = player->GetTransform();
 		XMFLOAT3 startPt;
 
 		XMStoreFloat3(&startPt,
 			XMLoadFloat3(&pt->GetPosition()) + XMLoadFloat3(&pt->GetForward())*0.1f);
 
 		//Make player shoot
-		projectileManager.SpawnPlayerProjectile(startPt, pt->GetRotation());
+		projectileManager->SpawnPlayerProjectile(startPt, pt->GetRotation());
 	}
 }
 
@@ -465,27 +462,13 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 		float deltaX = x - (float)prevMousePos.x;
 		float deltaY = y - (float)prevMousePos.y;
 
-		////Save the actual distance from the center of the screen to the cursor
-		//realMouse.x += deltaX;
-		//realMouse.y += deltaY;
-
 		//Rotate player
-		player.UpdateMouseInput(deltaX, deltaY);
+		player->UpdateMouseInput(deltaX, deltaY);
 
 		//Update previous mose position
 		prevMousePos.x = x;
 		prevMousePos.y = y;
-		//prevMousePos.x = realMouse.x - x;
-		//prevMousePos.y = realMouse.y - y;
 
-		//SetCursorPos(screen.right / 2, screen.bottom / 2);
-
-		//printf("Previous Mouse: %d, %d\n", prevMousePos.x, prevMousePos.y);
-		//printf("Real Mouse: %d, %d\n", realMouse.x, realMouse.y);
-		//printf("%d, %d\n", x, y);
-		//printf("%f, %f\n", deltaX, deltaY);
-
-		//printf("XY: %f, %f Next: %f, %f Previous: %f, %f\n", (float)x, (float)y, (float)nextX, (float)nextY, (float)prevMousePos.x, (float)prevMousePos.y);
 	}
 }
 
