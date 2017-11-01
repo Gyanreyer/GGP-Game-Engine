@@ -48,9 +48,9 @@ private:
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
-	void CreateMeshes();//Generates and assigns meshes for GameObjects
+	void CreateMeshes(); //Generates and assigns meshes for GameObjects
 	void CreateMaterials();
-	void CreateGameObjects();//Initializes GameObjects
+	void CreateGameObjects(); //Initializes GameObjects
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
@@ -58,13 +58,10 @@ private:
 
 	//ASSET MANAGER
 	AssetManager assetManager;
+	GameManager* gameManager;
 
 	//Array of pointers to GameObjects so we can draw them in an easy loop
 	vector<GameObject*> gameObjects;
-
-	//Array of Enemies so we can draw them in an easy loop
-	//Not pointers, just do these directly
-	vector<Enemy> enemies;
 
 	//Directional light
 	DirectionalLight light1;
@@ -75,10 +72,10 @@ private:
 	//bool freelookEnabled;
 
 	//The player and enemy
-	Player player;
+	Player* player;
 	GameObject floor;
 	GameObject obstacle;
-	ProjectileManager projectileManager;
+	ProjectileManager* projectileManager;
 
 	//Don't need this due to some thing I did but forgot how it works
 	//bool freeLookEnabled = false;	//tells whether freelook is enabled 
