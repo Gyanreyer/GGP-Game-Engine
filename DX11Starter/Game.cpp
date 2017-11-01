@@ -89,8 +89,8 @@ void Game::Init()
 
 	CreateGameObjects();
 
-	gameManager->StartGame(&assetManager, width, height, context);
-	player = gameManager->GetPlayer();
+	gameManager->StartGame(&assetManager, width, height, context); //starts the game
+	player = gameManager->GetPlayer(); //give engine a refrence to player
 
 	//Set up projectile manager
 	projectileManager = gameManager->GetProjectileManager();
@@ -389,6 +389,11 @@ void Game::Draw(float deltaTime, float totalTime)
 		std::string finalScore = "Final Score: ";
 		finalScore += itoa(gameManager->GetGameScore(), intChar, 10);
 		ImGui::Text(finalScore.c_str());
+		if (ImGui::Button("Restart Game"))
+		{
+			gameManager->StartGame(&assetManager, width, height, context);
+			ImGui::CloseCurrentPopup();
+		}
 		ImGui::EndPopup();
 	}
 	ImGui::Render();

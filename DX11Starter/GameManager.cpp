@@ -22,7 +22,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 {
 	time(&nowTime); //gets current time when game is launched
 	gameStartTime = *localtime(&nowTime); //assigns that time to gameStartTime to keep track of the time when game first started
-	timeInMatch = 80; //intializes how much time is in a game
+	timeInMatch = 15; //intializes how much time is in a game
 	score = 0; //sets score to 0
 
 	//Initialize Player and Projectile Manager
