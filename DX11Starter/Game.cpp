@@ -455,7 +455,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		ImGui::Text(finalScore.c_str());
 		if (ImGui::Button("Restart Game"))
 		{
-			gameManager->StartGame(&assetManager, width, height, context);
+			gameManager->StartGame(&assetManager, screen.right / 2, screen.bottom / 2, context);
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
