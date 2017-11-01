@@ -127,47 +127,15 @@ void Game::LoadShaders()
 void Game::CreateGameObjects()
 {
 	//Create an enemy
-	goon = Enemy(assetManager.GetMesh("Cylinder"), assetManager.GetMaterial("EnemyMaterial"), BOX, context);
+	goon = Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context);
 	goon.GetTransform()->SetPosition(2, 0, 0);
 	enemies.push_back(&goon);
 
-	//Create 2 circle GOs
-	sphere1 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("StoneMat"), ColliderType::SPHERE, context);
-	sphere1.GetTransform()->SetScale(1.0f);
-
-	sphere2 = GameObject(assetManager.GetMesh("Sphere"), assetManager.GetMaterial("HazardCrateMat"), ColliderType::BOX, context);
-	sphere2.GetTransform()->SetScale(0.75f);
-
-	sphere2.GetTransform()->SetPosition(0.75f, 0, 0);
-
-	//Create 2 square GOs
-	/*cube1 = GameObject(assetManager.GetMesh("Cube"), assetManager.GetMaterial("StoneMat"), context);
-	cube1.GetTransform()->SetScale(0.5f);
-	cube1.GetTransform()->SetPosition(0.0f,0.0f, 1.0f);
-
-	cube1.GetTransform()->SetParent(camera.GetTransform());*/
-
-	cube2 = GameObject(assetManager.GetMesh("Cube"), assetManager.GetMaterial("StoneMat"), context);
-	cube2.GetTransform()->SetScale(0.5f);
-	cube2.GetTransform()->SetPosition(3.0f, -1.5f, 0.0f);
-
-	//Create 2 pentagon GOs
-	torus1 = GameObject(assetManager.GetMesh("Torus"), assetManager.GetMaterial("StoneMat"), context);
-	torus1.GetTransform()->SetScale(0.5f);
-	torus1.GetTransform()->SetPosition(-3.0f, 1.5f, 0.0f);
-
-	torus2 = GameObject(assetManager.GetMesh("Torus"), assetManager.GetMaterial("StoneMat"), context);
-	torus2.GetTransform()->SetScale(0.5f);
-	torus2.GetTransform()->SetPosition(-3.0f, -1.5f, 0.0f);
-
+	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context);
+	floor.GetTransform()->SetScale(10, 1, 10);
 	//Store references to all GOs in array
-	gameObjects.push_back(&sphere1);
-	gameObjects.push_back(&sphere2);
-	gameObjects.push_back(&torus1);
-	gameObjects.push_back(&torus2);
-	//gameObjects[4] = &cube1;
-	gameObjects.push_back(&cube2);
 	gameObjects.push_back(&goon);
+	gameObjects.push_back(&floor);
 }
 
 // ---------------------------------------------------------
@@ -183,6 +151,8 @@ void Game::CreateMeshes()
 	assetManager.ImportMesh("Sphere", new Mesh("../../DX11Starter/Assets/Models/sphere.obj", device));
 	assetManager.ImportMesh("Torus", new Mesh("../../DX11Starter/Assets/Models/torus.obj", device));
 	assetManager.ImportMesh("Cactus", new Mesh("../../DX11Starter/Assets/Models/cactus.obj", device));
+	assetManager.ImportMesh("RustyPete", new Mesh("../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device));
+	assetManager.ImportMesh("Plane", new Mesh("../../DX11Starter/Assets/Models/Quad.obj", device));
 }
 
 ///Loads in textures and makes them into materials
@@ -213,6 +183,13 @@ void Game::CreateMaterials()
 		printf("Hazard Texture is could not be loaded");
 	}
 	assetManager.ImportTexture("HazardTexture", hazardTexture);
+
+	ID3D11ShaderResourceView* rustyPeteTexture;
+	tResult = CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Models/RustyPete/rusty_pete_body_c.png", 0, &rustyPeteTexture);
+	assetManager.ImportTexture("RustyPete", rustyPeteTexture);
+
+	Material* rustyPeteMaterial = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("RustyPete"), assetManager.GetSampler("BasicSampler"));
+	assetManager.ImportMaterial("RustyPeteMaterial", rustyPeteMaterial);
 
 	//Create Material 
 	Material* genericMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("HazardTexture"), assetManager.GetSampler("BasicSampler"));
@@ -267,31 +244,6 @@ void Game::Update(float deltaTime, float totalTime)
 
     //camera.Update(deltaTime);
 	player.Update(deltaTime);
-
-	//Get sin and cos of current time for manipulating position and scale of objects
-	float sinTime = XMScalarSin(totalTime);
-	float cosTime = XMScalarCos(totalTime);
-
-	//Rotate circle1 and make it float up and down
-	sphere1.GetTransform()->Rotate(0.0f, 0.0f, 2*deltaTime);
-	//sphere1.GetTransform()->SetPosition(0.0f, sinTime*0.5f, 0.0f);
-
-	sphere2.GetTransform()->SetPosition(pos[0], pos[1], pos[2]);
-	Collision::CheckCollisionSphereBox(sphere1.GetCollider(), sphere2.GetCollider());
-
-	//Make pentagons shrink/grow and rotate in opposite directions
-	torus1.GetTransform()->SetScale((2.f + cosTime)*.1f);
-	torus1.GetTransform()->Rotate(0, 0, -deltaTime*.5f);
-
-	torus2.GetTransform()->SetScale((2.f + cosTime)*.1f);
-	torus2.GetTransform()->Rotate(0, 0, deltaTime*.5f);
-
-	//Make squares shrink/grow and rotate in opposite directions
-	/*cube1.GetTransform()->SetScale((2.f + cosTime)*.1f);
-	cube1.GetTransform()->Rotate(0, 0, deltaTime*.5f);*/
-
-	cube2.GetTransform()->SetScale((2.f + cosTime)*.1f);
-	cube2.GetTransform()->Rotate(0, 0, -deltaTime*.5f);
 
 	projectileManager.UpdateProjectiles(deltaTime);
 }
@@ -366,12 +318,15 @@ void Game::Draw(float deltaTime, float totalTime)
 		ImGui::SliderFloat3("Sphere2 Pos", pos, -5, 5);
 		ImGui::ColorEdit3("clear color", (float*)&clear_color);
 		ImGui::InputText("Text Test", &testText, sizeof(char)* 50);
-		//ImGui::Checkbox("Free Look Enabled", &freelookEnabled);//implement later
-		//if (ImGui::Button("Test Window")) show_test_window ^= 1;
-		//if (ImGui::Button("Another Window")) show_another_window ^= 1;
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	}
 
+	std::string score = "Score: ";
+	char intChar[10];
+	score += itoa(GameManager::getInstance().GetGameScore() ,intChar, 10);
+	ImGui::Begin("GGP Game", (bool*)1);
+	ImGui::Text(score.c_str());
+	ImGui::End();
 	ImGui::Render();
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it

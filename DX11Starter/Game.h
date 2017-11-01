@@ -15,6 +15,8 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "ProjectileManager.h"
+#include "GameManager.h"
+#include <string>
 
 class Game 
 	: public DXCore
@@ -79,7 +81,7 @@ private:
 	//The player and enemy
 	Player player;
 	Enemy goon;
-
+	GameObject floor;
 	ProjectileManager projectileManager;
 
 	//Don't need this due to some thing I did but forgot how it works
