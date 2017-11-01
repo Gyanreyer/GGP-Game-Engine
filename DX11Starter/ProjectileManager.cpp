@@ -90,12 +90,29 @@ void ProjectileManager::DrawProjectiles(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
 		iter->Draw(viewMat, projMat);
 }
 
-bool ProjectileManager::CheckPlayerProjectileCollision(GameObject other)
+////Player projectiles colliding with the enemies
+//bool ProjectileManager::CheckPlayerProjectileCollision(GameObject* other)
+//{
+//	for (byte i = 0; i < playerProjectiles.size(); i++)
+//	{
+//		
+//	}
+//}
+//
+////Enemy projectiles colliding with the player
+//bool ProjectileManager::CheckEnemyProjectileCollision(GameObject* other)
+//{
+//	return false;
+//}
+
+//Get the player's projectiles
+vector<Projectile> ProjectileManager::GetPlayerProjectiles()
 {
-	return false;
+	return playerProjectiles;
 }
 
-bool ProjectileManager::CheckEnemyProjectileCollision(GameObject other)
+//Get the list of projectiles the enemy fires
+vector<Projectile> ProjectileManager::GetEnemyProjectiles()
 {
-	return false;
+	return enemyProjectiles;
 }

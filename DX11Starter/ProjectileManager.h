@@ -21,8 +21,14 @@ public:
 
 	//Investigate spatial partitioning?
 	//Not sure what current state of collision detection is so will leave this for now
-	bool CheckPlayerProjectileCollision(GameObject other);
-	bool CheckEnemyProjectileCollision(GameObject other);
+	//Moved this out, I think it's more efficient to do one function call in game
+	//to directly compare collisions. Created Get methods for vectors instead.
+	//Can change back later if needed
+	//bool CheckPlayerProjectileCollision(GameObject* other);
+	//bool CheckEnemyProjectileCollision(GameObject* other);
+
+	vector<Projectile> GetPlayerProjectiles();
+	vector<Projectile> GetEnemyProjectiles();
 
 private:
 	ID3D11DeviceContext * context;

@@ -127,8 +127,9 @@ void Game::LoadShaders()
 void Game::CreateGameObjects()
 {
 	//Create an enemy
-	goon = Enemy(assetManager.GetMesh("Cylinder"), assetManager.GetMaterial("EnemyMaterial"), BOX, context);
+	goon = Enemy(assetManager.GetMesh("Cube"), assetManager.GetMaterial("EnemyMaterial"), BOX, context);
 	goon.GetTransform()->SetPosition(2, 0, 0);
+	goon.GetTransform()->SetScale(1, 2, .5f);
 	enemies.push_back(&goon);
 
 	//Create 2 circle GOs
@@ -277,7 +278,7 @@ void Game::Update(float deltaTime, float totalTime)
 	//sphere1.GetTransform()->SetPosition(0.0f, sinTime*0.5f, 0.0f);
 
 	sphere2.GetTransform()->SetPosition(pos[0], pos[1], pos[2]);
-	Collision::CheckCollisionSphereBox(sphere1.GetCollider(), sphere2.GetCollider());
+	//CheckCollisionSphereBox(sphere1.GetCollider(), sphere2.GetCollider());
 
 	//Make pentagons shrink/grow and rotate in opposite directions
 	torus1.GetTransform()->SetScale((2.f + cosTime)*.1f);
@@ -294,6 +295,15 @@ void Game::Update(float deltaTime, float totalTime)
 	cube2.GetTransform()->Rotate(0, 0, -deltaTime*.5f);
 
 	projectileManager.UpdateProjectiles(deltaTime);
+
+	//Check for collisions with player projectiles and enemies
+	for (byte i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)
+	{
+		for (byte j = 0; j < enemies.size(); j++)
+		{
+			Collision::CheckCollisionSphereBox(projectileManager.GetPlayerProjectiles()[i].GetCollider(), enemies[j]->GetCollider());
+		}
+	}
 }
 
 // --------------------------------------------------------
@@ -318,7 +328,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	XMFLOAT4X4 projMat = player.GetProjectionMatrix();
 
 	//Loop through GameObjects and draw them
-	for (int i = 0; i < gameObjects.size(); i++)
+	for (byte i = 0; i < gameObjects.size(); i++)
 	{
 		gameObjects[i]->GetMaterial()->GetPixelShader()->SetData(
 			"light1",
@@ -334,7 +344,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	//Loop through Enemies and draw them
-	for (int i = 0; i < enemies.size(); i++)
+	for (byte i = 0; i < enemies.size(); i++)
 	{
 		enemies[i]->GetMaterial()->GetPixelShader()->SetData(
 			"light1",
@@ -350,12 +360,12 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	//Set up light data for projectile materials
-	projectileManager.SetProjectileShaderData("light1", &light1,sizeof(DirectionalLight));
+	projectileManager.SetProjectileShaderData("light1", &light1, sizeof(DirectionalLight));
 	projectileManager.SetProjectileShaderData("light2", &light2, sizeof(DirectionalLight));
 
 	//Draw all projectiles
-	projectileManager.DrawProjectiles(viewMat,projMat);
-	 
+	projectileManager.DrawProjectiles(viewMat, projMat);
+
 	// 1. Show a simple window
 	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
 	{
