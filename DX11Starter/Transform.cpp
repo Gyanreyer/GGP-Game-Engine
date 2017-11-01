@@ -105,10 +105,10 @@ void Transform::RotateClamped(float roll, float pitch, float yaw,
 
 	//Clamp x rotation between given min and max
 	if (newRotation.x < minAngle) {
-		rotation.x = minAngle;
+		newRotation.x = minAngle;
 	}
 	else if (newRotation.x > maxAngle) {
-		rotation.x = maxAngle;
+		newRotation.x = maxAngle;
 	}
 
 	//Set new rotation
