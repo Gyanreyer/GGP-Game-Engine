@@ -267,9 +267,10 @@ void Game::Update(float deltaTime, float totalTime)
 				if (Collision::CheckCollisionSphereBox(projectileManager.GetPlayerProjectiles()[i].GetCollider(), enemies[j].GetCollider()))
 				{
 					//Add score to player score
-					GameManager::getInstance().AddScore(enemies[i].GetPoints());
+					GameManager::getInstance().AddScore(enemies[j].GetPoints());
 					enemies.erase(enemies.begin() + j);
 					projectileManager.RemovePlayerProjectile(i);
+					break; //Stop subscript error
 				}
 			}
 		}
