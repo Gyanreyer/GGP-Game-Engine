@@ -20,9 +20,20 @@ Enemy::Enemy(XMFLOAT3 position, Mesh * mesh, Material * material, ColliderType c
 
 	//Move the shoot point if the collider is offset
 	if (!isOffset)
-		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(originPos, transform.GetRotation());
+	{
+		XMFLOAT3 shootPos;
+		XMStoreFloat3(&shootPos, XMLoadFloat3(&originPos) + XMLoadFloat3(&transform.GetForward()) * 0.1f);
+
+		//Make player shoot
+		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(shootPos, transform.GetRotation());
+	}
 	else
-		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z), transform.GetRotation());
+	{
+		XMFLOAT3 shootPos;
+		XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)) + XMLoadFloat3(&transform.GetForward()) * 0.1f);
+
+		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(shootPos, transform.GetRotation());
+	}
 }
 
 Enemy::~Enemy()
@@ -68,9 +79,21 @@ void Enemy::Update(float deltaTime)
 	{
 		//Move the shoot point if the collider is offset
 		if (!isOffset)
-			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(originPos, transform.GetRotation());
+		{
+			XMFLOAT3 shootPos;
+			XMStoreFloat3(&shootPos, XMLoadFloat3(&originPos) + XMLoadFloat3(&transform.GetForward()) * 0.1f);
+
+			//Make player shoot
+			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(shootPos, transform.GetRotation());
+		}
 		else
-			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z), transform.GetRotation());
+		{
+			XMFLOAT3 shootPos;
+			XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)) + XMLoadFloat3(&transform.GetForward()) * 0.1f);
+
+			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(shootPos, transform.GetRotation());
+		}
+
 		time(&nowTime); //gets current time when shot is launched
 		lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
 	}
