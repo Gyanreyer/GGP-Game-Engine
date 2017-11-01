@@ -1,6 +1,7 @@
 //Enemies, inherits from GameObject
 #pragma once
 #include "GameObject.h"
+#include <time.h>
 
 class Enemy : public GameObject
 {
@@ -14,6 +15,10 @@ public:
 	int GetPoints();
 
 private:
+	//Enemy Shoot Timer
+	time_t nowTime;
+	tm lastShotTime;
+
 	//The number of points this enemy is worth
 	int points;
 	XMFLOAT3 originPos;

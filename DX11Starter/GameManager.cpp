@@ -33,7 +33,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 		context);
 
 	//Create Enemies
-	///ENEMIES
+	enemies.clear();
 	//Create an enemy
 	enemies.push_back(Enemy(XMFLOAT3(2, 0, 0), asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), BOX, true, context, 10, false, false));
 
@@ -83,6 +83,7 @@ void GameManager::ResetGame()
 	time(&nowTime); //gets current time when game is launched
 	gameStartTime = *localtime(&nowTime); //assigns that time to gameStartTime to keep track of the time when game first started
 	score = 0; //sets score to 0
+	enemies.clear();
 }
 
 int GameManager::GetGameScore()

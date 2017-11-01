@@ -1,5 +1,6 @@
 //Enemies, inherits from GameObject
 #include "Enemy.h"
+#include "GameManager.h"
 
 Enemy::Enemy()
 {
@@ -12,6 +13,11 @@ Enemy::Enemy(XMFLOAT3 position, Mesh * mesh, Material * material, ColliderType c
 	moveYAxis = moveY;
 	transform.SetPosition(position);
 	originPos = transform.GetPosition();
+	
+	time(&nowTime); //gets current time when game is launched
+	lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
+
+	GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(transform.GetPosition(), transform.GetRotation());
 }
 
 Enemy::~Enemy()
@@ -48,6 +54,15 @@ void Enemy::Update(float deltaTime)
 			if (transform.GetPosition().y <= originPos.y - yOffset)
 				moveUp = true;
 		}
+	}
+
+	time(&nowTime); //get current time in game
+
+	double seconds = difftime(nowTime, mktime(&lastShotTime));
+	if (seconds >= 4) {
+		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(transform.GetPosition(), transform.GetRotation());
+		time(&nowTime); //gets current time when shot is launched
+		lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
 	}
 }
 
