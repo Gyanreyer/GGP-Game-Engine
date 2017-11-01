@@ -126,15 +126,20 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateGameObjects()
 {
+	///ENEMIES
 	//Create an enemy
-	goon = Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context);
-	goon.GetTransform()->SetPosition(2, 0, 0);
-	enemies.push_back(&goon);
+	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context, 10));
+	enemies[0].GetTransform()->SetPosition(2, 0, 0);
 
+	//"Another one"
+	enemies.push_back(Enemy(assetManager.GetMesh("RustyPete"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context, 20));
+	enemies[1].GetTransform()->SetPosition(-2, 0, 0);
+
+	///OTHER GAMEOBJECTS
 	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, context);
 	floor.GetTransform()->SetScale(10, 1, 10);
+
 	//Store references to all GOs in array
-	gameObjects.push_back(&goon);
 	gameObjects.push_back(&floor);
 }
 
@@ -252,7 +257,7 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		for (byte j = 0; j < enemies.size(); j++)
 		{
-			Collision::CheckCollisionSphereBox(projectileManager.GetPlayerProjectiles()[i].GetCollider(), enemies[j]->GetCollider());
+			Collision::CheckCollisionSphereBox(projectileManager.GetPlayerProjectiles()[i].GetCollider(), enemies[j].GetCollider());
 		}
 	}
 }
@@ -297,17 +302,17 @@ void Game::Draw(float deltaTime, float totalTime)
 	//Loop through Enemies and draw them
 	for (byte i = 0; i < enemies.size(); i++)
 	{
-		enemies[i]->GetMaterial()->GetPixelShader()->SetData(
+		enemies[i].GetMaterial()->GetPixelShader()->SetData(
 			"light1",
 			&light1,
 			sizeof(DirectionalLight));
 
-		enemies[i]->GetMaterial()->GetPixelShader()->SetData(
+		enemies[i].GetMaterial()->GetPixelShader()->SetData(
 			"light2",
 			&light2,
 			sizeof(DirectionalLight));
 
-		enemies[i]->Draw(viewMat, projMat);
+		enemies[i].Draw(viewMat, projMat);
 	}
 
 	//Set up light data for projectile materials

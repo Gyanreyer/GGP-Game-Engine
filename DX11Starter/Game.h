@@ -67,8 +67,12 @@ private:
 	GameObject cube1;
 	GameObject cube2;
 
-	vector<GameObject*> gameObjects; //Array of pointers to GameObjects so we can draw them in an easy loop
-	vector<Enemy*> enemies; //Array of pointers to Enemies so we can draw them in an easy loop
+	//Array of pointers to GameObjects so we can draw them in an easy loop
+	vector<GameObject*> gameObjects;
+
+	//Array of Enemies so we can draw them in an easy loop
+	//Not pointers, just do these directly
+	vector<Enemy> enemies;
 
 	//Directional light
 	DirectionalLight light1;
@@ -80,7 +84,6 @@ private:
 
 	//The player and enemy
 	Player player;
-	Enemy goon;
 	GameObject floor;
 	ProjectileManager projectileManager;
 
