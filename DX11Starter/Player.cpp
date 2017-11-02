@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "GameManager.h"
 
 Player::Player()
 {
@@ -78,8 +79,39 @@ void Player::UpdateKeyInput(float deltaTime)
 		jumpButtonHeld = false;
 	}
 
-	//Move relative to direction we're facing, with no movement on y axis
-	transform.MoveRelativeAxes(fwdSpeed, sideSpeed, verticalSpeed*deltaTime);
+	//GAMEOBJECT COLLISIONS
+	//Start at 1, 0 is the ground
+	vector<GameObject>* goVector = GameManager::getInstance().GetGameObjectVector(); //Get the instance of the GameManager
+	Collider nextFrameCollider = coll; //Make a collider to represent where the player will be on the next frame
+	//Store the collider's next center point
+	XMStoreFloat3(&nextFrameCollider.center,
+		XMLoadFloat3(&transform.GetPosition()) + 
+		XMLoadFloat3(&transform.GetForwardXZ()) * fwdSpeed + 
+		XMLoadFloat3(&transform.GetRight()) * sideSpeed 
+		+ XMLoadFloat3(&transform.GetUp()) * (verticalSpeed * deltaTime));
+
+	for (byte i = 1; i < goVector->size(); i++)
+	{
+		//WITH PLAYER
+		Collider* goCollider = (*goVector)[i].GetCollider(); //The GameObject's collider
+
+		if (goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, &nextFrameCollider))
+		{
+			goto breakEnd;
+		}
+		else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, &nextFrameCollider))
+		{
+			goto breakEnd;
+		}
+	}
+
+	//Move relative to direction we're facing, with no movement on the Y axis
+	transform.MoveRelativeAxes(fwdSpeed, sideSpeed, verticalSpeed * deltaTime);
+
+	breakEnd: //This is super useful and I'm sad I didn't know about it sooner
+	{
+		//These brackets totally aren't a janky workaround at all
+	}
 }
 
 void Player::UpdateMouseInput(float xAxis, float yAxis)

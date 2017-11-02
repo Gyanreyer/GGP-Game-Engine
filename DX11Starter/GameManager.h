@@ -1,10 +1,10 @@
 #pragma once
-#include "Enemy.h"
+#include <d3d11.h>
 #include <time.h>
+#include "Enemy.h"
 #include "ProjectileManager.h"
 #include "Player.h"
 #include "AssetManager.h"
-#include <d3d11.h>
 
 class GameManager
 {
@@ -16,6 +16,7 @@ public:
 	double timeInMatch;
 
 	void StartGame(AssetManager* asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context);
+	void CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context); //Initializes GameObjects
 	bool isGameOver();
 
 	void AddScore(int addAmount);
@@ -24,6 +25,7 @@ public:
 	//Game Get Methods
 	Player* GetPlayer();
 	ProjectileManager* GetProjectileManager();
+	vector<GameObject>* GetGameObjectVector();
 	vector<Enemy>* GetEnemyVector();
 	double getTimeLeft();
 	int GetGameScore();
@@ -40,6 +42,10 @@ private:
 	time_t nowTime;
 	tm gameStartTime;
 	int score;
+
+	//Array of GameObjects so we can draw them in an easy loop
+	//Not pointers, just do these directly
+	vector<GameObject> gameObjects;
 
 	//Array of Enemies so we can draw them in an easy loop
 	//Not pointers, just do these directly

@@ -70,7 +70,6 @@ void Game::Init()
 	//Create camera object
 	//camera = Camera(width, height);
 
-
 	//Create directional lights
 	light1 = { XMFLOAT4(0.1f,0.1f,0.1f,1.0f),XMFLOAT4(1.0f,1.0f,1.0f,1.0f),XMFLOAT3(1.0f,-1.0f,0.5f) };
 	light2 = { XMFLOAT4(0,0,0,0),XMFLOAT4(1.0f,0.0f,0.0f,1.0f),XMFLOAT3(-0.5f,-0.5f,0.25f) };
@@ -87,9 +86,7 @@ void Game::Init()
 	CreateMaterials();
 	CreateMeshes();
 
-	CreateGameObjects();
-
-	gameManager->StartGame(&assetManager, width, height, context); //starts the game
+	gameManager->StartGame(&assetManager, (float)width, (float)height, context); //starts the game
 	player = gameManager->GetPlayer(); //give engine a refrence to player
 
 	//Set up projectile manager
@@ -99,8 +96,6 @@ void Game::Init()
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-
 }
 
 // --------------------------------------------------------
@@ -207,24 +202,6 @@ void Game::CreateMaterials()
 }
 
 // --------------------------------------------------------
-// Creates the GameObjects we will draw in the scene and
-// stores references to them in an array
-// --------------------------------------------------------
-void Game::CreateGameObjects()
-{
-	///OTHER GAMEOBJECTS
-	floor = GameObject(assetManager.GetMesh("Plane"), assetManager.GetMaterial("RustyPeteMaterial"), BOX, false, context);
-	floor.GetTransform()->SetScale(10, 0.001f, 10); //The floor is real small, for the sake of collisions
-
-	obstacle = GameObject(assetManager.GetMesh("Cube"), assetManager.GetMaterial("StoneMat"), BOX, false, context);
-	obstacle.GetTransform()->SetPosition(2, 0.5f, -2); //The floor is real small, for the sake of collisions
-
-	//Store references to all GOs in array
-	gameObjects.push_back(&floor);
-	gameObjects.push_back(&obstacle);
-}
-
-// --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
 // --------------------------------------------------------
@@ -258,9 +235,15 @@ void Game::Update(float deltaTime, float totalTime)
 		player->Update(deltaTime);
 
 		projectileManager->UpdateProjectiles(deltaTime);
-		vector<Enemy>* enemies = gameManager->GetEnemyVector(); //get enemies
 
-		for (int i = 0; i < enemies->size(); i++) {
+		//Get all the GameObjects now
+		//The GameObject vector doesn't change, so this should be optimal
+		vector<GameObject>* goVector = gameManager->GetGameObjectVector();
+
+		//Get and update enemies
+		vector<Enemy>* enemies = gameManager->GetEnemyVector();
+		for (int i = 0; i < enemies->size(); i++)
+		{
 			(*enemies)[i].Update(deltaTime);
 		}
 
@@ -283,9 +266,9 @@ void Game::Update(float deltaTime, float totalTime)
 			}
 
 			//WITH OTHER GAMEOBJECTS
-			for (byte j = 0; j < gameObjects.size(); j++)
+			for (byte j = 0; j < goVector->size(); j++)
 			{
-				Collider* goCollider = gameObjects[j]->GetCollider(); //The GameObject's collider
+				Collider* goCollider = (*goVector)[j].GetCollider(); //The GameObject's collider
 
 				if (goCollider->collType == BOX && Collision::CheckCollisionSphereBox(&projCollider, goCollider))
 				{
@@ -307,9 +290,9 @@ void Game::Update(float deltaTime, float totalTime)
 			Collider projCollider = *projectileManager->GetEnemyProjectiles()[i].GetCollider(); //The projectile's collider
 
 			//WITH OTHER GAMEOBJECTS
-			for (byte j = 0; j < gameObjects.size(); j++)
+			for (byte j = 0; j < goVector->size(); j++)
 			{
-				Collider* goCollider = gameObjects[j]->GetCollider(); //The GameObject's collider
+				Collider* goCollider = (*goVector)[j].GetCollider(); //The GameObject's collider
 
 				if (goCollider->collType == BOX && Collision::CheckCollisionSphereBox(&projCollider, goCollider))
 				{
@@ -333,25 +316,8 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 
 		break2: //This is super useful and I'm sad I didn't know about it sooner
-		//GAMEOBJECT COLLISIONS
-		//Start at 1, 0 is the ground
-		for (byte i = 1; i < gameObjects.size(); i++)
 		{
-			//WITH PLAYER
-			Collider* goCollider = gameObjects[i]->GetCollider(); //The GameObject's collider
-			Collider* pCollider = player->GetCollider(); //The player's collider
-
-			if (goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, pCollider))
-			{
-				//TODO: collision resolution
-				printf("Here\n");
-				break;
-			}
-			else if(goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, pCollider))
-			{
-				//TODO: collision resolution
-				break;
-			}
+			//These brackets totally aren't a janky workaround at all
 		}
 	}
 	else {
@@ -380,21 +346,27 @@ void Game::Draw(float deltaTime, float totalTime)
 	XMFLOAT4X4 viewMat = player->GetViewMatrix();
 	XMFLOAT4X4 projMat = player->GetProjectionMatrix();
 
-	vector<Enemy>* enemies = gameManager->GetEnemyVector(); //get enemies
+	//Get all the GameObjects now
+	//The GameObject vector doesn't change, so this should be optimal
+	vector<GameObject>* goVector = gameManager->GetGameObjectVector();
+
+	//Get the vector of enemies
+	vector<Enemy>* enemies = gameManager->GetEnemyVector();
+
 	//Loop through GameObjects and draw them
-	for (byte i = 0; i < gameObjects.size(); i++)
+	for (byte i = 0; i < goVector->size(); i++)
 	{
-		gameObjects[i]->GetMaterial()->GetPixelShader()->SetData(
+		(*goVector)[i].GetMaterial()->GetPixelShader()->SetData(
 			"light1",
 			&light1,
 			sizeof(DirectionalLight));
 
-		gameObjects[i]->GetMaterial()->GetPixelShader()->SetData(
+		(*goVector)[i].GetMaterial()->GetPixelShader()->SetData(
 			"light2",
 			&light2,
 			sizeof(DirectionalLight));
 
-		gameObjects[i]->Draw(viewMat, projMat);
+		(*goVector)[i].Draw(viewMat, projMat);
 	}
 
 	//Loop through Enemies and draw them
@@ -455,7 +427,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		ImGui::Text(finalScore.c_str());
 		if (ImGui::Button("Restart Game"))
 		{
-			gameManager->StartGame(&assetManager, screen.right / 2, screen.bottom / 2, context);
+			gameManager->StartGame(&assetManager, (float)(width), (float)(height), context);
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();

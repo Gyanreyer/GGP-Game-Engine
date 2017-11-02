@@ -1,6 +1,6 @@
 #pragma once
-#include "GameObject.h"
 #include <Windows.h>
+#include "GameObject.h"
 #include "Collision.h"
 
 class Player: public GameObject
@@ -13,7 +13,7 @@ public:
 	void Update(float deltaTime);
 	void UpdateMouseInput(float xAxis, float yAxis);
 
-	void Jump();//Jump w/ some sort of physics
+	void Jump(); //Jump w/ some sort of physics
 
 	void UpdateProjectionMatrix(unsigned int width, unsigned int height);
 	void UpdateViewMatrix();
@@ -38,7 +38,7 @@ private:
 
 	byte health;
 
-	float verticalSpeed;//Current speed of player
+	float verticalSpeed; //Current speed of player
 	float playerHeight;
 
 	bool jumpButtonHeld;
