@@ -20,6 +20,7 @@ Player::Player(ColliderType colliderType, unsigned int projectionWidth, unsigned
 	playerHeight = 0.8f;
 
 	transform.SetPosition(0, playerHeight, -5);
+	transform.SetScale(0.5f, 1, 0.5f);
 
 	isOnGameObject = false;
 }
