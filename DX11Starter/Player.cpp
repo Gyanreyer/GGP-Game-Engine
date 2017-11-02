@@ -121,7 +121,20 @@ void Player::UpdateKeyInput(float deltaTime)
 		}
 		else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, &nextFrameCollider))
 		{
-			goto breakEnd;
+			if (coll.center.y - (coll.dimensions.y / 2) < goCollider->dimensions.y - .005f) //If the player isn't on top of the GameObject
+			{
+				//There shouldn't be any breakage due to that small offset value, but I'm leaving debug stuff here just in case
+				//printf("NOT ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
+				goto breakEnd;
+			}
+			else //If the player is on top of the GameObject
+			{
+				//printf("ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
+				transform.SetPosition(transform.GetPosition().x, (float)(goCollider->dimensions.y + (coll.dimensions.y / 2)), transform.GetPosition().z); //Move the player to the top of the GameObject
+				transform.MoveRelativeAxes(fwdSpeed, sideSpeed, 0);
+				isOnGameObject = true;
+				goto breakEnd;
+			}
 		}
 	}
 	

@@ -62,6 +62,9 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	gameObjects.push_back(GameObject(asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX, false, context));
 	gameObjects.back().GetTransform()->SetScale(0.5f, 0.5f, 0.5f);
 	gameObjects.back().GetTransform()->SetPosition(2, 0.25f, -2);
+	gameObjects.push_back(GameObject(asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat"), SPHERE, false, context));
+	gameObjects.back().GetTransform()->SetScale(0.5f, 0.5f, 0.5f);
+	gameObjects.back().GetTransform()->SetPosition(-2, 0.25f, -2);
 }
 
 bool GameManager::isGameOver()
