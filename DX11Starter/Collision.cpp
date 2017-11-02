@@ -31,7 +31,7 @@ bool Collision::CheckCollisionBoxBox(Collider* box1, Collider* box2)
 	if (right1Left2Check && left1Right2Check && top1Bottom2Check && bottom1Top2Check && front1Back2Check && back2Front1Check)
 	{
 		//TODO: COLLISION RESOLUTION & REMOVING printf
-		printf("Colliding: \n");
+		//printf("Colliding: \n");
 		return true;
 	}
 
@@ -64,7 +64,7 @@ bool Collision::CheckCollisionSphereSphere(Collider* sphere1, Collider* sphere2)
 	}
 
 	//TODO: COLLISION RESOLUTION & REMOVING printf
-	printf("Colliding: %f\n", magnitude);
+	//printf("Colliding: %f\n", magnitude);
 	return true;
 }
 
@@ -95,7 +95,7 @@ bool Collision::CheckCollisionSphereBox(Collider * sphere, Collider * box)
 	}
 
 	//TODO: COLLISION RESOLUTION & REMOVING printf
-	printf("Colliding: %f\n", distance);
+	//printf("Colliding: %f\n", distance);
 	return true;
 
 

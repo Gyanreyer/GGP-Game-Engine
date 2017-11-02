@@ -42,6 +42,7 @@ private:
 	float playerHeight;
 
 	bool jumpButtonHeld;
+	bool isOnGameObject; //Is the player on a GameObject
 
 	//Move based on keyboard input
 	void UpdateKeyInput(float deltaTime);

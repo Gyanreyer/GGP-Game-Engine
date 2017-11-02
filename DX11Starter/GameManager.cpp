@@ -54,12 +54,14 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	///OTHER GAMEOBJECTS
 	gameObjects.clear();
 
-	//Store references to all GOs in array
+	//Store references to all GOs in vector
 	gameObjects.push_back(GameObject(asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial"), BOX, false, context));
 	gameObjects.back().GetTransform()->SetScale(10, 0.001f, 10); //The floor is real small, for the sake of collisions
 	gameObjects.push_back(GameObject(asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX, false, context));
+	gameObjects.back().GetTransform()->SetPosition(4, 0.5f, -2);
+	gameObjects.push_back(GameObject(asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX, false, context));
 	gameObjects.back().GetTransform()->SetScale(0.5f, 0.5f, 0.5f);
-	gameObjects.back().GetTransform()->SetPosition(2, 0.5f, -2);
+	gameObjects.back().GetTransform()->SetPosition(2, 0.25f, -2);
 }
 
 bool GameManager::isGameOver()

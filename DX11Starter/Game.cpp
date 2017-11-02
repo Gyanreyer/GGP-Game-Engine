@@ -284,34 +284,36 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 
 		break1: //This is super useful and I'm sad I didn't know about it sooner
-		//ENEMY PROJECTILE COLLISIONS
-		for (byte i = 0; i < projectileManager->GetEnemyProjectiles().size(); i++)
 		{
-			Collider projCollider = *projectileManager->GetEnemyProjectiles()[i].GetCollider(); //The projectile's collider
-
-			//WITH OTHER GAMEOBJECTS
-			for (byte j = 0; j < goVector->size(); j++)
+			//ENEMY PROJECTILE COLLISIONS
+			for (byte i = 0; i < projectileManager->GetEnemyProjectiles().size(); i++)
 			{
-				Collider* goCollider = (*goVector)[j].GetCollider(); //The GameObject's collider
+				Collider projCollider = *projectileManager->GetEnemyProjectiles()[i].GetCollider(); //The projectile's collider
 
-				if (goCollider->collType == BOX && Collision::CheckCollisionSphereBox(&projCollider, goCollider))
+				//WITH OTHER GAMEOBJECTS
+				for (byte j = 0; j < goVector->size(); j++)
 				{
-					projectileManager->RemoveEnemyProjectile(i); //Simply delete projectile
+					Collider* goCollider = (*goVector)[j].GetCollider(); //The GameObject's collider
+
+					if (goCollider->collType == BOX && Collision::CheckCollisionSphereBox(&projCollider, goCollider))
+					{
+						projectileManager->RemoveEnemyProjectile(i); //Simply delete projectile
+						goto break2; //Get out of the loop to prevent vector subscript errors
+					}
+					else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereSphere(&projCollider, goCollider))
+					{
+						projectileManager->RemoveEnemyProjectile(i); //Simply delete projectile
+						goto break2; //Get out of the loop to prevent vector subscript errors
+					}
+				}
+
+				//WITH PLAYER
+				if (Collision::CheckCollisionSphereBox(&projCollider, player->GetCollider()))
+				{
+					player->DecrementHealth();
+					projectileManager->RemoveEnemyProjectile(i); //Remove the enemy's projectile, prevents multi-frame collisions
 					goto break2; //Get out of the loop to prevent vector subscript errors
 				}
-				else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereSphere(&projCollider, goCollider))
-				{
-					projectileManager->RemoveEnemyProjectile(i); //Simply delete projectile
-					goto break2; //Get out of the loop to prevent vector subscript errors
-				}
-			}
-
-			//WITH PLAYER
-			if (Collision::CheckCollisionSphereBox(&projCollider, player->GetCollider()))
-			{
-				player->DecrementHealth();
-				projectileManager->RemoveEnemyProjectile(i); //Remove the enemy's projectile, prevents multi-frame collisions
-				goto break2; //Get out of the loop to prevent vector subscript errors
 			}
 		}
 

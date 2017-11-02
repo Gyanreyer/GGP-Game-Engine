@@ -20,6 +20,8 @@ Player::Player(ColliderType colliderType, unsigned int projectionWidth, unsigned
 	playerHeight = 0.8f;
 
 	transform.SetPosition(0, playerHeight, -5);
+
+	isOnGameObject = false;
 }
 
 Player::~Player()
@@ -41,10 +43,12 @@ void Player::UpdateKeyInput(float deltaTime)
 {
 	float yPos = transform.GetPosition().y;
 
-	if (yPos > playerHeight) {
-		verticalSpeed -= 3*deltaTime;
+	if (yPos > playerHeight)
+	{
+		verticalSpeed -= 3 * deltaTime;
 	}
-	else if (yPos < playerHeight) {
+	else if (yPos < playerHeight)
+	{
 		verticalSpeed = 0;
 		XMFLOAT3 newPos = transform.GetPosition();
 		newPos.y = 0.8f;
@@ -80,16 +84,19 @@ void Player::UpdateKeyInput(float deltaTime)
 	}
 
 	//GAMEOBJECT COLLISIONS
-	//Start at 1, 0 is the ground
 	vector<GameObject>* goVector = GameManager::getInstance().GetGameObjectVector(); //Get the instance of the GameManager
 	Collider nextFrameCollider = coll; //Make a collider to represent where the player will be on the next frame
+
 	//Store the collider's next center point
 	XMStoreFloat3(&nextFrameCollider.center,
 		XMLoadFloat3(&transform.GetPosition()) + 
 		XMLoadFloat3(&transform.GetForwardXZ()) * fwdSpeed + 
-		XMLoadFloat3(&transform.GetRight()) * sideSpeed 
-		+ XMLoadFloat3(&transform.GetUp()) * (verticalSpeed * deltaTime));
+		XMLoadFloat3(&transform.GetRight()) * sideSpeed + 
+		XMLoadFloat3(&transform.GetUp()) * (verticalSpeed * deltaTime));
 
+	isOnGameObject = false; //Reset here
+
+	//Start at 1, 0 is the ground
 	for (byte i = 1; i < goVector->size(); i++)
 	{
 		//WITH PLAYER
@@ -97,14 +104,27 @@ void Player::UpdateKeyInput(float deltaTime)
 
 		if (goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, &nextFrameCollider))
 		{
-			goto breakEnd;
+			if (coll.center.y - (coll.dimensions.y / 2) < goCollider->dimensions.y - .005f) //If the player isn't on top of the GameObject
+			{
+				//There shouldn't be any breakage due to that small offset value, but I'm leaving debug stuff here just in case
+				//printf("NOT ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
+				goto breakEnd;
+			}
+			else //If the player is on top of the GameObject
+			{
+				//printf("ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
+				transform.SetPosition(transform.GetPosition().x, (float)(goCollider->dimensions.y + (coll.dimensions.y / 2)), transform.GetPosition().z); //Move the player to the top of the GameObject
+				transform.MoveRelativeAxes(fwdSpeed, sideSpeed, 0);
+				isOnGameObject = true;
+				goto breakEnd;
+			}
 		}
 		else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, &nextFrameCollider))
 		{
 			goto breakEnd;
 		}
 	}
-
+	
 	//Move relative to direction we're facing, with no movement on the Y axis
 	transform.MoveRelativeAxes(fwdSpeed, sideSpeed, verticalSpeed * deltaTime);
 
@@ -124,7 +144,8 @@ void Player::Jump()
 {
 	//Make sure not already in air and jump button was not previously held
 	//Give a small cushion from ground where players can jump again, this feels way better
-	if (!jumpButtonHeld && transform.GetPosition().y <= playerHeight + 0.1f) {
+	//If the player is on another GameObject, just jump
+	if ((!jumpButtonHeld && transform.GetPosition().y <= playerHeight + 0.1f) || (!jumpButtonHeld && isOnGameObject)) {
 		verticalSpeed = 2;
 	}
 }
