@@ -26,7 +26,7 @@ public:
 
 	void SetMaterial(Material * newMat);
 
-	Transform * GetTransform();//Get reference to this object's transform
+	Transform* GetTransform();//Get reference to this object's transform
 	Material* GetMaterial(); //Get objects Material
 	Collider* GetCollider();
 	XMFLOAT4X4 GetWorldMatrix();

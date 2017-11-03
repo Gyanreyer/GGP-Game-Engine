@@ -50,7 +50,6 @@ private:
 	void LoadShaders(); 
 	void CreateMeshes(); //Generates and assigns meshes for GameObjects
 	void CreateMaterials();
-	void CreateGameObjects(); //Initializes GameObjects
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
@@ -59,9 +58,6 @@ private:
 	//ASSET MANAGER
 	AssetManager assetManager;
 	GameManager* gameManager;
-
-	//Array of pointers to GameObjects so we can draw them in an easy loop
-	vector<GameObject*> gameObjects;
 
 	//Directional light
 	DirectionalLight light1;
@@ -73,8 +69,6 @@ private:
 
 	//The player and enemy
 	Player* player;
-	GameObject floor;
-	GameObject obstacle;
 	ProjectileManager* projectileManager;
 
 	//Don't need this due to some thing I did but forgot how it works

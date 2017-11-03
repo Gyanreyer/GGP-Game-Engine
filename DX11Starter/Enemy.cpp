@@ -12,12 +12,25 @@ Enemy::Enemy(XMFLOAT3 position, Mesh * mesh, Material * material, ColliderType c
 	moveXAxis = moveX;
 	moveYAxis = moveY;
 	transform.SetPosition(position);
-	originPos = transform.GetPosition();
+	originPos = position;
+	isOffset = isColliderOffset;
 	
 	time(&nowTime); //gets current time when game is launched
 	lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
 
-	GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(transform.GetPosition(), transform.GetForward());
+	//Move the shoot point if the collider is offset
+	if (!isOffset)
+	{
+		//Make player shoot
+		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(position, transform.GetForward());
+	}
+	else
+	{
+		XMFLOAT3 shootPos;
+		XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
+
+		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(shootPos, transform.GetForward());
+	}
 }
 
 Enemy::~Enemy()
@@ -59,8 +72,23 @@ void Enemy::Update(float deltaTime)
 	time(&nowTime); //get current time in game
 
 	double seconds = difftime(nowTime, mktime(&lastShotTime));
-	if (seconds >= 4) {
-		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(transform.GetPosition(), transform.GetForward());
+
+	if (seconds >= 4)
+	{
+		//Move the shoot point if the collider is offset
+		if (!isOffset)
+		{
+			//Make player shoot
+			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(transform.GetPosition(), transform.GetForward());
+		}
+		else
+		{
+			XMFLOAT3 shootPos;
+			XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
+
+			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(shootPos, transform.GetForward());
+		}
+
 		time(&nowTime); //gets current time when shot is launched
 		lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
 	}
