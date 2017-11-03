@@ -34,9 +34,9 @@ void Transform::SetPosition(XMVECTOR pos)
 	NotifyMatrixUpdate();//Need to update world matrix now that pos changed
 }
 
-void Transform::SetRotation(float roll, float pitch, float yaw)
+void Transform::SetRotation(float pitch, float yaw, float roll)
 {
-	SetRotation(XMFLOAT3(roll, pitch, yaw));
+	SetRotation(XMFLOAT3(pitch, yaw, roll));
 }
 
 void Transform::SetRotation(XMFLOAT3 rot)
@@ -51,6 +51,12 @@ void Transform::SetRotation(XMVECTOR rot)
 	XMStoreFloat3(&rotation, rot);
 	UpdateDirectionVectors();//Update direction vectors for new rotation
 	NotifyMatrixUpdate();
+}
+
+//Currently doesn't work
+void Transform::SetForward(XMFLOAT3 fwd)
+{
+	SetRotation(asin(-fwd.y), atan2(fwd.x, fwd.z), 0);
 }
 
 void Transform::SetScale(float scalar)
@@ -90,18 +96,18 @@ void Transform::Move(XMVECTOR moveVec)
 	SetPosition(XMLoadFloat3(&position) + moveVec);
 }
 
-void Transform::Rotate(float roll, float pitch, float yaw)
+void Transform::Rotate(float pitch, float yaw, float roll)
 {
-	SetRotation(XMLoadFloat3(&rotation) + XMVectorSet(roll, pitch, yaw, 0.0f));
+	SetRotation(XMLoadFloat3(&rotation) + XMVectorSet(pitch, yaw, roll, 0.0f));
 }
 
 //Rotate object and clamp vertical rotation
-void Transform::RotateClamped(float roll, float pitch, float yaw, 
+void Transform::RotateClamped(float pitch, float yaw, float roll,
 	float minAngle, float maxAngle)
 {
 	//Calculate new rotation after applying rpy	
 	XMFLOAT3 newRotation;
-	XMStoreFloat3(&newRotation, XMLoadFloat3(&rotation) + XMVectorSet(roll, pitch, yaw, 0.0f));
+	XMStoreFloat3(&newRotation, XMLoadFloat3(&rotation) + XMVectorSet(pitch, yaw, roll, 0.0f));
 
 	//Clamp x rotation between given min and max
 	if (newRotation.x < minAngle) {

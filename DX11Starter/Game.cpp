@@ -492,13 +492,9 @@ void Game::OnMouseDown(WPARAM buttonState, int x, int y)
 	if (buttonState & MK_LBUTTON)
 	{
 		Transform* pt = player->GetTransform();
-		XMFLOAT3 startPt;
-
-		XMStoreFloat3(&startPt,
-			XMLoadFloat3(&pt->GetPosition()) + XMLoadFloat3(&pt->GetForward())*0.1f);
 
 		//Make player shoot
-		projectileManager->SpawnPlayerProjectile(startPt, pt->GetRotation());
+		projectileManager->SpawnPlayerProjectile(pt->GetPosition(), pt->GetForward());
 	}
 }
 

@@ -38,10 +38,10 @@ private:
 
 	byte health;
 
-	float verticalSpeed;//Current speed of player
-	float playerHeight;
+	float verticalSpeed;//Current vertical speed of player - 0 when on ground
+	float playerHeight;//Height of player's camera view from the ground
 
-	bool jumpButtonHeld;
+	bool jumpButtonHeld;//Whether jump button is being held
 
 	//Move based on keyboard input
 	void UpdateKeyInput(float deltaTime);

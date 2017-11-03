@@ -9,8 +9,8 @@ public:
 	~ProjectileManager();
 
 	//Spawn projectiles
-	void SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 rotation);
-	void SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 rotation);
+	void SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 direction);
+	void SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 direction);
 
 	void UpdateProjectiles(float deltaTime);//Update all projectiles
 

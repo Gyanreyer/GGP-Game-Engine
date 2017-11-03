@@ -30,18 +30,10 @@ void Player::Update(float deltaTime)
 	UpdateKeyInput(deltaTime);
 	UpdateViewMatrix();
 
-	//Update collider information
-	//Collider probably won't be offset, so we won't even worry about that
-	coll.center = transform.GetPosition();
-	coll.dimensions = transform.GetScale();
-}
-
-void Player::UpdateKeyInput(float deltaTime)
-{
 	float yPos = transform.GetPosition().y;
 
 	if (yPos > playerHeight) {
-		verticalSpeed -= 3*deltaTime;
+		verticalSpeed -= 3 * deltaTime;
 	}
 	else if (yPos < playerHeight) {
 		verticalSpeed = 0;
@@ -50,6 +42,14 @@ void Player::UpdateKeyInput(float deltaTime)
 		transform.SetPosition(newPos);
 	}
 
+	//Update collider information
+	//Collider probably won't be offset, so we won't even worry about that
+	coll.center = transform.GetPosition();
+	coll.dimensions = transform.GetScale();
+}
+
+void Player::UpdateKeyInput(float deltaTime)
+{
 	float fwdSpeed = 0;//+ forward, - backward
 	float sideSpeed = 0;//+ right, - left
 
