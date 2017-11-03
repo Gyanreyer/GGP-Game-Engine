@@ -1,8 +1,9 @@
 #pragma once
 
+#include <DirectXMath.h>
+#include <vector>
 #include "DXCore.h"
 #include "SimpleShader.h"
-#include <DirectXMath.h>
 #include "Mesh.h"
 #include "GameObject.h"
 #include "Collider.h"
@@ -12,7 +13,10 @@
 #include "WICTextureLoader.h"
 #include "AssetManager.h"
 #include "Player.h"
+#include "Enemy.h"
 #include "ProjectileManager.h"
+#include "GameManager.h"
+#include <string>
 
 class Game 
 	: public DXCore
@@ -31,17 +35,21 @@ public:
 
 	// Overridden mouse input helper methods
 	void OnMouseDown (WPARAM buttonState, int x, int y);
-	void OnMouseUp	 (WPARAM buttonState, int x, int y);
+	void OnMouseUp (WPARAM buttonState, int x, int y);
 	void OnMouseMove (WPARAM buttonState, int x, int y);
-	void OnMouseWheel(float wheelDelta,   int x, int y);
+	void OnMouseWheel (float wheelDelta,   int x, int y);
+
 private:
+	//Screen coordinates
+	RECT screen;
+
+	//The real coordinates of the mouse
+	//POINT realMouse;
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
-	void CreateGameObjects();//Initializes GameObjects
-	void CreateMeshes();//Generates and assigns meshes for GameObjects
+	void CreateMeshes(); //Generates and assigns meshes for GameObjects
 	void CreateMaterials();
-
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
@@ -49,16 +57,7 @@ private:
 
 	//ASSET MANAGER
 	AssetManager assetManager;
-
-	//GameObjects in scene
-	GameObject sphere1;
-	GameObject sphere2;
-	GameObject torus1;
-	GameObject torus2;
-	GameObject cube1;
-	GameObject cube2;
-
-	GameObject* gameObjects[6];//Array of pointers to GameObjects so we can draw them in an easy loop	
+	GameManager* gameManager;
 
 	//Directional light
 	DirectionalLight light1;
@@ -68,9 +67,9 @@ private:
 	//Camera camera;
 	//bool freelookEnabled;
 
-	Player player;
-
-	ProjectileManager projectileManager;
+	//The player and enemy
+	Player* player;
+	ProjectileManager* projectileManager;
 
 	//Don't need this due to some thing I did but forgot how it works
 	//bool freeLookEnabled = false;	//tells whether freelook is enabled 

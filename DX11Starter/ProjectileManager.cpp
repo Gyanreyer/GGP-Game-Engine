@@ -19,20 +19,24 @@ ProjectileManager::~ProjectileManager()
 {
 }
 
-void ProjectileManager::SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 rotation)
+void ProjectileManager::SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 direction)
 {
 	//Add new player projectile
-	playerProjectiles.push_back(
-		Projectile(projectileMesh,
-			playerProjectileMaterial,//Use player proj material
-			ColliderType::SPHERE,//Use sphere collider
-			context,
-			startPt,//Point bullet will start from
-			rotation,//Rotation for bullet to move in
-			5.0f));//Move at speed of 5 units/second
+	//Only spawn new projectiles when there aren't too many on screen
+	if (playerProjectiles.size() < 3)
+	{
+		playerProjectiles.push_back(
+			Projectile(projectileMesh,
+				playerProjectileMaterial,//Use player proj material
+				ColliderType::SPHERE,//Use sphere collider
+				context,
+				startPt,//Point bullet will start from
+				direction,//Rotation for bullet to move in
+				5.0f));//Move at speed of 5 units/second
+	}
 }
 
-void ProjectileManager::SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 rotation)
+void ProjectileManager::SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 direction)
 {
 	//Add new enemy projectile
 	enemyProjectiles.push_back(
@@ -41,7 +45,7 @@ void ProjectileManager::SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 rotation
 			ColliderType::SPHERE,//Use sphere collider
 			context,
 			startPt,//Point buller will start from
-			rotation,//Rotation for bullet to move in
+			direction,//Rotation for bullet to move in
 			3.0f));//Enemy bullets move slower?
 }
 
@@ -90,12 +94,39 @@ void ProjectileManager::DrawProjectiles(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
 		iter->Draw(viewMat, projMat);
 }
 
-bool ProjectileManager::CheckPlayerProjectileCollision(GameObject other)
+void ProjectileManager::RemovePlayerProjectile(int i)
 {
-	return false;
+	playerProjectiles.erase(playerProjectiles.begin() + i);
 }
 
-bool ProjectileManager::CheckEnemyProjectileCollision(GameObject other)
+void ProjectileManager::RemoveEnemyProjectile(int i)
 {
-	return false;
+	enemyProjectiles.erase(enemyProjectiles.begin() + i);
+}
+
+////Player projectiles colliding with the enemies
+//bool ProjectileManager::CheckPlayerProjectileCollision(GameObject* other)
+//{
+//	for (byte i = 0; i < playerProjectiles.size(); i++)
+//	{
+//		
+//	}
+//}
+//
+////Enemy projectiles colliding with the player
+//bool ProjectileManager::CheckEnemyProjectileCollision(GameObject* other)
+//{
+//	return false;
+//}
+
+//Get the player's projectiles
+vector<Projectile> ProjectileManager::GetPlayerProjectiles()
+{
+	return playerProjectiles;
+}
+
+//Get the list of projectiles the enemy fires
+vector<Projectile> ProjectileManager::GetEnemyProjectiles()
+{
+	return enemyProjectiles;
 }

@@ -18,9 +18,11 @@ public:
 	void SetPosition(XMVECTOR pos);
 
 	//Sets rotation of object, overloaded so may pass roll,pitch,yaw or an XMVECTOR
-	void SetRotation(float roll, float pitch, float yaw);
+	void SetRotation(float pitch, float yaw, float roll);
 	void SetRotation(XMFLOAT3 rot);
 	void SetRotation(XMVECTOR rot);
+
+	void SetForward(XMFLOAT3 fwd);
 
 	void SetScale(float scalar);
 	void SetScale(float x, float y, float z);
@@ -31,8 +33,8 @@ public:
 	void Move(float x, float y, float z);
 	void Move(XMFLOAT3 moveVec);
 	void Move(XMVECTOR moveVec);
-	void Rotate(float roll, float pitch, float yaw);
-	void RotateClamped(float roll, float pitch, float yaw, float minAngle, float maxAngle);
+	void Rotate(float pitch, float yaw, float roll);
+	void RotateClamped(float pitch, float yaw, float roll, float minAngle, float maxAngle);
 	void MoveRelative(float fwdSpeed, float sideSpeed, float upSpeed);//Move relative to forward and left dir vectors
 	void MoveRelativeAxes(float fwdSpeed, float sideSpeed, float upSpeed);//Move relative to direction where fwd is always on xz plane and up is always y axis
 

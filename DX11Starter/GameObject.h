@@ -11,7 +11,7 @@ class GameObject
 public:
 	GameObject();//Default constructor does nothing
 	GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx);//Constructor sets mesh/material/context for drawing and initializes transform
-	GameObject(Mesh * mesh, Material * material, ColliderType colliderType, ID3D11DeviceContext * ctx);
+	GameObject(Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx);
 	GameObject(ColliderType colliderType);//Constructor for object with no mesh (do we need this...?)
 	~GameObject();
 
@@ -26,22 +26,16 @@ public:
 
 	void SetMaterial(Material * newMat);
 
-	Transform * GetTransform();//Get reference to this object's transform
+	Transform* GetTransform();//Get reference to this object's transform
 	Material* GetMaterial(); //Get objects Material
 	Collider* GetCollider();
 	XMFLOAT4X4 GetWorldMatrix();
 
 private:
-	Mesh * mesh;//Mesh for drawing
-	Material * material;//Material to apply to mesh
-	Collider coll; //The collider on this object
-
 	//Buffers and index count for drawing mesh
 	ID3D11Buffer * vertexBuffer;
 	ID3D11Buffer * indexBuffer;
 	int meshIndexCount;
-
-	ID3D11DeviceContext * context;
 
 	XMFLOAT4X4 worldMatrix;
 	void UpdateWorldMatrix();
@@ -50,5 +44,11 @@ private:
 
 protected:
 	Transform transform;//Transform determines position/rotation/scale this object is drawn at
+
+	Mesh * mesh;//Mesh for drawing
+	Material * material;//Material to apply to mesh
+	Collider coll; //The collider on this object
+
+	ID3D11DeviceContext * context; //Render target (I think)
 };
 

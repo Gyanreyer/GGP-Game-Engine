@@ -1,0 +1,30 @@
+# Blender MTL File: 'None'
+# Material Count: 2
+
+newmtl Material__54
+Ns 9.803922
+Ka 0.588000 0.588000 0.588000
+Kd 0.588000 0.588000 0.588000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd rusty_pete_head_c.png
+map_Bump rusty_pete_head_n.png
+map_Ka rusty_pete_head_c.png
+map_Ke rusty_pete_head_light.png
+
+newmtl Material__67
+Ns 9.803922
+Ka 0.588000 0.588000 0.588000
+Kd 0.588000 0.588000 0.588000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd rusty_pete_body_c.png
+map_Bump rusty_pete_body_n.png
+map_Ka rusty_pete_body_c.png
+map_Ke rusty_pete_body_light.png

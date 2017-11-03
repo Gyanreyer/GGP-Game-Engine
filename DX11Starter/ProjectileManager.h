@@ -9,8 +9,8 @@ public:
 	~ProjectileManager();
 
 	//Spawn projectiles
-	void SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 rotation);
-	void SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 rotation);
+	void SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 direction);
+	void SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 direction);
 
 	void UpdateProjectiles(float deltaTime);//Update all projectiles
 
@@ -18,11 +18,19 @@ public:
 	void SetProjectileShaderData(std::string name, void * data, unsigned int size);
 	//Draw all projectiles
 	void DrawProjectiles(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat);
+	void RemovePlayerProjectile(int i);
+	void RemoveEnemyProjectile(int i);
 
 	//Investigate spatial partitioning?
 	//Not sure what current state of collision detection is so will leave this for now
-	bool CheckPlayerProjectileCollision(GameObject other);
-	bool CheckEnemyProjectileCollision(GameObject other);
+	//Moved this out, I think it's more efficient to do one function call in game
+	//to directly compare collisions. Created Get methods for vectors instead.
+	//Can change back later if needed
+	//bool CheckPlayerProjectileCollision(GameObject* other);
+	//bool CheckEnemyProjectileCollision(GameObject* other);
+
+	vector<Projectile> GetPlayerProjectiles();
+	vector<Projectile> GetEnemyProjectiles();
 
 private:
 	ID3D11DeviceContext * context;
