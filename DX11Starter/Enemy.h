@@ -3,6 +3,11 @@
 #include "GameObject.h"
 #include <time.h>
 
+/*Change Notes
+** Constructor should be for transform, Mesh , Material, pointValue, EnemyType
+*move any collider references (collidertype/offset) into the mesh class
+*context would be in renderer class
+*/
 class Enemy : public GameObject
 {
 public:

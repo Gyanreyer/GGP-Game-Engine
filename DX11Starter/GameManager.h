@@ -22,7 +22,7 @@ public:
 	void AddScore(int addAmount);
 	void ResetGame();
 
-	//Game Get Methods
+	//Engine Get Methods
 	Player* GetPlayer();
 	ProjectileManager* GetProjectileManager();
 	vector<GameObject>* GetGameObjectVector();

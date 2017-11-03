@@ -6,6 +6,9 @@
 #include "Transform.h"
 #include "Collider.h" //Colliders
 
+//context would be in renderer class
+//ColliderType and ColliderOffset will be from Mesh
+//Draw will be moved to Renderer class
 class GameObject
 {
 public:

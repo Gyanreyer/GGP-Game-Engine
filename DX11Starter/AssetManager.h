@@ -6,7 +6,9 @@
 #include "SimpleShader.h"
 
 /* Summary: The Ratchet Asset Manager is responsible for holding all materials, textures, sounds,etc ...
-* 
+*Notes:
+* Make Singleton
+*Loads Assets
 */
 
 class AssetManager
@@ -15,9 +17,10 @@ public:
 	AssetManager();
 	~AssetManager();
 
-	//Create Methods
+	//Create/Import Methods
 
 	//Add Methods
+	//Change these methods to be called store
 	void ImportVShader(char* vShaderName, SimpleVertexShader* vShader);
 	void ImportPShader(char* pShaderName, SimplePixelShader* pShader);
 	void ImportTexture(char* textureName, ID3D11ShaderResourceView* texture);

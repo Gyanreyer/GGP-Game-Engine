@@ -6,6 +6,7 @@
 // For the DirectX Math library
 using namespace DirectX;
 
+//Defining and drawing our own shapes
 Mesh::Mesh(Vertex * vertices, int numVertices, unsigned int * indicies, int numIndices, ID3D11Device * drawDevice)
 {
 	//Create DX11 Vertex Buffer
@@ -42,6 +43,7 @@ Mesh::Mesh(Vertex * vertices, int numVertices, unsigned int * indicies, int numI
 	indexCount = numIndices; //update index count
 }
 
+//Getting a model from a file
 Mesh::Mesh(char * modelFile, ID3D11Device * drawDevice)
 {
 	/*Model Loading Code Provide by Chris Casciolli*/
@@ -231,7 +233,7 @@ Mesh::Mesh(char * modelFile, ID3D11Device * drawDevice)
 
 	vertexCount = vertCounter; //update the vertex count
 
-							   //Create DX11 Index Buffer
+	//Create DX11 Index Buffer
 	D3D11_BUFFER_DESC ibd;	//Index Buffer Description (Only needed when we create buffer)
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;	//Tells DirectX that we will not change data stored in buffer
 	ibd.ByteWidth = sizeof(int) * vertCounter; //tells DX how many Indices will be stored in buffer so it can allocate the neccesary memory required

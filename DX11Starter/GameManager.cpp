@@ -1,12 +1,9 @@
 #include "GameManager.h"
 
-
-
 GameManager::GameManager()
 {
 	score = 0;
 }
-
 
 GameManager & GameManager::getInstance()
 {

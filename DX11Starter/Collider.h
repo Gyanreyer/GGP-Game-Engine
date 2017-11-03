@@ -35,6 +35,7 @@ struct Collider
 	}
 
 	//Parameterized constructor 
+	///Make Overload for if collider has offset
 	Collider(ColliderType coltype, XMFLOAT3 cent, XMFLOAT3 dims, bool trigger, bool isColliderOffset)
 	{
 		collType = coltype;

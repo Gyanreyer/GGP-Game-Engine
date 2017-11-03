@@ -1,6 +1,7 @@
 #pragma once
 #include "Projectile.h"
 
+//Refactor after context is moved
 class ProjectileManager
 {
 public:

@@ -3,6 +3,7 @@
 #include "GameObject.h"
 #include "Collision.h"
 
+//ColliderType may be revamped, since it's going to be from the mesh into the gameobject
 class Player: public GameObject
 {
 public:
