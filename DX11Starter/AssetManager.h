@@ -14,19 +14,20 @@
 class AssetManager
 {
 public:
-	AssetManager();
+	static AssetManager& getInstance();  //returns instance of asset manager
 	~AssetManager();
 
 	//Create/Import Methods
+	void ImportMesh(char* meshName, char* meshFile, //Holds the file path to the model that needs to be loaded
+		ID3D11Device* drawDevice);	//Reference to directX 11 Device need to create buffers		
 
 	//Add Methods
-	//Change these methods to be called store
-	void ImportVShader(char* vShaderName, SimpleVertexShader* vShader);
-	void ImportPShader(char* pShaderName, SimplePixelShader* pShader);
-	void ImportTexture(char* textureName, ID3D11ShaderResourceView* texture);
-	void ImportSampler(char* textSamplerName, ID3D11SamplerState* sampler);
-	void ImportMaterial(char * matName, Material * materialPtr);
-	void ImportMesh(char* meshName, Mesh* meshPtr);
+	void StoreVShader(char* vShaderName, SimpleVertexShader* vShader);
+	void StorePShader(char* pShaderName, SimplePixelShader* pShader);
+	void StoreTexture(char* textureName, ID3D11ShaderResourceView* texture);
+	void StoreSampler(char* textSamplerName, ID3D11SamplerState* sampler);
+	void StoreMaterial(char * matName, Material * materialPtr);
+	void StoreMesh(char* meshName, Mesh* meshPtr);
 
 	//Get Methods
 	SimpleVertexShader* GetVShader(char* vShaderName);
@@ -37,6 +38,12 @@ public:
 	Mesh* GetMesh(char* meshName);
 
 private:
+	AssetManager();
+	//Stops the compiler from generating methods to copy objects
+	AssetManager(AssetManager const& copy);
+	AssetManager& operator=(AssetManager const& copy);
+	////////////////////////////////////////////////////////////
+
 	std::unordered_map<char*, SimpleVertexShader*> vertexShaderLibrary;
 	std::unordered_map<char*, SimplePixelShader*> pixelShaderLibrary;
 	std::unordered_map<char*, ID3D11ShaderResourceView*> textureLibrary;

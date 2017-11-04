@@ -56,7 +56,7 @@ private:
 	POINT prevMousePos;
 
 	//ASSET MANAGER
-	AssetManager assetManager;
+	AssetManager* assetManager;
 	GameManager* gameManager;
 
 	//Directional light
@@ -68,8 +68,8 @@ private:
 	//bool freelookEnabled;
 
 	//The player and enemy
-	Player* player;
-	ProjectileManager* projectileManager;
+	//Player* player;
+	//ProjectileManager* projectileManager;
 
 	//Don't need this due to some thing I did but forgot how it works
 	//bool freeLookEnabled = false;	//tells whether freelook is enabled 

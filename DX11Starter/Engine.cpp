@@ -26,7 +26,7 @@ Engine::Engine(HINSTANCE hInstance)
 		true)			   // Show extra stats (fps) in title bar?
 {
 	// Initialize Asset Manager
-	assetManager = AssetManager();
+	assetManager = &AssetManager::getInstance();
 
 	//Set cursor position to center of window
 	//https://stackoverflow.com/questions/8690619/how-to-get-screen-resolution-in-c
@@ -86,7 +86,7 @@ void Engine::Init()
 	CreateMaterials();
 	CreateMeshes();
 
-	gameManager->StartGame(&assetManager, (float)width, (float)height, context); //starts the game
+	//gameManager->StartGame(&assetManager, (float)width, (float)height, context); //starts the game
 	//player = gameManager->GetPlayer(); //give engine a refrence to player
 
 	//Set up projectile manager
@@ -113,8 +113,9 @@ void Engine::LoadShaders()
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 
 	//Store Vertex and Pixel Shaders into the AssetManager
-	assetManager.ImportVShader("BasicVShader", vertexShader);
-	assetManager.ImportPShader("BasicPShader", pixelShader);
+	assetManager->StoreVShader("BasicVShader", vertexShader);
+	assetManager->StoreVShader("BasicVShader", vertexShader);
+	assetManager->StorePShader("BasicPShader", pixelShader);
 }
 
 // ---------------------------------------------------------
@@ -124,16 +125,16 @@ void Engine::CreateMeshes()
 {
 	//Move to asset Manager Loading
 	//Create meshes
-	//assetManager.ImportMesh("Cone", new Mesh("../../DX11Starter/Assets/Models/cone.obj", device));
-	//assetManager.ImportMesh("Cube", new Mesh("../../DX11Starter/Assets/Models/cube.obj", device));
-	//assetManager.ImportMesh("Cylinder", new Mesh("../../DX11Starter/Assets/Models/cylinder.obj", device));
-	//assetManager.ImportMesh("Helix", new Mesh("../../DX11Starter/Assets/Models/helix.obj", device));
-	//assetManager.ImportMesh("Sphere", new Mesh("../../DX11Starter/Assets/Models/sphere.obj", device));
-	//assetManager.ImportMesh("Torus", new Mesh("../../DX11Starter/Assets/Models/torus.obj", device));
-	//assetManager.ImportMesh("Cactus", new Mesh("../../DX11Starter/Assets/Models/cactus.obj", device));
-	//assetManager.ImportMesh("RustyPete", new Mesh("../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device));
-	//assetManager.ImportMesh("PurpleGhost", new Mesh("../../DX11Starter/Assets/Models/ghost.obj", device));
-	//assetManager.ImportMesh("Plane", new Mesh("../../DX11Starter/Assets/Models/Quad.obj", device));
+	//assetManager.StoreMesh("Cone", new Mesh("../../DX11Starter/Assets/Models/cone.obj", device));
+	//assetManager.StoreMesh("Cube", new Mesh("../../DX11Starter/Assets/Models/cube.obj", device));
+	//assetManager.StoreMesh("Cylinder", new Mesh("../../DX11Starter/Assets/Models/cylinder.obj", device));
+	//assetManager.StoreMesh("Helix", new Mesh("../../DX11Starter/Assets/Models/helix.obj", device));
+	//assetManager.StoreMesh("Sphere", new Mesh("../../DX11Starter/Assets/Models/sphere.obj", device));
+	//assetManager.StoreMesh("Torus", new Mesh("../../DX11Starter/Assets/Models/torus.obj", device));
+	//assetManager.StoreMesh("Cactus", new Mesh("../../DX11Starter/Assets/Models/cactus.obj", device));
+	//assetManager.StoreMesh("RustyPete", new Mesh("../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device));
+	//assetManager.StoreMesh("PurpleGhost", new Mesh("../../DX11Starter/Assets/Models/ghost.obj", device));
+	//assetManager.StoreMesh("Plane", new Mesh("../../DX11Starter/Assets/Models/Quad.obj", device));
 }
 
 ///Loads in textures and makes them into materials
@@ -157,7 +158,7 @@ void Engine::CreateMaterials()
 	//	printf("Sample State could not be created");
 	//}
 
-	//assetManager.ImportSampler("BasicSampler", sample);
+	//assetManager.StoreSampler("BasicSampler", sample);
 
 	////create Texture
 	//ID3D11ShaderResourceView* hazardTexture;
@@ -165,18 +166,18 @@ void Engine::CreateMaterials()
 	//if (tResult != S_OK) {
 	//	printf("Hazard Texture is could not be loaded");
 	//}
-	//assetManager.ImportTexture("HazardTexture", hazardTexture);
+	//assetManager.StoreTexture("HazardTexture", hazardTexture);
 
 	//ID3D11ShaderResourceView* rustyPeteTexture;
 	//tResult = CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Models/RustyPete/rusty_pete_body_c.png", 0, &rustyPeteTexture);
-	//assetManager.ImportTexture("RustyPete", rustyPeteTexture);
+	//assetManager.StoreTexture("RustyPete", rustyPeteTexture);
 
 	//Material* rustyPeteMaterial = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("RustyPete"), assetManager.GetSampler("BasicSampler"));
-	//assetManager.ImportMaterial("RustyPeteMaterial", rustyPeteMaterial);
+	//assetManager.StoreMaterial("RustyPeteMaterial", rustyPeteMaterial);
 
 	////Create Material 
 	//Material* genericMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("HazardTexture"), assetManager.GetSampler("BasicSampler"));
-	//assetManager.ImportMaterial("HazardCrateMat", genericMat);
+	//assetManager.StoreMaterial("HazardCrateMat", genericMat);
 
 	////create Texture
 	//ID3D11ShaderResourceView* stoneTexture;
@@ -184,23 +185,23 @@ void Engine::CreateMaterials()
 	//if (tResult != S_OK) {
 	//	printf("Stone Texture is could not be loaded");
 	//}
-	//assetManager.ImportTexture("Stone", stoneTexture);
+	//assetManager.StoreTexture("Stone", stoneTexture);
 
 	//Material* stoneMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("Stone"), assetManager.GetSampler("BasicSampler"));
-	//assetManager.ImportMaterial("StoneMat", stoneMat);
+	//assetManager.StoreMaterial("StoneMat", stoneMat);
 
 	////Create enemy texture and material
 	//ID3D11ShaderResourceView* enemyTexture;
 	//CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/aaaaaa.png", 0, &enemyTexture);
-	//assetManager.ImportTexture("EnemyTexture", enemyTexture);
+	//assetManager.StoreTexture("EnemyTexture", enemyTexture);
 	//Material* enemyMaterial = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("EnemyTexture"), assetManager.GetSampler("BasicSampler"));
-	//assetManager.ImportMaterial("EnemyMaterial", enemyMaterial);
+	//assetManager.StoreMaterial("EnemyMaterial", enemyMaterial);
 
 	//ID3D11ShaderResourceView* purpleGhostTexture;
 	//CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/ghost-dark.png", 0, &purpleGhostTexture);
-	//assetManager.ImportTexture("PurpleGhost", purpleGhostTexture);
+	//assetManager.StoreTexture("PurpleGhost", purpleGhostTexture);
 	//Material* purpleGhostMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("PurpleGhost"), assetManager.GetSampler("BasicSampler"));
-	//assetManager.ImportMaterial("PurpleGhost", purpleGhostMat);
+	//assetManager.StoreMaterial("PurpleGhost", purpleGhostMat);
 }
 
 // --------------------------------------------------------
@@ -212,7 +213,7 @@ void Engine::OnResize()
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 
-	player->UpdateProjectionMatrix(width,height);
+	//player->UpdateProjectionMatrix(width,height);
 }
 
 // --------------------------------------------------------
@@ -507,7 +508,7 @@ void Engine::OnMouseMove(WPARAM buttonState, int x, int y)
 		float deltaY = y - (float)prevMousePos.y;
 
 		//Rotate player
-		player->UpdateMouseInput(deltaX, deltaY);
+		//player->UpdateMouseInput(deltaX, deltaY);
 
 		//Update previous mose position
 		prevMousePos.x = x;
