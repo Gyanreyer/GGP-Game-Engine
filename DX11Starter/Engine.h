@@ -4,13 +4,11 @@
 #include <vector>
 #include "DXCore.h"
 #include "SimpleShader.h"
-//#include "Mesh.h"
 //#include "GameObject.h"
 //#include "Collider.h"	 //Game Manager + Others
 //#include "Collision.h" //Game Manager + Others
 //#include "Lights.h"	//Render class
 #include "Camera.h"
-//#include "WICTextureLoader.h" ///Asset Manager
 #include "AssetManager.h"
 //#include "Player.h" //GameManager
 //#include "Enemy.h"	//GameManager

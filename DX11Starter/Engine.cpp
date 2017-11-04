@@ -200,104 +200,7 @@ void Engine::Update(float deltaTime, float totalTime)
 		Quit();
 
 	//////Engine update Loop
-
-	///Move to Game Manager
-	////1. Make sure game is has not ended
-	//if (!gameManager->isGameOver()) {
-
-	//	player->Update(deltaTime);
-
-	//	projectileManager->UpdateProjectiles(deltaTime);
-
-	//	//Get all the GameObjects now
-	//	//The GameObject vector doesn't change, so this should be optimal
-	//	vector<GameObject>* goVector = gameManager->GetGameObjectVector();
-
-	//	//Get and update enemies
-	//	vector<Enemy>* enemies = gameManager->GetEnemyVector();
-	//	for (int i = 0; i < enemies->size(); i++)
-	//	{
-	//		(*enemies)[i].Update(deltaTime);
-	//	}
-
-	//	//PLAYER PROJECTILE COLLISIONS
-	//	for (byte i = 0; i < projectileManager->GetPlayerProjectiles().size(); i++)
-	//	{
-	//		Collider projCollider = *projectileManager->GetPlayerProjectiles()[i].GetCollider(); //The projectile's collider
-
-	//		//WITH ENEMIES
-	//		for (byte j = 0; j < enemies->size(); j++)
-	//		{
-	//			if (Collision::CheckCollisionSphereBox(&projCollider, (*enemies)[j].GetCollider()))
-	//			{
-	//				//Add score to player score
-	//				gameManager->AddScore((*enemies)[j].GetPoints());
-	//				(*enemies).erase((*enemies).begin() + j);
-	//				projectileManager->RemovePlayerProjectile(i);
-	//				goto break1; //Get out of the loop to prevent vector subscript errors
-	//			}
-	//		}
-
-	//		//WITH OTHER GAMEOBJECTS
-	//		for (byte j = 0; j < goVector->size(); j++)
-	//		{
-	//			Collider* goCollider = (*goVector)[j].GetCollider(); //The GameObject's collider
-
-	//			if (goCollider->collType == BOX && Collision::CheckCollisionSphereBox(&projCollider, goCollider))
-	//			{
-	//				projectileManager->RemovePlayerProjectile(i); //Simply delete projectile
-	//				goto break1; //Get out of the loop to prevent vector subscript errors
-	//			}
-	//			else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereSphere(&projCollider, goCollider))
-	//			{
-	//				projectileManager->RemovePlayerProjectile(i); //Simply delete projectile
-	//				goto break1; //Get out of the loop to prevent vector subscript errors
-	//			}
-	//		}
-	//	}
-
-	//	break1: //This is super useful and I'm sad I didn't know about it sooner
-	//	{
-	//		//ENEMY PROJECTILE COLLISIONS
-	//		for (byte i = 0; i < projectileManager->GetEnemyProjectiles().size(); i++)
-	//		{
-	//			Collider projCollider = *projectileManager->GetEnemyProjectiles()[i].GetCollider(); //The projectile's collider
-
-	//			//WITH OTHER GAMEOBJECTS
-	//			for (byte j = 0; j < goVector->size(); j++)
-	//			{
-	//				Collider* goCollider = (*goVector)[j].GetCollider(); //The GameObject's collider
-
-	//				if (goCollider->collType == BOX && Collision::CheckCollisionSphereBox(&projCollider, goCollider))
-	//				{
-	//					projectileManager->RemoveEnemyProjectile(i); //Simply delete projectile
-	//					goto break2; //Get out of the loop to prevent vector subscript errors
-	//				}
-	//				else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereSphere(&projCollider, goCollider))
-	//				{
-	//					projectileManager->RemoveEnemyProjectile(i); //Simply delete projectile
-	//					goto break2; //Get out of the loop to prevent vector subscript errors
-	//				}
-	//			}
-
-	//			//WITH PLAYER
-	//			if (Collision::CheckCollisionSphereBox(&projCollider, player->GetCollider()))
-	//			{
-	//				player->DecrementHealth();
-	//				projectileManager->RemoveEnemyProjectile(i); //Remove the enemy's projectile, prevents multi-frame collisions
-	//				goto break2; //Get out of the loop to prevent vector subscript errors
-	//			}
-	//		}
-	//	}
-
-	//	break2: //This is super useful and I'm sad I didn't know about it sooner
-	//	{
-	//		//These brackets totally aren't a janky workaround at all
-	//	}
-	//}
-	//else {
-	//	ImGui::OpenPopup("EndGame");
-	//}
+	gameManager->GameUpdate(deltaTime);
 }
 
 // --------------------------------------------------------
@@ -317,6 +220,18 @@ void Engine::Draw(float deltaTime, float totalTime)
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
+
+	// 1. Show a simple window
+	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+	{
+		static float f = 0.0f;
+		static char testText = char();
+		ImGui::Text("Hello, world!");
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("clear color", (float*)&clear_color);
+		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
 
 	//XMFLOAT4X4 viewMat = player->GetViewMatrix();
 	//XMFLOAT4X4 projMat = player->GetProjectionMatrix();
@@ -367,17 +282,6 @@ void Engine::Draw(float deltaTime, float totalTime)
 	////Draw all projectiles
 	//projectileManager->DrawProjectiles(viewMat, projMat);
 
-	// 1. Show a simple window
-	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-	{
-		static float f = 0.0f;
-		static char testText = char();
-		ImGui::Text("Hello, world!");
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-		ImGui::ColorEdit3("clear color", (float*)&clear_color);
-		ImGui::InputText("Text Test", &testText, sizeof(char)* 50);
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	}
 
 	////Display game stats
 	//std::string score = "Score: ";
@@ -406,6 +310,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 	//	}
 	//	ImGui::EndPopup();
 	//}
+	gameManager->GameDraw();
 	ImGui::Render();
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
