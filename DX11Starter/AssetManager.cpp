@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <DirectXMath.h>
+#include "WICTextureLoader.h" //used for texture loading
 
 //For the DirectX Math Library
 using namespace DirectX;
@@ -268,6 +269,34 @@ void AssetManager::ImportMesh(char* meshName, char * meshFile, ID3D11Device* dra
 
 }
 
+void AssetManager::ImportTexture(char * textureName, const wchar_t* textureFile, ID3D11Device* device, ID3D11DeviceContext* context)
+{
+	ID3D11ShaderResourceView* texture;
+	HRESULT tResult = CreateWICTextureFromFile(device, context, textureFile, 0, &texture);
+	if (tResult != S_OK) {
+		printf("Texture is could not be loaded");
+		return;
+	}
+	StoreTexture(textureName, texture);
+}
+
+void AssetManager::CreateMaterial(char * materialName, SimpleVertexShader * vShader, SimplePixelShader * pShader, ID3D11ShaderResourceView * texture, ID3D11SamplerState * textureSampler)
+{
+	Material* material = new Material(vShader, pShader, texture, textureSampler);
+	StoreMaterial(materialName, material);
+}
+
+void AssetManager::CreateMaterial(char * materialName, char * vShaderKey, char * pShaderKey, char * textureKey, char * samplerKey)
+{
+	SimpleVertexShader* vShader = vertexShaderLibrary[vShaderKey];
+	SimplePixelShader* pShader = pixelShaderLibrary[pShaderKey];
+	ID3D11ShaderResourceView* texture = textureLibrary[textureKey];
+	ID3D11SamplerState* textureSampler = textureSamplerLibrary[samplerKey];
+
+	Material* material = new Material(vShader, pShader, texture, textureSampler);
+	StoreMaterial(materialName, material);
+}
+
 void AssetManager::StoreVShader(char * vShaderName, SimpleVertexShader * vShader)
 {
 	if (vertexShaderLibrary.count(vShaderName) == 0)
@@ -356,6 +385,7 @@ SimpleVertexShader * AssetManager::GetVShader(char * vShaderName)
 		noAssetError += vShaderName;
 		noAssetError += "' Vertex Shader not found ";
 		printf(noAssetError.c_str());
+		return nullptr;
 	}
 }
 
@@ -369,6 +399,7 @@ SimplePixelShader * AssetManager::GetPShader(char * pShaderName)
 		noAssetError += pShaderName;
 		noAssetError += "' Pixel Shader not found ";
 		printf(noAssetError.c_str());
+		return nullptr;
 	}
 }
 
@@ -382,6 +413,7 @@ ID3D11ShaderResourceView * AssetManager::GetTexture(char * textureName)
 		noAssetError += textureName;
 		noAssetError += "' Texture not found ";
 		printf(noAssetError.c_str());
+		return nullptr;
 	}
 }
 
@@ -395,6 +427,7 @@ ID3D11SamplerState * AssetManager::GetSampler(char * samplerName)
 		noAssetError += samplerName;
 		noAssetError += "' Texture Sampler not found ";
 		printf(noAssetError.c_str());
+		return nullptr;
 	}
 }
 
@@ -408,6 +441,7 @@ Material * AssetManager::GetMaterial(char * materialName)
 		noAssetError += materialName;
 		noAssetError += "' Material not found ";
 		printf(noAssetError.c_str());
+		return nullptr;
 	}
 }
 
@@ -415,12 +449,13 @@ Mesh * AssetManager::GetMesh(char * meshName)
 {
 	if(meshLibrary.count(meshName)==1)	//Checks to make sure that meshKey is in library
 		return meshLibrary[meshName];
-	else								//Return erro if key does not exist in library
+	else								//Return error if key does not exist in library
 	{
 		std::string noAssetError = "Error: '";
 		noAssetError += meshName;
 		noAssetError += "' Mesh not found ";
 		printf(noAssetError.c_str());
+		return nullptr;
 	}
 }
 

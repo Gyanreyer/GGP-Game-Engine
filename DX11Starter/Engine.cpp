@@ -72,8 +72,8 @@ void Engine::Init()
 
 	//Create directional lights
 	/*light1 = { XMFLOAT4(0.1f,0.1f,0.1f,1.0f),XMFLOAT4(1.0f,1.0f,1.0f,1.0f),XMFLOAT3(1.0f,-1.0f,0.5f) };
-	light2 = { XMFLOAT4(0,0,0,0),XMFLOAT4(1.0f,0.0f,0.0f,1.0f),XMFLOAT3(-0.5f,-0.5f,0.25f) };
-*/
+	light2 = { XMFLOAT4(0,0,0,0),XMFLOAT4(1.0f,0.0f,0.0f,1.0f),XMFLOAT3(-0.5f,-0.5f,0.25f) };*/
+
 	//Default prevMousePos to center of screen
 	prevMousePos.x = width / 2;
 	prevMousePos.y = height / 2;
@@ -114,7 +114,6 @@ void Engine::LoadShaders()
 
 	//Store Vertex and Pixel Shaders into the AssetManager
 	assetManager->StoreVShader("BasicVShader", vertexShader);
-	assetManager->StoreVShader("BasicVShader", vertexShader);
 	assetManager->StorePShader("BasicPShader", pixelShader);
 }
 
@@ -125,83 +124,52 @@ void Engine::CreateMeshes()
 {
 	//Move to asset Manager Loading
 	//Create meshes
-	//assetManager.StoreMesh("Cone", new Mesh("../../DX11Starter/Assets/Models/cone.obj", device));
-	//assetManager.StoreMesh("Cube", new Mesh("../../DX11Starter/Assets/Models/cube.obj", device));
-	//assetManager.StoreMesh("Cylinder", new Mesh("../../DX11Starter/Assets/Models/cylinder.obj", device));
-	//assetManager.StoreMesh("Helix", new Mesh("../../DX11Starter/Assets/Models/helix.obj", device));
-	//assetManager.StoreMesh("Sphere", new Mesh("../../DX11Starter/Assets/Models/sphere.obj", device));
-	//assetManager.StoreMesh("Torus", new Mesh("../../DX11Starter/Assets/Models/torus.obj", device));
-	//assetManager.StoreMesh("Cactus", new Mesh("../../DX11Starter/Assets/Models/cactus.obj", device));
-	//assetManager.StoreMesh("RustyPete", new Mesh("../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device));
-	//assetManager.StoreMesh("PurpleGhost", new Mesh("../../DX11Starter/Assets/Models/ghost.obj", device));
-	//assetManager.StoreMesh("Plane", new Mesh("../../DX11Starter/Assets/Models/Quad.obj", device));
+	assetManager->ImportMesh("Cone", "../../DX11Starter/Assets/Models/cone.obj", device);
+	assetManager->ImportMesh("Cube", "../../DX11Starter/Assets/Models/cube.obj", device);
+	assetManager->ImportMesh("Cylinder", "../../DX11Starter/Assets/Models/cylinder.obj", device);
+	assetManager->ImportMesh("Helix", "../../DX11Starter/Assets/Models/helix.obj", device);
+	assetManager->ImportMesh("Sphere", "../../DX11Starter/Assets/Models/sphere.obj", device);
+	assetManager->ImportMesh("Torus", "../../DX11Starter/Assets/Models/torus.obj", device);
+	assetManager->ImportMesh("Cactus", "../../DX11Starter/Assets/Models/cactus.obj", device);
+	assetManager->ImportMesh("RustyPete", "../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device);
+	assetManager->ImportMesh("PurpleGhost", "../../DX11Starter/Assets/Models/ghost.obj", device);
+	assetManager->ImportMesh("Plane", "../../DX11Starter/Assets/Models/Quad.obj", device);
 }
 
 ///Loads in textures and makes them into materials
 void Engine::CreateMaterials()
 {
-	////Asset Manager Loading
-	////Create Sampler State
-	//ID3D11SamplerState* sample;
-	//D3D11_SAMPLER_DESC sampleDesc = {};
+	//Asset Manager Loading
+	//Create Sampler State
+	ID3D11SamplerState* sample;
+	D3D11_SAMPLER_DESC sampleDesc = {};
 
-	////Describes how to handle addresses outside 0-1 UV range
-	//sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	//sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	//sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	//Describes how to handle addresses outside 0-1 UV range
+	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 
-	//sampleDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;	//Describes how to handle sampling between pixels
-	//sampleDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	sampleDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;	//Describes how to handle sampling between pixels
+	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	//HRESULT sampleResult = device->CreateSamplerState(&sampleDesc, &sample);
-	//if (sampleResult != S_OK) {
-	//	printf("Sample State could not be created");
-	//}
+	HRESULT sampleResult = device->CreateSamplerState(&sampleDesc, &sample);
+	if (sampleResult != S_OK) {
+		printf("Sample State could not be created");
+	}
 
-	//assetManager.StoreSampler("BasicSampler", sample);
+	assetManager->StoreSampler("BasicSampler", sample);
 
-	////create Texture
-	//ID3D11ShaderResourceView* hazardTexture;
-	//HRESULT tResult = CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", 0, &hazardTexture);
-	//if (tResult != S_OK) {
-	//	printf("Hazard Texture is could not be loaded");
-	//}
-	//assetManager.StoreTexture("HazardTexture", hazardTexture);
-
-	//ID3D11ShaderResourceView* rustyPeteTexture;
-	//tResult = CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Models/RustyPete/rusty_pete_body_c.png", 0, &rustyPeteTexture);
-	//assetManager.StoreTexture("RustyPete", rustyPeteTexture);
-
-	//Material* rustyPeteMaterial = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("RustyPete"), assetManager.GetSampler("BasicSampler"));
-	//assetManager.StoreMaterial("RustyPeteMaterial", rustyPeteMaterial);
-
-	////Create Material 
-	//Material* genericMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("HazardTexture"), assetManager.GetSampler("BasicSampler"));
-	//assetManager.StoreMaterial("HazardCrateMat", genericMat);
-
-	////create Texture
-	//ID3D11ShaderResourceView* stoneTexture;
-	//tResult = CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/GreyStoneTexture.jpg", 0, &stoneTexture);
-	//if (tResult != S_OK) {
-	//	printf("Stone Texture is could not be loaded");
-	//}
-	//assetManager.StoreTexture("Stone", stoneTexture);
-
-	//Material* stoneMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("Stone"), assetManager.GetSampler("BasicSampler"));
-	//assetManager.StoreMaterial("StoneMat", stoneMat);
-
-	////Create enemy texture and material
-	//ID3D11ShaderResourceView* enemyTexture;
-	//CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/aaaaaa.png", 0, &enemyTexture);
-	//assetManager.StoreTexture("EnemyTexture", enemyTexture);
-	//Material* enemyMaterial = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("EnemyTexture"), assetManager.GetSampler("BasicSampler"));
-	//assetManager.StoreMaterial("EnemyMaterial", enemyMaterial);
-
-	//ID3D11ShaderResourceView* purpleGhostTexture;
-	//CreateWICTextureFromFile(device, context, L"../../DX11Starter/Assets/Textures/ghost-dark.png", 0, &purpleGhostTexture);
-	//assetManager.StoreTexture("PurpleGhost", purpleGhostTexture);
-	//Material* purpleGhostMat = new Material(assetManager.GetVShader("BasicVShader"), assetManager.GetPShader("BasicPShader"), assetManager.GetTexture("PurpleGhost"), assetManager.GetSampler("BasicSampler"));
-	//assetManager.StoreMaterial("PurpleGhost", purpleGhostMat);
+	//create Texture
+	assetManager->ImportTexture("HazardTexture", L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", device, context);
+	assetManager->CreateMaterial("HazardCrateMat", "BasicVShader", "BasicPShader", "HazardTexture", "BasicSampler");
+	assetManager->ImportTexture("RustyPete", L"../../DX11Starter/Assets/Models/RustyPete/rusty_pete_body_c.png", device, context);
+	assetManager->CreateMaterial("RustyPeteMaterial", "BasicVShader", "BasicPShader", "RustyPete", "BasicSampler");
+	assetManager->ImportTexture("Stone", L"../../DX11Starter/Assets/Textures/GreyStoneTexture.jpg", device, context);
+	assetManager->CreateMaterial("StoneMat", "BasicVShader", "BasicPShader", "Stone", "BasicSampler");
+	assetManager->ImportTexture("EnemyTexture", L"../../DX11Starter/Assets/Textures/aaaaaa.png", device, context);
+	assetManager->CreateMaterial("EnemyMaterial", "BasicVShader", "BasicPShader", "EnemyTexture", "BasicSampler");
+	assetManager->ImportTexture("PurpleGhost", L"../../DX11Starter/Assets/Textures/ghost-dark.png", device, context);
+	assetManager->CreateMaterial("PurpleGhost", "BasicVShader", "BasicPShader", "PurpleGhost", "BasicSampler");
 }
 
 // --------------------------------------------------------
@@ -399,18 +367,17 @@ void Engine::Draw(float deltaTime, float totalTime)
 	////Draw all projectiles
 	//projectileManager->DrawProjectiles(viewMat, projMat);
 
-	//// 1. Show a simple window
-	//// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-	//{
-	//	static float f = 0.0f;
-	//	static char testText = char();
-	//	ImGui::Text("Hello, world!");
-	//	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-	//	ImGui::SliderFloat3("Sphere2 Pos", pos, -5, 5);
-	//	ImGui::ColorEdit3("clear color", (float*)&clear_color);
-	//	ImGui::InputText("Text Test", &testText, sizeof(char)* 50);
-	//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	//}
+	// 1. Show a simple window
+	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+	{
+		static float f = 0.0f;
+		static char testText = char();
+		ImGui::Text("Hello, world!");
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("clear color", (float*)&clear_color);
+		ImGui::InputText("Text Test", &testText, sizeof(char)* 50);
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
 
 	////Display game stats
 	//std::string score = "Score: ";
