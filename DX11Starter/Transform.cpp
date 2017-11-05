@@ -278,7 +278,7 @@ void Transform::SetMass(float m)
 
 void Transform::ApplyForce(XMFLOAT3 force)
 {
-	XMStoreFloat3(&velocity, XMLoadFloat3(&velocity) + (XMLoadFloat3(&force)/mass));
+	XMStoreFloat3(&velocity, XMVector3ClampLength(XMLoadFloat3(&velocity) + (XMLoadFloat3(&force)/mass),0,2.0f));
 }
 
 void Transform::UpdatePhysics(float deltaTime)
