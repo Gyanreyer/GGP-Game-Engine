@@ -1,10 +1,12 @@
 #pragma once
 #include <vector>
-#include "GameObject.h"
+#include "Projectile.h"
+#include "Player.h"
 
 class OctreeNode
 {
 public:
+	OctreeNode();
 	OctreeNode(XMFLOAT3 centerPoint, float boundingRadius, OctreeNode* parentNode);
 	~OctreeNode();
 

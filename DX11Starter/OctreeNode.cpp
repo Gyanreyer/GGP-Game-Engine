@@ -1,5 +1,9 @@
 #include "OctreeNode.h"
 
+OctreeNode::OctreeNode()
+{
+}
+
 OctreeNode::OctreeNode(XMFLOAT3 centerPoint, float boundingRadius, OctreeNode* parentNode)
 {
 	center = centerPoint;
@@ -10,12 +14,12 @@ OctreeNode::OctreeNode(XMFLOAT3 centerPoint, float boundingRadius, OctreeNode* p
 
 OctreeNode::~OctreeNode()
 {
-	delete[] children;
+	if(children) delete[] children;
 }
 
 GameObject * OctreeNode::GetObjects()
 {
-	return objects.data;
+	return *objects.data();
 }
 
 unsigned int OctreeNode::GetObjectCount()
@@ -35,6 +39,8 @@ void OctreeNode::AddObject(GameObject * obj)
 		}
 		else//Create child octants
 		{
+			children = new OctreeNode[8];
+
 			//Radius for child is half as wide as parent
 			float newRadius = radius / 2;
 
@@ -91,7 +97,7 @@ void OctreeNode::Update()
 
 	if (objects.empty()) return;//Return early if no objects stored in this node
 
-								//Iterate through all GameObjects in this node and check if they should remain in this node
+	//Iterate through all GameObjects in this node and check if they should remain in this node
 	for (vector<GameObject*>::iterator iter = objects.begin(); iter != objects.end();) {
 		//Check if object's transform has been updated and if so, if it needs to be moved
 		if ((*iter)->GetTransform()->MatrixNeedsUpdate() && MoveObject(*iter))

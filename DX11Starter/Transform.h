@@ -64,6 +64,12 @@ public:
 	Transform * GetChild(int index);//Return reference to transform at given index
 	size_t GetChildCount();//Get number of children on this transform
 
+	void SetMass(float m);
+
+	void ApplyForce(XMFLOAT3 force);
+
+	void UpdatePhysics(float deltaTime);
+
 private:
 	//Vectors for position/rotation/scale
 	XMFLOAT3 position, rotation, scale;
@@ -86,6 +92,11 @@ private:
 	bool matrixNeedsUpdate;//Boolean tracks whether transform has been updated and requires a matrix update
 
 	void UpdateDirectionVectors();
+
+	bool useGravity;
+
+	XMFLOAT3 velocity;
+	float mass;
 
 	XMVECTOR UP = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);//Helper unit vector for up
 	XMVECTOR FWD = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);//Helper unit vector for forward

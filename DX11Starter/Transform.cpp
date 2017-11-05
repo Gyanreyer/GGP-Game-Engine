@@ -11,6 +11,8 @@ Transform::Transform(XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale)
 	SetScale(scale);
 
 	parent = nullptr;
+
+	mass = 1;
 }
 
 Transform::~Transform()
@@ -267,6 +269,36 @@ Transform * Transform::GetChild(int index)
 size_t Transform::GetChildCount()
 {
 	return children.size();
+}
+
+void Transform::SetMass(float m)
+{
+	mass = m;
+}
+
+void Transform::ApplyForce(XMFLOAT3 force)
+{
+	XMStoreFloat3(&velocity, XMLoadFloat3(&velocity) + (XMLoadFloat3(&force)/mass));
+}
+
+void Transform::UpdatePhysics(float deltaTime)
+{
+	XMVECTOR velocityVec = XMLoadFloat3(&velocity);
+
+	Move(velocityVec*deltaTime);
+
+	velocityVec *= 0.1f;
+	
+	XMFLOAT3 length;
+
+	XMStoreFloat3(&length, XMVector3LengthEst(velocityVec));
+
+	if (length.x < 0.05f)
+	{
+		velocityVec *= 0;
+	}
+
+	XMStoreFloat3(&velocity, velocityVec);
 }
 
 //Store reference to parent - SHOULD ONLY BE USED IN CONJUNCTION WITH StoreChild()
