@@ -27,7 +27,7 @@ public:
 
 	//Engine Get Methods
 	Player* GetPlayer();
-	ProjectileManager* GetProjectileManager();
+	//ProjectileManager* GetProjectileManager();
 	vector<GameObject>* GetGameObjectVector();
 	vector<Enemy>* GetEnemyVector();
 	double getTimeLeft();

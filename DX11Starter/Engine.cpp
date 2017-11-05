@@ -178,7 +178,7 @@ void Engine::OnResize()
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 
-	//player->UpdateProjectionMatrix(width,height);
+	gameManager->GetPlayer()->UpdateProjectionMatrix(width, height);
 }
 
 // --------------------------------------------------------
@@ -262,7 +262,6 @@ void Engine::Draw(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;
 	prevMousePos.y = y;
@@ -289,7 +288,6 @@ void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Engine::OnMouseUp(WPARAM buttonState, int x, int y)
 {
-
 	// Add any custom code here...
 
 	// We don't care about the tracking the cursor outside
@@ -304,7 +302,6 @@ void Engine::OnMouseUp(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Engine::OnMouseMove(WPARAM buttonState, int x, int y)
 {
-
 	//When the right mouse button is pressed
 	//Duh, it's a bitwise &
 	if (buttonState & MK_RBUTTON)
@@ -314,7 +311,7 @@ void Engine::OnMouseMove(WPARAM buttonState, int x, int y)
 		float deltaY = y - (float)prevMousePos.y;
 
 		//Rotate player
-		//player->UpdateMouseInput(deltaX, deltaY);
+		gameManager->GetPlayer()->UpdateMouseInput(deltaX, deltaY);
 
 		//Update previous mose position
 		prevMousePos.x = x;

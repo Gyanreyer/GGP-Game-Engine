@@ -1,19 +1,22 @@
 //Enemies, inherits from GameObject
 #include "Enemy.h"
-#include "GameManager.h" //CHANGE TO PROJECTILEMANAGER AND MOVE TO HEADER FILE
 
 Enemy::Enemy()
 {
 }
 
-Enemy::Enemy(XMFLOAT3 position, Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx, byte pointValue, bool moveX, bool moveY) : GameObject(mesh, material, colliderType, isColliderOffset, ctx)
+Enemy::Enemy(Transform tForm, Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx, byte pointValue, bool moveX, bool moveY, ProjectileManager* projManager) : GameObject(mesh, material, colliderType, isColliderOffset, ctx)
 {
+	transform = tForm;
+	XMFLOAT3 position = transform.GetPosition();
+
 	points = pointValue;
 	moveXAxis = moveX;
 	moveYAxis = moveY;
-	transform.SetPosition(position);
 	originPos = position;
 	isOffset = isColliderOffset;
+
+	pManager = projManager; //Save the reference to the ProjectileManager
 	
 	time(&nowTime); //gets current time when game is launched
 	lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
@@ -22,14 +25,14 @@ Enemy::Enemy(XMFLOAT3 position, Mesh * mesh, Material * material, ColliderType c
 	if (!isOffset)
 	{
 		//Make player shoot
-		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(position, transform.GetForward());
+		pManager->SpawnEnemyProjectile(position, transform.GetForward());
 	}
 	else
 	{
 		XMFLOAT3 shootPos;
 		XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
 
-		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(shootPos, transform.GetForward());
+		pManager->SpawnEnemyProjectile(shootPos, transform.GetForward());
 	}
 }
 
@@ -79,14 +82,14 @@ void Enemy::Update(float deltaTime)
 		if (!isOffset)
 		{
 			//Make player shoot
-			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(transform.GetPosition(), transform.GetForward());
+			pManager->SpawnEnemyProjectile(transform.GetPosition(), transform.GetForward());
 		}
 		else
 		{
 			XMFLOAT3 shootPos;
 			XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
 
-			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(shootPos, transform.GetForward());
+			pManager->SpawnEnemyProjectile(shootPos, transform.GetForward());
 		}
 
 		time(&nowTime); //gets current time when shot is launched

@@ -22,7 +22,11 @@ GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderTy
 
 	transform = Transform();//Initialize transform
 
-	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false, isColliderOffset);
+	//Determine whether or not the collider is offset
+	if (!isColliderOffset)
+		coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false);
+	else
+		coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false, true);
 
 	context = ctx;
 }
@@ -32,7 +36,8 @@ GameObject::GameObject(ColliderType colliderType)
 {
 	transform = Transform();
 
-	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false, false);
+	//This collider type will never be offset
+	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false);
 
 	hasMesh = false;//This object doesn't have a mesh to be drawn
 }

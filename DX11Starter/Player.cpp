@@ -142,9 +142,9 @@ void Player::UpdateKeyInput(float deltaTime)
 	}
 	
 	//Move relative to direction we're facing, with no movement on the Y axis
-	//transform.MoveRelativeAxes(fwdSpeed, sideSpeed, verticalSpeed * deltaTime);
+	transform.MoveRelativeAxes(fwdSpeed, sideSpeed, verticalSpeed * deltaTime);
 
-	//transform.ApplyForce(XMFLOAT3(fwdSpeed*0.1f, sideSpeed*0.1f, verticalSpeed*deltaTime*0.1f));
+	transform.ApplyForce(XMFLOAT3(fwdSpeed*0.1f, sideSpeed*0.1f, verticalSpeed*deltaTime*0.1f));
 
 	breakEnd: //This is super useful and I'm sad I didn't know about it sooner
 	{

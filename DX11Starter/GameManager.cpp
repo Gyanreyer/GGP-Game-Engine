@@ -50,15 +50,24 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context)
 {
 	//ENEMIES
-	enemies.clear();
+	enemies.clear(); //Clear this out for new game instances
+	
+	//Create a transform for the enemies
+	Transform enemyTransform = Transform(
+		XMFLOAT3(2, 0, 0), //Position
+		XMFLOAT3(0, 0, 0), //Rotation
+		XMFLOAT3(1, 1, 1) //Scale
+	);
 
-	//Create an enemy
-	enemies.push_back(Enemy(XMFLOAT3(2, 0, 0), asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), BOX, true, context, 10, false, false));
-	enemies.push_back(Enemy(XMFLOAT3(-2, 2, 0), asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), BOX, false, context, 20, false, true));
-	enemies.push_back(Enemy(XMFLOAT3(0, 0, -2), asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), BOX, true, context, 20, true, false));
+	//Create enemies
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), BOX, true, context, 10, false, false, &projectileManager));
+	enemyTransform.SetPosition(-2, 2, 0);
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), BOX, false, context, 20, false, true, &projectileManager));
+	enemyTransform.SetPosition(0, 0, -2);
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), BOX, true, context, 20, true, false, &projectileManager));
 
 	///OTHER GAMEOBJECTS
-	gameObjects.clear();
+	gameObjects.clear(); //Clear this out for new game instances
 
 	//Store references to all GOs in vector
 	gameObjects.push_back(GameObject(asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial"), BOX, false, context));
@@ -175,8 +184,7 @@ void GameManager::GameDraw(Renderer* renderer)
 	//XMFLOAT4X4 viewMat = player->GetViewMatrix();
 	//XMFLOAT4X4 projMat = player->GetProjectionMatrix();
 
-	renderer->SetViewProjMatrix(player.GetViewMatrix(), player.GetWorldMatrix());
-
+	renderer->SetViewProjMatrix(player.GetViewMatrix(), player.GetProjectionMatrix());
 
 	//Loop through GameObjects and draw them
 	for (byte i = 0; i < gameObjects.size(); i++)
@@ -190,9 +198,8 @@ void GameManager::GameDraw(Renderer* renderer)
 		renderer->Render(&enemies[i]);
 	}
 
-	////Draw all projectiles
+	//Draw all projectiles
 	projectileManager.DrawProjectiles(renderer);
-
 
 	//Display game stats
 	std::string score = "Score: ";
@@ -207,9 +214,6 @@ void GameManager::GameDraw(Renderer* renderer)
 	ImGui::Text(health.c_str());
 	ImGui::Text(score.c_str());
 	ImGui::End();
-
-	
-
 }
 
 bool GameManager::isGameOver()
@@ -224,10 +228,10 @@ Player * GameManager::GetPlayer()
 	return &player;
 }
 
-ProjectileManager * GameManager::GetProjectileManager()
-{
-	return &projectileManager;
-}
+//ProjectileManager * GameManager::GetProjectileManager()
+//{
+//	return &projectileManager;
+//}
 
 //Return the vector of gameObjects
 vector<GameObject>* GameManager::GetGameObjectVector()

@@ -1,6 +1,7 @@
 //Enemies, inherits from GameObject
 #pragma once
 #include "GameObject.h"
+#include "ProjectileManager.h"
 #include <time.h>
 
 /*Change Notes
@@ -12,7 +13,7 @@ class Enemy : public GameObject
 {
 public:
 	Enemy();
-	Enemy(XMFLOAT3 position, Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx, byte pointValue, bool moveX, bool moveY);
+	Enemy(Transform tForm, Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx, byte pointValue, bool moveX, bool moveY, ProjectileManager* projManager);
 	~Enemy();
 	 void Update(float deltaTime);
 
@@ -23,6 +24,9 @@ private:
 	//Enemy Shoot Timer
 	time_t nowTime;
 	tm lastShotTime;
+
+	//ProjectileManager reference
+	ProjectileManager* pManager;
 
 	//The number of points this enemy is worth
 	int points;
