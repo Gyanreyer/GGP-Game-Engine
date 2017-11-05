@@ -7,7 +7,6 @@
 //#include "GameObject.h"
 //#include "Collider.h"	 //Game Manager + Others
 //#include "Collision.h" //Game Manager + Others
-//#include "Lights.h"	//Render class
 #include "Camera.h"
 #include "AssetManager.h"
 //#include "Player.h" //GameManager
@@ -56,6 +55,7 @@ private:
 	//ASSET MANAGER
 	AssetManager* assetManager;
 	GameManager* gameManager;
+	Renderer* renderer;
 
 	//Directional light
 	//DirectionalLight light1;

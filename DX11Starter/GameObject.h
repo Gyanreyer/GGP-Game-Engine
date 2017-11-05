@@ -31,6 +31,7 @@ public:
 
 	Transform* GetTransform();//Get reference to this object's transform
 	Material* GetMaterial(); //Get objects Material
+	Mesh* GetMesh();
 	Collider* GetCollider();
 	XMFLOAT4X4 GetWorldMatrix();
 

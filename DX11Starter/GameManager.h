@@ -5,6 +5,7 @@
 #include "ProjectileManager.h"
 #include "Player.h"
 #include "AssetManager.h"
+#include "Renderer.h"
 
 class GameManager
 {
@@ -18,7 +19,7 @@ public:
 	void StartGame(AssetManager* asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context);
 	void CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context); //Initializes GameObjects
 	void GameUpdate(float deltaTime);
-	void GameDraw();
+	void GameDraw(Renderer* renderer);
 	bool isGameOver();
 
 	void AddScore(int addAmount);

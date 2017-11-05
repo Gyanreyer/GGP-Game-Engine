@@ -1,5 +1,6 @@
 #pragma once
 #include "Projectile.h"
+#include "Renderer.h"
 
 //Refactor after context is moved
 class ProjectileManager
@@ -15,10 +16,8 @@ public:
 
 	void UpdateProjectiles(float deltaTime);//Update all projectiles
 
-	//Set pixel shader data for projectile materials... Potentially placeholder?
-	void SetProjectileShaderData(std::string name, void * data, unsigned int size);
 	//Draw all projectiles
-	void DrawProjectiles(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat);
+	void DrawProjectiles(Renderer* renderer);
 	void RemovePlayerProjectile(int i);
 	void RemoveEnemyProjectile(int i);
 

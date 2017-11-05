@@ -66,13 +66,10 @@ void Engine::Init()
 	ImGui_ImplDX11_Init(hWnd, device, context);
 
 	gameManager = &GameManager::getInstance();
-
+	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device);
 	//Create camera object
 	//camera = Camera(width, height);
 
-	//Create directional lights
-	/*light1 = { XMFLOAT4(0.1f,0.1f,0.1f,1.0f),XMFLOAT4(1.0f,1.0f,1.0f,1.0f),XMFLOAT3(1.0f,-1.0f,0.5f) };
-	light2 = { XMFLOAT4(0,0,0,0),XMFLOAT4(1.0f,0.0f,0.0f,1.0f),XMFLOAT3(-0.5f,-0.5f,0.25f) };*/
 
 	//Default prevMousePos to center of screen
 	prevMousePos.x = width / 2;
@@ -86,7 +83,7 @@ void Engine::Init()
 	CreateMaterials();
 	CreateMeshes();
 
-	//gameManager->StartGame(&assetManager, (float)width, (float)height, context); //starts the game
+	gameManager->StartGame(assetManager, (float)width, (float)height, context); //starts the game
 	//player = gameManager->GetPlayer(); //give engine a refrence to player
 
 	//Set up projectile manager
@@ -233,84 +230,21 @@ void Engine::Draw(float deltaTime, float totalTime)
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	}
 
-	//XMFLOAT4X4 viewMat = player->GetViewMatrix();
-	//XMFLOAT4X4 projMat = player->GetProjectionMatrix();
+	gameManager->GameDraw(renderer);
 
-	////Get all the GameObjects now
-	////The GameObject vector doesn't change, so this should be optimal
-	//vector<GameObject>* goVector = gameManager->GetGameObjectVector();
-
-	////Get the vector of enemies
-	//vector<Enemy>* enemies = gameManager->GetEnemyVector();
-
-	////Loop through GameObjects and draw them
-	//for (byte i = 0; i < goVector->size(); i++)
-	//{
-	//	(*goVector)[i].GetMaterial()->GetPixelShader()->SetData(
-	//		"light1",
-	//		&light1,
-	//		sizeof(DirectionalLight));
-
-	//	(*goVector)[i].GetMaterial()->GetPixelShader()->SetData(
-	//		"light2",
-	//		&light2,
-	//		sizeof(DirectionalLight));
-
-	//	(*goVector)[i].Draw(viewMat, projMat);
-	//}
-
-	////Loop through Enemies and draw them
-	//for (byte i = 0; i < enemies->size(); i++)
-	//{
-	//	(*enemies)[i].GetMaterial()->GetPixelShader()->SetData(
-	//		"light1",
-	//		&light1,
-	//		sizeof(DirectionalLight));
-
-	//	(*enemies)[i].GetMaterial()->GetPixelShader()->SetData(
-	//		"light2",
-	//		&light2,
-	//		sizeof(DirectionalLight));
-
-	//	(*enemies)[i].Draw(viewMat, projMat);
-	//}
-
-	////Set up light data for projectile materials
-	//projectileManager->SetProjectileShaderData("light1", &light1, sizeof(DirectionalLight));
-	//projectileManager->SetProjectileShaderData("light2", &light2, sizeof(DirectionalLight));
-
-	////Draw all projectiles
-	//projectileManager->DrawProjectiles(viewMat, projMat);
-
-
-	////Display game stats
-	//std::string score = "Score: ";
-	//char intChar[10];
-	//score += itoa(gameManager->GetGameScore() ,intChar, 10);
-	//std::string health = "Health: ";
-	//health += itoa(player->GetHealth(), intChar, 10);
-	//std::string timeLeft = "Time Left: ";
-	//timeLeft += itoa((int)gameManager->getTimeLeft(), intChar, 10);
-	//ImGui::Begin("GGP Game", (bool*)1);
-	//ImGui::Text(timeLeft.c_str());
-	//ImGui::Text(health.c_str());
-	//ImGui::Text(score.c_str());
-	//ImGui::End();
-
-	//
-	//if (ImGui::BeginPopup("EndGame")) {
-	//	ImGui::TextColored(ImVec4(1, 0, 0, 1), "Game is over");
-	//	std::string finalScore = "Final Score: ";
-	//	finalScore += itoa(gameManager->GetGameScore(), intChar, 10);
-	//	ImGui::Text(finalScore.c_str());
-	//	if (ImGui::Button("Restart Game"))
-	//	{
-	//		gameManager->StartGame(&assetManager, (float)(width), (float)(height), context);
-	//		ImGui::CloseCurrentPopup();
-	//	}
-	//	ImGui::EndPopup();
-	//}
-	gameManager->GameDraw();
+	if (ImGui::BeginPopup("EndGame")) {
+		ImGui::TextColored(ImVec4(1, 0, 0, 1), "Game is over");
+		std::string finalScore = "Final Score: ";
+		char intChar[10];
+		finalScore += itoa(gameManager->GetGameScore(), intChar, 10);
+		ImGui::Text(finalScore.c_str());
+		if (ImGui::Button("Restart Game"))
+		{
+			gameManager->StartGame(assetManager, (float)(width), (float)(height), context);
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
 	ImGui::Render();
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it

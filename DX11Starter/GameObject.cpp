@@ -51,40 +51,6 @@ void GameObject::SetMesh(Mesh * mesh)
 	hasMesh = true;
 }
 
-//Draw the mesh!
-void GameObject::Draw(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
-{
-	UpdateWorldMatrix(); //Update here, removes additional method call
-	PrepareMaterial(viewMat, projMat);
-	context->DrawIndexed(meshIndexCount, 0, 0);
-}
-
-//Prepare material to be drawn, takes camera matrices
-void GameObject::PrepareMaterial(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
-{
-	//Get shaders from material
-	SimpleVertexShader * vertexShader = material->GetVertexShader();
-	SimplePixelShader * pixelShader = material->GetPixelShader();
-
-	//Set up shader data
-	vertexShader->SetMatrix4x4("view", viewMat);
-	vertexShader->SetMatrix4x4("projection", projMat);
-	vertexShader->SetMatrix4x4("world", worldMatrix);//Set vertex shader's world matrix to this object's wm
-	vertexShader->CopyAllBufferData();
-	vertexShader->SetShader();
-
-	pixelShader->SetShaderResourceView("diffuseTexture",material->GetSRV());
-	pixelShader->SetSamplerState("basicSampler",material->GetSampler());
-	pixelShader->CopyAllBufferData();
-	pixelShader->SetShader();
-
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-
-	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-}
-
 void GameObject::SetMaterial(Material * newMat)
 {
 	material = newMat;
@@ -98,6 +64,11 @@ Transform * GameObject::GetTransform()
 Material * GameObject::GetMaterial()
 {
 	return material;
+}
+
+Mesh * GameObject::GetMesh()
+{
+	return mesh;
 }
 
 Collider* GameObject::GetCollider()

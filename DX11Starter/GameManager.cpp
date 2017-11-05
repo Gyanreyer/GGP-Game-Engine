@@ -170,85 +170,46 @@ void GameManager::GameUpdate(float deltaTime)
 }
 
 
-void GameManager::GameDraw()
+void GameManager::GameDraw(Renderer* renderer)
 {
 	//XMFLOAT4X4 viewMat = player->GetViewMatrix();
 	//XMFLOAT4X4 projMat = player->GetProjectionMatrix();
 
-	////Get all the GameObjects now
-	////The GameObject vector doesn't change, so this should be optimal
-	//vector<GameObject>* goVector = gameManager->GetGameObjectVector();
+	renderer->SetViewProjMatrix(player.GetViewMatrix(), player.GetWorldMatrix());
 
-	////Get the vector of enemies
-	//vector<Enemy>* enemies = gameManager->GetEnemyVector();
 
-	////Loop through GameObjects and draw them
-	//for (byte i = 0; i < goVector->size(); i++)
-	//{
-	//	(*goVector)[i].GetMaterial()->GetPixelShader()->SetData(
-	//		"light1",
-	//		&light1,
-	//		sizeof(DirectionalLight));
+	//Loop through GameObjects and draw them
+	for (byte i = 0; i < gameObjects.size(); i++)
+	{
+		renderer->Render(&gameObjects[i]);
+	}
 
-	//	(*goVector)[i].GetMaterial()->GetPixelShader()->SetData(
-	//		"light2",
-	//		&light2,
-	//		sizeof(DirectionalLight));
-
-	//	(*goVector)[i].Draw(viewMat, projMat);
-	//}
-
-	////Loop through Enemies and draw them
-	//for (byte i = 0; i < enemies->size(); i++)
-	//{
-	//	(*enemies)[i].GetMaterial()->GetPixelShader()->SetData(
-	//		"light1",
-	//		&light1,
-	//		sizeof(DirectionalLight));
-
-	//	(*enemies)[i].GetMaterial()->GetPixelShader()->SetData(
-	//		"light2",
-	//		&light2,
-	//		sizeof(DirectionalLight));
-
-	//	(*enemies)[i].Draw(viewMat, projMat);
-	//}
-
-	////Set up light data for projectile materials
-	//projectileManager->SetProjectileShaderData("light1", &light1, sizeof(DirectionalLight));
-	//projectileManager->SetProjectileShaderData("light2", &light2, sizeof(DirectionalLight));
+	//Loop through Enemies and draw them
+	for (byte i = 0; i < enemies.size(); i++)
+	{
+		renderer->Render(&enemies[i]);
+	}
 
 	////Draw all projectiles
-	//projectileManager->DrawProjectiles(viewMat, projMat);
+	projectileManager.DrawProjectiles(renderer);
 
 
-	////Display game stats
-	//std::string score = "Score: ";
-	//char intChar[10];
-	//score += itoa(gameManager->GetGameScore() ,intChar, 10);
-	//std::string health = "Health: ";
-	//health += itoa(player->GetHealth(), intChar, 10);
-	//std::string timeLeft = "Time Left: ";
-	//timeLeft += itoa((int)gameManager->getTimeLeft(), intChar, 10);
-	//ImGui::Begin("GGP Game", (bool*)1);
-	//ImGui::Text(timeLeft.c_str());
-	//ImGui::Text(health.c_str());
-	//ImGui::Text(score.c_str());
-	//ImGui::End();
+	//Display game stats
+	std::string score = "Score: ";
+	char intChar[10];
+	score += itoa(GetGameScore() ,intChar, 10);
+	std::string health = "Health: ";
+	health += itoa(player.GetHealth(), intChar, 10);
+	std::string timeLeft = "Time Left: ";
+	timeLeft += itoa((int)getTimeLeft(), intChar, 10);
+	ImGui::Begin("GGP Game", (bool*)1);
+	ImGui::Text(timeLeft.c_str());
+	ImGui::Text(health.c_str());
+	ImGui::Text(score.c_str());
+	ImGui::End();
 
-	//
-	//if (ImGui::BeginPopup("EndGame")) {
-	//	ImGui::TextColored(ImVec4(1, 0, 0, 1), "Game is over");
-	//	std::string finalScore = "Final Score: ";
-	//	finalScore += itoa(gameManager->GetGameScore(), intChar, 10);
-	//	ImGui::Text(finalScore.c_str());
-	//	if (ImGui::Button("Restart Game"))
-	//	{
-	//		gameManager->StartGame(&assetManager, (float)(width), (float)(height), context);
-	//		ImGui::CloseCurrentPopup();
-	//	}
-	//	ImGui::EndPopup();
-	//}
+	
+
 }
 
 bool GameManager::isGameOver()
