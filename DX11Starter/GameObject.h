@@ -6,6 +6,9 @@
 #include "Transform.h"
 #include "Collider.h" //Colliders
 
+//context would be in renderer class
+//ColliderType and ColliderOffset will be from Mesh
+//Draw will be moved to Renderer class
 class GameObject
 {
 public:
@@ -28,6 +31,7 @@ public:
 
 	Transform* GetTransform();//Get reference to this object's transform
 	Material* GetMaterial(); //Get objects Material
+	Mesh* GetMesh();
 	Collider* GetCollider();
 	XMFLOAT4X4 GetWorldMatrix();
 

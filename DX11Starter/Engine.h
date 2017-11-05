@@ -4,27 +4,24 @@
 #include <vector>
 #include "DXCore.h"
 #include "SimpleShader.h"
-#include "Mesh.h"
-#include "GameObject.h"
-#include "Collider.h"
-#include "Collision.h"
-#include "Lights.h"
+//#include "GameObject.h"
+//#include "Collider.h"	 //Game Manager + Others
+//#include "Collision.h" //Game Manager + Others
 #include "Camera.h"
-#include "WICTextureLoader.h"
 #include "AssetManager.h"
-#include "Player.h"
-#include "Enemy.h"
-#include "ProjectileManager.h"
+//#include "Player.h" //GameManager
+//#include "Enemy.h"	//GameManager
+//#include "ProjectileManager.h"	//GameManager
 #include "GameManager.h"
 #include <string>
 
-class Game 
+class Engine 
 	: public DXCore
 {
 
 public:
-	Game(HINSTANCE hInstance);
-	~Game();
+	Engine(HINSTANCE hInstance);
+	~Engine();
 
 	// Overridden setup and game loop methods, which
 	// will be called automatically
@@ -56,20 +53,21 @@ private:
 	POINT prevMousePos;
 
 	//ASSET MANAGER
-	AssetManager assetManager;
+	AssetManager* assetManager;
 	GameManager* gameManager;
+	Renderer* renderer;
 
 	//Directional light
-	DirectionalLight light1;
-	DirectionalLight light2;
+	//DirectionalLight light1;
+	//DirectionalLight light2;
 
 	//Figure out implementing free cam later
 	//Camera camera;
 	//bool freelookEnabled;
 
 	//The player and enemy
-	Player* player;
-	ProjectileManager* projectileManager;
+	//Player* player;
+	//ProjectileManager* projectileManager;
 
 	//Don't need this due to some thing I did but forgot how it works
 	//bool freeLookEnabled = false;	//tells whether freelook is enabled 

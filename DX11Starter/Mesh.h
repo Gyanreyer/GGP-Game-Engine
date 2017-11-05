@@ -2,6 +2,7 @@
 #include <d3d11.h>		//included to gain access to direct X Variables
 #include "Vertex.h"		//include to gain access to vertex struct
 
+//Add colliderType and colliderOffset
 class Mesh
 {
 public:
@@ -11,9 +12,12 @@ public:
 		unsigned int* indicies,		//Holds array of indices for telling the order to draw vertices in
 		int numIndices,				//Tells Mesh how many indices are in Index Array
 		ID3D11Device* drawDevice);	//Reference to directX 11 Device need to create buffers
-	//Model Loading Constructor
-	Mesh(char* modelFile,			//Holds the file path to the model that needs to be loaded
-		ID3D11Device * drawDevice);	//Reference to directX 11 Device need to create buffers			
+	Mesh(
+		ID3D11Buffer* vertexBuffer,	//buffer that holds the vertex data
+		int vertCount,				//tells mesh how many vertices there are in mesh
+		ID3D11Buffer* indexBuffer,	//buffer holds the indices data
+		int indexNum				//tells mesh how many indices there are
+	);		
 	~Mesh(); //Releases DirectX Buffers
 
 	//Getters for private variables

@@ -75,23 +75,15 @@ void ProjectileManager::UpdateProjectiles(float deltaTime)
 	}
 }
 
-//Store shader data for projectile materials
-void ProjectileManager::SetProjectileShaderData(std::string name, void * data, unsigned int size)
-{
-	playerProjectileMaterial->GetPixelShader()->SetData(name, data, size);
-	enemyProjectileMaterial->GetPixelShader()->SetData(name, data, size);
-}
-
 //Iterate through and draw all projectiles
-void ProjectileManager::DrawProjectiles(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
+void ProjectileManager::DrawProjectiles(Renderer* renderer)
 {
-	vector<Projectile>::iterator iter;
 
-	for (iter = playerProjectiles.begin(); iter != playerProjectiles.end(); ++iter)
-		iter->Draw(viewMat, projMat);
+	for (int i = 0; i < playerProjectiles.size(); i++)
+		renderer->Render(&playerProjectiles[i]);
 
-	for (iter = enemyProjectiles.begin(); iter != enemyProjectiles.end(); ++iter)
-		iter->Draw(viewMat, projMat);
+	for (int i = 0; i < enemyProjectiles.size(); i++)
+		renderer->Render(&enemyProjectiles[i]);
 }
 
 void ProjectileManager::RemovePlayerProjectile(int i)

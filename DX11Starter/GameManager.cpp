@@ -1,12 +1,18 @@
 #include "GameManager.h"
-
-
+//ImGui Includes//////////////
+#include "Imgui\imconfig.h"
+#include "Imgui\imgui.h"
+#include "Imgui\imgui_impl_dx11.h"
+#include "Imgui\imgui_internal.h"
+#include "Imgui\stb_rect_pack.h"
+#include "Imgui\stb_textedit.h"
+#include "Imgui\stb_truetype.h"
+/////////////////////////////
 
 GameManager::GameManager()
 {
 	score = 0;
 }
-
 
 GameManager & GameManager::getInstance()
 {
@@ -65,6 +71,145 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	gameObjects.push_back(GameObject(asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat"), SPHERE, false, context));
 	gameObjects.back().GetTransform()->SetScale(0.5f, 0.5f, 0.5f);
 	gameObjects.back().GetTransform()->SetPosition(-2, 0.25f, -2);
+}
+
+void GameManager::GameUpdate(float deltaTime)
+{
+	//1. Make sure game is has not ended
+	if (!isGameOver()) {
+
+		player.Update(deltaTime);
+
+		projectileManager.UpdateProjectiles(deltaTime);
+
+
+		//Get and update enemies
+		for (int i = 0; i < enemies.size(); i++)
+		{
+			(enemies)[i].Update(deltaTime);
+		}
+
+		//PLAYER PROJECTILE COLLISIONS
+		for (byte i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)
+		{
+			Collider projCollider = *projectileManager.GetPlayerProjectiles()[i].GetCollider(); //The projectile's collider
+
+			//WITH ENEMIES
+			for (byte j = 0; j < enemies.size(); j++)
+			{
+				if (Collision::CheckCollisionSphereBox(&projCollider, enemies[j].GetCollider()))
+				{
+					//Add score to player score
+					AddScore(enemies[j].GetPoints());
+					enemies.erase(enemies.begin() + j);
+					projectileManager.RemovePlayerProjectile(i);
+					goto break1; //Get out of the loop to prevent vector subscript errors
+				}
+			}
+
+			//WITH OTHER GAMEOBJECTS
+			for (byte j = 0; j < gameObjects.size(); j++)
+			{
+				Collider* goCollider = (gameObjects)[j].GetCollider(); //The GameObject's collider
+
+				if (goCollider->collType == BOX && Collision::CheckCollisionSphereBox(&projCollider, goCollider))
+				{
+					projectileManager.RemovePlayerProjectile(i); //Simply delete projectile
+					goto break1; //Get out of the loop to prevent vector subscript errors
+				}
+				else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereSphere(&projCollider, goCollider))
+				{
+					projectileManager.RemovePlayerProjectile(i); //Simply delete projectile
+					goto break1; //Get out of the loop to prevent vector subscript errors
+				}
+			}
+		}
+
+		break1: //This is super useful and I'm sad I didn't know about it sooner
+		{
+			//ENEMY PROJECTILE COLLISIONS
+			for (byte i = 0; i < projectileManager.GetEnemyProjectiles().size(); i++)
+			{
+				Collider projCollider = *projectileManager.GetEnemyProjectiles()[i].GetCollider(); //The projectile's collider
+
+				//WITH OTHER GAMEOBJECTS
+				for (byte j = 0; j < gameObjects.size(); j++)
+				{
+					Collider* goCollider = gameObjects[j].GetCollider(); //The GameObject's collider
+
+					if (goCollider->collType == BOX && Collision::CheckCollisionSphereBox(&projCollider, goCollider))
+					{
+						projectileManager.RemoveEnemyProjectile(i); //Simply delete projectile
+						goto break2; //Get out of the loop to prevent vector subscript errors
+					}
+					else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereSphere(&projCollider, goCollider))
+					{
+						projectileManager.RemoveEnemyProjectile(i); //Simply delete projectile
+						goto break2; //Get out of the loop to prevent vector subscript errors
+					}
+				}
+
+				//WITH PLAYER
+				if (Collision::CheckCollisionSphereBox(&projCollider, player.GetCollider()))
+				{
+					player.DecrementHealth();
+					projectileManager.RemoveEnemyProjectile(i); //Remove the enemy's projectile, prevents multi-frame collisions
+					goto break2; //Get out of the loop to prevent vector subscript errors
+				}
+			}
+		}
+
+		break2: //This is super useful and I'm sad I didn't know about it sooner
+		{
+			//These brackets totally aren't a janky workaround at all
+		}
+	}
+	else {
+		ImGui::OpenPopup("EndGame");
+	}
+}
+
+
+void GameManager::GameDraw(Renderer* renderer)
+{
+	//XMFLOAT4X4 viewMat = player->GetViewMatrix();
+	//XMFLOAT4X4 projMat = player->GetProjectionMatrix();
+
+	renderer->SetViewProjMatrix(player.GetViewMatrix(), player.GetWorldMatrix());
+
+
+	//Loop through GameObjects and draw them
+	for (byte i = 0; i < gameObjects.size(); i++)
+	{
+		renderer->Render(&gameObjects[i]);
+	}
+
+	//Loop through Enemies and draw them
+	for (byte i = 0; i < enemies.size(); i++)
+	{
+		renderer->Render(&enemies[i]);
+	}
+
+	////Draw all projectiles
+	projectileManager.DrawProjectiles(renderer);
+
+
+	//Display game stats
+	std::string score = "Score: ";
+	char intChar[10];
+	score += itoa(GetGameScore() ,intChar, 10);
+	std::string health = "Health: ";
+	health += itoa(player.GetHealth(), intChar, 10);
+	std::string timeLeft = "Time Left: ";
+	timeLeft += itoa((int)getTimeLeft(), intChar, 10);
+	ImGui::Begin("GGP Game", (bool*)1);
+	ImGui::Text(timeLeft.c_str());
+	ImGui::Text(health.c_str());
+	ImGui::Text(score.c_str());
+	ImGui::End();
+
+	
+
 }
 
 bool GameManager::isGameOver()

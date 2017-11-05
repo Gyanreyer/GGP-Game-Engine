@@ -6,24 +6,33 @@
 #include "SimpleShader.h"
 
 /* Summary: The Ratchet Asset Manager is responsible for holding all materials, textures, sounds,etc ...
-* 
+*Notes:
+* Make Singleton
+*Loads Assets
 */
 
 class AssetManager
 {
 public:
-	AssetManager();
+	static AssetManager& getInstance();  //returns instance of asset manager
 	~AssetManager();
 
-	//Create Methods
+	//Create/Import Methods
+	void ImportMesh(char* meshName, char* meshFile, //Holds the file path to the model that needs to be loaded
+		ID3D11Device* drawDevice);	//Reference to directX 11 Device need to create buffers		
+	void ImportTexture(char* textureName,//key that texture will be stored in library under
+		const wchar_t* textureFile,		//FilePath to the texture
+		ID3D11Device* device, ID3D11DeviceContext* context); //DirectX device and device context used to create texture
+	void CreateMaterial(char* materialName, SimpleVertexShader* vShader, SimplePixelShader* pShader, ID3D11ShaderResourceView* texture, ID3D11SamplerState* textureSampler);
+	void CreateMaterial(char* materialName, char* vShaderKey, char* pShaderKey, char* textureKey, char* samplerKey);
 
 	//Add Methods
-	void ImportVShader(char* vShaderName, SimpleVertexShader* vShader);
-	void ImportPShader(char* pShaderName, SimplePixelShader* pShader);
-	void ImportTexture(char* textureName, ID3D11ShaderResourceView* texture);
-	void ImportSampler(char* textSamplerName, ID3D11SamplerState* sampler);
-	void ImportMaterial(char * matName, Material * materialPtr);
-	void ImportMesh(char* meshName, Mesh* meshPtr);
+	void StoreVShader(char* vShaderName, SimpleVertexShader* vShader);
+	void StorePShader(char* pShaderName, SimplePixelShader* pShader);
+	void StoreTexture(char* textureName, ID3D11ShaderResourceView* texture);
+	void StoreSampler(char* textSamplerName, ID3D11SamplerState* sampler);
+	void StoreMaterial(char * matName, Material * materialPtr);
+	void StoreMesh(char* meshName, Mesh* meshPtr);
 
 	//Get Methods
 	SimpleVertexShader* GetVShader(char* vShaderName);
@@ -34,6 +43,12 @@ public:
 	Mesh* GetMesh(char* meshName);
 
 private:
+	AssetManager();
+	//Stops the compiler from generating methods to copy objects
+	AssetManager(AssetManager const& copy);
+	AssetManager& operator=(AssetManager const& copy);
+	////////////////////////////////////////////////////////////
+
 	std::unordered_map<char*, SimpleVertexShader*> vertexShaderLibrary;
 	std::unordered_map<char*, SimplePixelShader*> pixelShaderLibrary;
 	std::unordered_map<char*, ID3D11ShaderResourceView*> textureLibrary;

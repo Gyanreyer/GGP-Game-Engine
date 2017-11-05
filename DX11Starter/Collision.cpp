@@ -3,6 +3,7 @@
 #include <stdio.h> //I NEED IT
 
 //Collisions that don't
+//Make do Something
 bool Collision::CheckCollision(Collider* collider1, Collider* collider2)
 {
 	return false;
@@ -98,44 +99,4 @@ bool Collision::CheckCollisionSphereBox(Collider * sphere, Collider * box)
 	//printf("Colliding: %f\n", distance);
 	return true;
 
-
-	//Unoptimized version of the code above
-	//float distanceSquared = 0.0f;
-	//
-	//if ((sphere->center.x - sphere->dimensions.x) > (box->center.x + box->dimensions.x)) //If the sphere collides from the right of the box
-	//{
-	//	distanceSquared += pow(sphere->center.x - (box->center.x + box->dimensions.x), 2); //Add to the distance squared
-	//}
-	//if ((sphere->center.x + sphere->dimensions.x) < (box->center.x - box->dimensions.x)) //If the sphere collides from the left of the box
-	//{
-	//	distanceSquared += pow((box->center.x + box->dimensions.x) - sphere->center.x, 2); //Add to the distance squared
-	//}
-	//
-	//if ((sphere->center.y - sphere->dimensions.x) > (box->center.y + box->dimensions.y)) //If the sphere collides from the top of the box
-	//{
-	//	distanceSquared += pow(sphere->center.y - (box->center.y + box->dimensions.y), 2); //Add to the distance squared
-	//}
-	//if ((sphere->center.y + sphere->dimensions.x) < (box->center.y - box->dimensions.y)) //If the sphere collides from the bottom of the box
-	//{
-	//	distanceSquared += pow((box->center.y + box->dimensions.y) - sphere->center.y, 2); //Add to the distance squared
-	//}
-	//
-	//if ((sphere->center.z - sphere->dimensions.x) > (box->center.z + box->dimensions.z)) //If the sphere collides from the front of the box
-	//{
-	//	distanceSquared += pow(sphere->center.z - (box->center.z + box->dimensions.z), 2); //Add to the distance squared
-	//}
-	//if ((sphere->center.z + sphere->dimensions.x) < (box->center.z - box->dimensions.z)) //If the sphere collides from the back of the box
-	//{
-	//	distanceSquared += pow((box->center.z + box->dimensions.z) - sphere->center.z, 2); //Add to the distance squared
-	//}
-	//
-	////If the distance squared is greater than the sphere's radius squared, there is no collision
-	//if (distanceSquared > pow(sphere->dimensions.x, 2))
-	//{
-	//	printf("Not Colliding: \n");
-	//	return false;
-	//}
-	//
-	//printf("Colliding: \n");
-	//return true;
 }

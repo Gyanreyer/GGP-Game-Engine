@@ -1,6 +1,6 @@
 //Enemies, inherits from GameObject
 #include "Enemy.h"
-#include "GameManager.h"
+#include "GameManager.h" //CHANGE TO PROJECTILEMANAGER AND MOVE TO HEADER FILE
 
 Enemy::Enemy()
 {
