@@ -1,8 +1,8 @@
 #include "Projectile.h"
 
-Projectile::Projectile(Mesh * mesh, Material * material, ColliderType colliderType, ID3D11DeviceContext * ctx,
+Projectile::Projectile(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx,
 	XMFLOAT3 startPos, XMFLOAT3 direction, float speed) :
-	GameObject(mesh, material, colliderType, false, ctx)
+	GameObject(mesh, material, ctx)
 {
 	timeAlive = 0;
 	moveSpeed = speed;//Store speed that will move by each frame
@@ -11,7 +11,7 @@ Projectile::Projectile(Mesh * mesh, Material * material, ColliderType colliderTy
 	startPosition = startPos;
 	transform.SetPosition(startPos);
 	transform.SetForward(direction);
-	transform.SetScale(0.02f);
+	transform.SetScale(0.05f);
 
 	transform.MoveRelative(0.1f,0,0);
 

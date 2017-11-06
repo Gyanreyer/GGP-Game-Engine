@@ -13,9 +13,9 @@ class GameObject
 {
 public:
 	GameObject();//Default constructor does nothing
-	GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx);//Constructor sets mesh/material/context for drawing and initializes transform
-	GameObject(Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx);
-	GameObject(ColliderType colliderType);//Constructor for object with no mesh (do we need this...?)
+	//GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx);
+	GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx); //Constructor sets mesh/material/context for drawing and initializes transform
+	GameObject(ColliderType colliderType); //Constructor for object with no mesh (do we need this...?)
 	~GameObject();
 
 	//Takes a Mesh pointer to use for drawing this object
@@ -52,6 +52,7 @@ protected:
 	Mesh * mesh;//Mesh for drawing
 	Material * material;//Material to apply to mesh
 	Collider coll; //The collider on this object
+	bool isOffset; //If the collider is offset
 
 	ID3D11DeviceContext * context; //Render target (I think)
 };

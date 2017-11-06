@@ -119,18 +119,17 @@ void Engine::LoadShaders()
 // ---------------------------------------------------------
 void Engine::CreateMeshes()
 {
-	//Move to asset Manager Loading
 	//Create meshes
 	assetManager->ImportMesh("Cone", "../../DX11Starter/Assets/Models/cone.obj", device);
-	assetManager->ImportMesh("Cube", "../../DX11Starter/Assets/Models/cube.obj", device);
+	assetManager->ImportMesh("Cube", "../../DX11Starter/Assets/Models/cube.obj", device, BOX, false);
 	assetManager->ImportMesh("Cylinder", "../../DX11Starter/Assets/Models/cylinder.obj", device);
 	assetManager->ImportMesh("Helix", "../../DX11Starter/Assets/Models/helix.obj", device);
-	assetManager->ImportMesh("Sphere", "../../DX11Starter/Assets/Models/sphere.obj", device);
+	assetManager->ImportMesh("Sphere", "../../DX11Starter/Assets/Models/sphere.obj", device, SPHERE, false);
 	assetManager->ImportMesh("Torus", "../../DX11Starter/Assets/Models/torus.obj", device);
 	assetManager->ImportMesh("Cactus", "../../DX11Starter/Assets/Models/cactus.obj", device);
-	assetManager->ImportMesh("RustyPete", "../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device);
-	assetManager->ImportMesh("PurpleGhost", "../../DX11Starter/Assets/Models/ghost.obj", device);
-	assetManager->ImportMesh("Plane", "../../DX11Starter/Assets/Models/Quad.obj", device);
+	assetManager->ImportMesh("RustyPete", "../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device, BOX, true);
+	assetManager->ImportMesh("PurpleGhost", "../../DX11Starter/Assets/Models/ghost.obj", device, BOX, false);
+	assetManager->ImportMesh("Plane", "../../DX11Starter/Assets/Models/Quad.obj", device, BOX, false);
 }
 
 ///Loads in textures and makes them into materials
@@ -236,7 +235,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 		ImGui::TextColored(ImVec4(1, 0, 0, 1), "Game is over");
 		std::string finalScore = "Final Score: ";
 		char intChar[10];
-		finalScore += itoa(gameManager->GetGameScore(), intChar, 10);
+		finalScore += _itoa_s(gameManager->GetGameScore(), intChar, 10);
 		ImGui::Text(finalScore.c_str());
 		if (ImGui::Button("Restart Game"))
 		{

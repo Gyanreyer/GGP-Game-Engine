@@ -2,20 +2,21 @@
 
 GameObject::GameObject() {}
 
-//GameObject without collider
+////GameObject without collider
+//GameObject::GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx)
+//{
+//	SetMesh(mesh);//Set mesh to given mesh
+//	SetMaterial(material);//Set material to given material
+//
+//	coll = Collider();
+//	context = ctx;
+//
+//	transform = Transform();//Initialize transform
+//}
+
+//GameObject constructor
+//Works with or without collider
 GameObject::GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx)
-{
-	SetMesh(mesh);//Set mesh to given mesh
-	SetMaterial(material);//Set material to given material
-
-	coll = Collider();
-	context = ctx;
-
-	transform = Transform();//Initialize transform
-}
-
-//GameObject with collider
-GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx)
 {
 	SetMesh(mesh);//Set mesh to given mesh
 	SetMaterial(material);//Set material to given material
@@ -23,10 +24,16 @@ GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderTy
 	transform = Transform();//Initialize transform
 
 	//Determine whether or not the collider is offset
-	if (!isColliderOffset)
-		coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false);
+	if (!mesh->GetIsColliderOffset())
+	{
+		coll = Collider(mesh->GetColliderType(), transform.GetPosition(), transform.GetScale(), false);
+		isOffset = false;
+	}
 	else
-		coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false, true);
+	{
+		coll = Collider(mesh->GetColliderType(), transform.GetPosition(), transform.GetScale(), false, true);
+		isOffset = true;
+	}
 
 	context = ctx;
 }

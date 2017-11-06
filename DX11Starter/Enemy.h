@@ -13,9 +13,9 @@ class Enemy : public GameObject
 {
 public:
 	Enemy();
-	Enemy(Transform tForm, Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx, byte pointValue, bool moveX, bool moveY, ProjectileManager* projManager);
+	Enemy(Transform tForm, Mesh * mesh, Material * material, ProjectileManager* projManager, byte pointValue, bool moveX, bool moveY, ID3D11DeviceContext * ctx);
 	~Enemy();
-	 void Update(float deltaTime);
+	void Update(float deltaTime);
 
 	//Return how many points this enemy is worth
 	int GetPoints();
@@ -38,7 +38,4 @@ private:
 	bool moveRight = true;
 	bool moveUp = true;
 	bool moveYAxis = false;
-
-	//If the collider is offset
-	bool isOffset;
 };

@@ -13,7 +13,6 @@
 //#include "Enemy.h"	//GameManager
 //#include "ProjectileManager.h"	//GameManager
 #include "GameManager.h"
-#include <string>
 
 class Engine 
 	: public DXCore

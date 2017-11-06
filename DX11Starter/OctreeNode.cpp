@@ -24,7 +24,7 @@ GameObject * OctreeNode::GetObjects()
 
 unsigned int OctreeNode::GetObjectCount()
 {
-	return objects.size();
+	return (unsigned int)objects.size();
 }
 
 void OctreeNode::AddObject(GameObject * obj)

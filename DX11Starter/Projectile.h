@@ -6,7 +6,7 @@ class Projectile :
 	public GameObject
 {
 public:
-	Projectile(Mesh * mesh, Material * material, ColliderType colliderType, ID3D11DeviceContext * ctx, 
+	Projectile(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx, 
 		XMFLOAT3 startPos, XMFLOAT3 direction, float speed);
 	~Projectile();	
 

@@ -36,7 +36,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 
 	//PROJECTILE MANAGER
 	projectileManager = ProjectileManager(asset->GetMesh("Sphere"),
-		asset->GetMaterial("HazardCrateMat"),//Placeholder until make new mats for bullets
+		asset->GetMaterial("HazardCrateMat"), //Placeholder until make new mats for bullets
 		asset->GetMaterial("PurpleGhost"),
 		context);
 
@@ -60,24 +60,24 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	);
 
 	//Create enemies
-	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), BOX, true, context, 10, false, false, &projectileManager));
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), &projectileManager, 10, false, false, context));
 	enemyTransform.SetPosition(-2, 2, 0);
-	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), BOX, false, context, 20, false, true, &projectileManager));
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), &projectileManager, 20, false, true, context));
 	enemyTransform.SetPosition(0, 0, -2);
-	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), BOX, true, context, 20, true, false, &projectileManager));
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), &projectileManager, 20, true, false, context));
 
 	///OTHER GAMEOBJECTS
 	gameObjects.clear(); //Clear this out for new game instances
 
 	//Store references to all GOs in vector
-	gameObjects.push_back(GameObject(asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial"), BOX, false, context));
+	gameObjects.push_back(GameObject(asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial"), context));
 	gameObjects.back().GetTransform()->SetScale(10, 0.001f, 10); //The floor is real small, for the sake of collisions
-	gameObjects.push_back(GameObject(asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX, false, context));
+	gameObjects.push_back(GameObject(asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), context));
 	gameObjects.back().GetTransform()->SetPosition(4, 0.5f, -2);
-	gameObjects.push_back(GameObject(asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX, false, context));
+	gameObjects.push_back(GameObject(asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), context));
 	gameObjects.back().GetTransform()->SetScale(0.5f, 0.5f, 0.5f);
 	gameObjects.back().GetTransform()->SetPosition(2, 0.25f, -2);
-	gameObjects.push_back(GameObject(asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat"), SPHERE, false, context));
+	gameObjects.push_back(GameObject(asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat"), context));
 	gameObjects.back().GetTransform()->SetScale(0.5f, 0.5f, 0.5f);
 	gameObjects.back().GetTransform()->SetPosition(-2, 0.25f, -2);
 }
@@ -90,7 +90,6 @@ void GameManager::GameUpdate(float deltaTime)
 		player.Update(deltaTime);
 
 		projectileManager.UpdateProjectiles(deltaTime);
-
 
 		//Get and update enemies
 		for (int i = 0; i < enemies.size(); i++)
@@ -204,11 +203,11 @@ void GameManager::GameDraw(Renderer* renderer)
 	//Display game stats
 	std::string score = "Score: ";
 	char intChar[10];
-	score += itoa(GetGameScore() ,intChar, 10);
+	score += _itoa_s(GetGameScore(), intChar, 10);
 	std::string health = "Health: ";
-	health += itoa(player.GetHealth(), intChar, 10);
+	health += _itoa_s(player.GetHealth(), intChar, 10);
 	std::string timeLeft = "Time Left: ";
-	timeLeft += itoa((int)getTimeLeft(), intChar, 10);
+	timeLeft += _itoa_s((int)getTimeLeft(), intChar, 10);
 	ImGui::Begin("GGP Game", (bool*)1);
 	ImGui::Text(timeLeft.c_str());
 	ImGui::Text(health.c_str());

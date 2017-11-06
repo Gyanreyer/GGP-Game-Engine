@@ -5,7 +5,7 @@ Enemy::Enemy()
 {
 }
 
-Enemy::Enemy(Transform tForm, Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx, byte pointValue, bool moveX, bool moveY, ProjectileManager* projManager) : GameObject(mesh, material, colliderType, isColliderOffset, ctx)
+Enemy::Enemy(Transform tForm, Mesh * mesh, Material * material, ProjectileManager* projManager, byte pointValue, bool moveX, bool moveY, ID3D11DeviceContext * ctx) : GameObject(mesh, material, ctx)
 {
 	transform = tForm;
 	XMFLOAT3 position = transform.GetPosition();
@@ -14,26 +14,26 @@ Enemy::Enemy(Transform tForm, Mesh * mesh, Material * material, ColliderType col
 	moveXAxis = moveX;
 	moveYAxis = moveY;
 	originPos = position;
-	isOffset = isColliderOffset;
 
 	pManager = projManager; //Save the reference to the ProjectileManager
 	
 	time(&nowTime); //gets current time when game is launched
 	lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
 
-	//Move the shoot point if the collider is offset
-	if (!isOffset)
-	{
-		//Make player shoot
-		pManager->SpawnEnemyProjectile(position, transform.GetForward());
-	}
-	else
-	{
-		XMFLOAT3 shootPos;
-		XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
-
-		pManager->SpawnEnemyProjectile(shootPos, transform.GetForward());
-	}
+	//Don't think this needs to exist now
+	////Move the shoot point if the collider is offset
+	//if (!isOffset)
+	//{
+	//	//Make player shoot
+	//	pManager->SpawnEnemyProjectile(position, transform.GetForward());
+	//}
+	//else
+	//{
+	//	XMFLOAT3 shootPos;
+	//	XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
+	//
+	//	pManager->SpawnEnemyProjectile(shootPos, transform.GetForward());
+	//}
 }
 
 Enemy::~Enemy()
@@ -87,7 +87,8 @@ void Enemy::Update(float deltaTime)
 		else
 		{
 			XMFLOAT3 shootPos;
-			XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
+			//Might need to update this with new positions as enemy movement options change
+			XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(transform.GetPosition().x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
 
 			pManager->SpawnEnemyProjectile(shootPos, transform.GetForward());
 		}
