@@ -202,12 +202,11 @@ void GameManager::GameDraw(Renderer* renderer)
 
 	//Display game stats
 	std::string score = "Score: ";
-	char intChar[10];
-	score += _itoa_s(GetGameScore(), intChar, 10);
+	score += to_string(GetGameScore());
 	std::string health = "Health: ";
-	health += _itoa_s(player.GetHealth(), intChar, 10);
+	health += to_string(player.GetHealth());
 	std::string timeLeft = "Time Left: ";
-	timeLeft += _itoa_s((int)getTimeLeft(), intChar, 10);
+	timeLeft += to_string((int)getTimeLeft());
 	ImGui::Begin("GGP Game", (bool*)1);
 	ImGui::Text(timeLeft.c_str());
 	ImGui::Text(health.c_str());

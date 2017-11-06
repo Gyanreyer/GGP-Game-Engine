@@ -234,8 +234,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 	if (ImGui::BeginPopup("EndGame")) {
 		ImGui::TextColored(ImVec4(1, 0, 0, 1), "Game is over");
 		std::string finalScore = "Final Score: ";
-		char intChar[10];
-		finalScore += _itoa_s(gameManager->GetGameScore(), intChar, 10);
+		finalScore += to_string(gameManager->GetGameScore());
 		ImGui::Text(finalScore.c_str());
 		if (ImGui::Button("Restart Game"))
 		{

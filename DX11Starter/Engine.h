@@ -2,6 +2,7 @@
 
 #include <DirectXMath.h>
 #include <vector>
+#include <string> //Int conversion to string
 #include "DXCore.h"
 #include "SimpleShader.h"
 //#include "GameObject.h"
@@ -13,6 +14,8 @@
 //#include "Enemy.h"	//GameManager
 //#include "ProjectileManager.h"	//GameManager
 #include "GameManager.h"
+
+using std::to_string; //Alternative to atoi
 
 class Engine 
 	: public DXCore
