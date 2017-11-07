@@ -54,6 +54,9 @@ Engine::~Engine()
 	ImGui_ImplDX11_Shutdown();
 
 	//asset manager cleans up assets when game is deleted
+
+	//Don't forget to delete the renderer
+	delete renderer;
 }
 
 // --------------------------------------------------------
@@ -274,10 +277,10 @@ void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 	if (buttonState & MK_LBUTTON)
 	{
 		//Make Player function to shoot
-		//Transform* pt = player->GetTransform();
+		Transform* pt = gameManager->GetPlayer()->GetTransform();
 
-		////Make player shoot
-		//projectileManager->SpawnPlayerProjectile(pt->GetPosition(), pt->GetForward());
+		//Make player shoot
+		gameManager->GetProjectileManager()->SpawnPlayerProjectile(pt->GetPosition(), pt->GetForward());
 	}
 }
 

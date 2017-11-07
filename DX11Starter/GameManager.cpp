@@ -226,10 +226,10 @@ Player * GameManager::GetPlayer()
 	return &player;
 }
 
-//ProjectileManager * GameManager::GetProjectileManager()
-//{
-//	return &projectileManager;
-//}
+ProjectileManager * GameManager::GetProjectileManager()
+{
+	return &projectileManager;
+}
 
 //Return the vector of gameObjects
 vector<GameObject>* GameManager::GetGameObjectVector()
