@@ -13,19 +13,20 @@ class GameObject
 {
 public:
 	GameObject();//Default constructor does nothing
-	GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx);//Constructor sets mesh/material/context for drawing and initializes transform
-	GameObject(Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx);
-	GameObject(ColliderType colliderType);//Constructor for object with no mesh (do we need this...?)
+	GameObject(Transform trans, Mesh * mesh, Material * material, Collider coll);
+	GameObject(Transform trans, Mesh * mesh, Material * material, ColliderType colliderType);//Constructor uses a given transform so we can set that up during initialization
+	GameObject(Transform trans, Collider coll);
+	GameObject(Transform trans, ColliderType colliderType);//Constructor for object with no mesh
 	~GameObject();
 
 	//Takes a Mesh pointer to use for drawing this object
 	void SetMesh(Mesh* mesh);
 
 	//Draws object's mesh with given pos/rot/scale
-	void Draw(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat);
+	//void Draw(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat);
 
 	//Prepare material for drawing, called in Draw
-	void PrepareMaterial(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat);
+	//void PrepareMaterial(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat);
 
 	void SetMaterial(Material * newMat);
 
@@ -36,22 +37,15 @@ public:
 	XMFLOAT4X4 GetWorldMatrix();
 
 private:
-	//Buffers and index count for drawing mesh
-	ID3D11Buffer * vertexBuffer;
-	ID3D11Buffer * indexBuffer;
-	int meshIndexCount;
-
 	XMFLOAT4X4 worldMatrix;
 	void UpdateWorldMatrix();
-
-	bool hasMesh;
 
 protected:
 	Transform transform;//Transform determines position/rotation/scale this object is drawn at
 
 	Mesh * mesh;//Mesh for drawing
 	Material * material;//Material to apply to mesh
-	Collider coll; //The collider on this object
+	Collider collider; //The collider on this object
 
 	ID3D11DeviceContext * context; //Render target (I think)
 };

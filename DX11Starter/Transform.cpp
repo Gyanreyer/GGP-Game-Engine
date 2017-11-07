@@ -13,6 +13,7 @@ Transform::Transform(XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale)
 	parent = nullptr;
 
 	mass = 1;
+	maxVel = 0;
 }
 
 Transform::~Transform()
@@ -58,7 +59,7 @@ void Transform::SetRotation(XMVECTOR rot)
 //Currently doesn't work
 void Transform::SetForward(XMFLOAT3 fwd)
 {
-	SetRotation(asin(-fwd.y), atan2(fwd.x, fwd.z), 0);
+	SetRotation(asin(-fwd.y), atan2(fwd.x, fwd.z), rotation.z);
 }
 
 void Transform::SetScale(float scalar)
@@ -271,14 +272,42 @@ size_t Transform::GetChildCount()
 	return children.size();
 }
 
-void Transform::SetMass(float m)
+void Transform::SetMaxVelocity(float v)
 {
-	mass = m;
+	maxVel = v;
+}
+
+void Transform::SetVelocity(XMFLOAT3 vel)
+{
+	velocity = vel;
+}
+
+XMFLOAT3 Transform::GetVelocity()
+{
+	return velocity;
+}
+
+void Transform::ApplyForce(float xMagnitude, float yMagnitude, float zMagnitude)
+{
+	ApplyForce(XMFLOAT3(xMagnitude,yMagnitude,zMagnitude));
 }
 
 void Transform::ApplyForce(XMFLOAT3 force)
 {
-	XMStoreFloat3(&velocity, XMVector3ClampLength(XMLoadFloat3(&velocity) + (XMLoadFloat3(&force)/mass),0,2.0f));
+	XMStoreFloat3(&velocity,
+		XMVector3ClampLength(XMLoadFloat3(&velocity) + XMLoadFloat3(&force),
+			0, maxVel));//Clamp between magnitude of 0 and max
+}
+
+void Transform::ApplyForceRelative(float fwdMagnitude, float sideMagnitude, float vertMagnitude)
+{
+	XMFLOAT3 forceVec;
+	XMStoreFloat3(&forceVec,
+		XMLoadFloat3(&forward)*fwdMagnitude +
+		XMLoadFloat3(&right)*sideMagnitude +
+		UP * vertMagnitude);
+
+	ApplyForce(forceVec);
 }
 
 void Transform::UpdatePhysics(float deltaTime)

@@ -2,44 +2,39 @@
 
 GameObject::GameObject() {}
 
-//GameObject without collider
-GameObject::GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx)
+GameObject::GameObject(Transform trans, Mesh * mes, Material * material, Collider coll)
 {
-	SetMesh(mesh);//Set mesh to given mesh
-	SetMaterial(material);//Set material to given material
+	transform = trans;
 
-	coll = Collider();
-	context = ctx;
+	SetMesh(mesh);
+	SetMaterial(material);
 
-	transform = Transform();//Initialize transform
+	collider = coll;
 }
 
-//GameObject with collider
-GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx)
+GameObject::GameObject(Transform trans, Mesh * mesh, Material * material, ColliderType colliderType)
 {
-	SetMesh(mesh);//Set mesh to given mesh
-	SetMaterial(material);//Set material to given material
+	transform = trans;
 
-	transform = Transform();//Initialize transform
+	SetMesh(mesh);
+	SetMaterial(material);
 
-	//Determine whether or not the collider is offset
-	if (!isColliderOffset)
-		coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false);
-	else
-		coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false, true);
+	collider = Collider(colliderType, &transform);
+}
 
-	context = ctx;
+GameObject::GameObject(Transform trans, Collider coll)
+{
+	transform = trans;
+	collider = coll;
 }
 
 //Just a collider, no visible object
-GameObject::GameObject(ColliderType colliderType)
+GameObject::GameObject(Transform trans, ColliderType colliderType)
 {
-	transform = Transform();
+	transform = trans;
 
 	//This collider type will never be offset
-	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false);
-
-	hasMesh = false;//This object doesn't have a mesh to be drawn
+	collider = Collider(colliderType, &transform);
 }
 
 GameObject::~GameObject() {}
@@ -48,12 +43,6 @@ GameObject::~GameObject() {}
 void GameObject::SetMesh(Mesh * mesh)
 {
 	this->mesh = mesh;
-	vertexBuffer = mesh->GetVertexBuffer();
-	indexBuffer = mesh->GetIndexBuffer();
-
-	meshIndexCount = mesh->GetIndexCount();
-
-	hasMesh = true;
 }
 
 void GameObject::SetMaterial(Material * newMat)
@@ -78,7 +67,7 @@ Mesh * GameObject::GetMesh()
 
 Collider* GameObject::GetCollider()
 {
-	return &coll;
+	return &collider;
 }
 
 XMFLOAT4X4 GameObject::GetWorldMatrix()
@@ -107,16 +96,14 @@ void GameObject::UpdateWorldMatrix()
 
 		transform.DoneUpdating();//Notify transform that matrix has been updated successfully
 
-		coll.dimensions = transform.GetScale();
+		collider.dimensions = transform.GetScale();
+		collider.center = transform.GetPosition();
 
 		//Check if the collider is offset
-		if (!coll.isOffset)
-			//If the collider is not offset, proceed as normal
-			coll.center = transform.GetPosition();
-		else
+		if (collider.isOffset)
 			//Adjust for offset here
 			//Right now, this assumes that the collider is at the "feet" of a model
 			//If the need arises, this can be generalized
-			coll.center = XMFLOAT3(transform.GetPosition().x, transform.GetPosition().y + (coll.dimensions.y / 2), transform.GetPosition().z);
+			collider.center.y += collider.dimensions.y / 2;			
 	}
 }

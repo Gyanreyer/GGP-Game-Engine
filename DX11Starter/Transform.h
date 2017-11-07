@@ -64,10 +64,14 @@ public:
 	Transform * GetChild(int index);//Return reference to transform at given index
 	size_t GetChildCount();//Get number of children on this transform
 
-	void SetMass(float m);
+	void SetMaxVelocity(float v);
 
+	void SetVelocity(XMFLOAT3 vel);
+	XMFLOAT3 GetVelocity();
+
+	void ApplyForce(float xMagnitude, float yMagnitude, float zMagnitude);
 	void ApplyForce(XMFLOAT3 force);
-
+	void ApplyForceRelative(float fwdMagnitude, float sideMagnitude, float vertMagnitude);
 	void UpdatePhysics(float deltaTime);
 
 private:
@@ -97,6 +101,7 @@ private:
 
 	XMFLOAT3 velocity;
 	float mass;
+	float maxVel;
 
 	XMVECTOR UP = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);//Helper unit vector for up
 	XMVECTOR FWD = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);//Helper unit vector for forward

@@ -1,6 +1,6 @@
 //Colliders for entities
 #pragma once
-
+#include "Transform.h"
 #include <DirectXMath.h> //DirctX math functions
 
 using namespace DirectX;
@@ -35,27 +35,23 @@ struct Collider
 	}
 
 	//Parameterized constructor
-	Collider(ColliderType coltype, XMFLOAT3 cent, XMFLOAT3 dims, bool trigger)
+	//Using optional params to keep things cleaner
+	Collider(ColliderType coltype, Transform * trans, bool isColliderOffset = false, bool trigger = false)
 	{
 		collType = coltype;
-		center = cent;
-		dimensions = XMFLOAT3(dims.x / 2, dims.y / 2, dims.z / 2); //DIVIDE HERE BECAUSE NOT DOING IT HERE HAS ALREADY TORN THIS FAMILY APART
 		isTrigger = trigger;
-		isOffset = false;
-	}
+		isOffset = isColliderOffset;
 
-	//Parameterized constructor for offset
-	Collider(ColliderType coltype, XMFLOAT3 cent, XMFLOAT3 dims, bool trigger, bool isColliderOffset)
-	{
-		collType = coltype;
+		//Take scale from transform and divide by two for dimensions
+		XMStoreFloat3(&dimensions, XMLoadFloat3(&trans->GetScale()) / 2);//DIVIDE HERE BECAUSE NOT DOING IT HERE HAS ALREADY TORN THIS FAMILY APART
+		center = trans->GetPosition();//Get position from transform
 
-		//Right now, this assumes that the collider is at the "feet" of a model
-		//If the need arises, this can be generalized
-		//This should only be true on some enemies and environmental GameObjects
-		center = XMFLOAT3(cent.x, cent.y + (dims.y / 2), cent.z);
-
-		dimensions = XMFLOAT3(dims.x / 2, dims.y / 2, dims.z / 2); //DIVIDE HERE BECAUSE NOT DOING IT HERE HAS ALREADY TORN THIS FAMILY APART
-		isTrigger = trigger;
-		isOffset = true;
+		if (isOffset) 
+		{
+			//Right now, this assumes that the collider is at the "feet" of a model
+			//If the need arises, this can be generalized
+			//This should only be true on some enemies and environmental GameObjects
+			center = XMFLOAT3(center.x, center.y + dimensions.y, center.z);
+		}
 	}
 };

@@ -32,7 +32,11 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 	score = 0; //sets score to 0
 
 	//PLAYER
-	player = Player(BOX, (unsigned int)screenWidth, (unsigned int)screenHeight);
+	player = Player(
+		Transform(XMFLOAT3(0,1,-5),//Init position
+			XMFLOAT3(0,0,0),//Init rot
+			XMFLOAT3(0.5f,1,0.5f)),//Init scale (this doesn't seem right, how the hell do colliders work...)
+		(unsigned int)screenWidth, (unsigned int)screenHeight);//Screen dimensions for projection matrix
 
 	//PROJECTILE MANAGER
 	projectileManager = ProjectileManager(asset->GetMesh("Sphere"),
@@ -60,26 +64,24 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	);
 
 	//Create enemies
-	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), BOX, true, context, 10, false, false, &projectileManager));
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), 10, EnemyType::moveX, &projectileManager));
 	enemyTransform.SetPosition(-2, 2, 0);
-	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), BOX, false, context, 20, false, true, &projectileManager));
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), 20, EnemyType::moveY, &projectileManager));
 	enemyTransform.SetPosition(0, 0, -2);
-	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), BOX, true, context, 20, true, false, &projectileManager));
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), 20, EnemyType::moveX, &projectileManager));
 
 	///OTHER GAMEOBJECTS
 	gameObjects.clear(); //Clear this out for new game instances
 
 	//Store references to all GOs in vector
-	gameObjects.push_back(GameObject(asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial"), BOX, false, context));
-	gameObjects.back().GetTransform()->SetScale(10, 0.001f, 10); //The floor is real small, for the sake of collisions
-	gameObjects.push_back(GameObject(asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX, false, context));
-	gameObjects.back().GetTransform()->SetPosition(4, 0.5f, -2);
-	gameObjects.push_back(GameObject(asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX, false, context));
-	gameObjects.back().GetTransform()->SetScale(0.5f, 0.5f, 0.5f);
-	gameObjects.back().GetTransform()->SetPosition(2, 0.25f, -2);
-	gameObjects.push_back(GameObject(asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat"), SPHERE, false, context));
-	gameObjects.back().GetTransform()->SetScale(0.5f, 0.5f, 0.5f);
-	gameObjects.back().GetTransform()->SetPosition(-2, 0.25f, -2);
+	gameObjects.push_back(GameObject(Transform(XMFLOAT3(0,0,0),XMFLOAT3(0,0,0),XMFLOAT3(10,0.001f,10)),
+		asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial"), BOX));
+	gameObjects.push_back(GameObject(Transform(XMFLOAT3(4,0.5f,-2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
+		asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX));
+	gameObjects.push_back(GameObject(Transform(XMFLOAT3(2,0.25f,-2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
+		asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX));
+	gameObjects.push_back(GameObject(Transform(XMFLOAT3(-2, 0.25f, -2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
+		asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat"), SPHERE));
 }
 
 void GameManager::GameUpdate(float deltaTime)

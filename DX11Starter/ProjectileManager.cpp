@@ -28,8 +28,6 @@ void ProjectileManager::SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 directi
 		playerProjectiles.push_back(
 			Projectile(projectileMesh,
 				playerProjectileMaterial,//Use player proj material
-				ColliderType::SPHERE,//Use sphere collider
-				context,
 				startPt,//Point bullet will start from
 				direction,//Rotation for bullet to move in
 				5.0f));//Move at speed of 5 units/second
@@ -42,8 +40,6 @@ void ProjectileManager::SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 directio
 	enemyProjectiles.push_back(
 		Projectile(projectileMesh,
 			enemyProjectileMaterial,//Use enemy proj material
-			ColliderType::SPHERE,//Use sphere collider
-			context,
 			startPt,//Point buller will start from
 			direction,//Rotation for bullet to move in
 			3.0f));//Enemy bullets move slower?

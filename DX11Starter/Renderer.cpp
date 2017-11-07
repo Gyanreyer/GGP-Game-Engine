@@ -16,7 +16,6 @@ Renderer::~Renderer()
 
 void Renderer::CreateLights()
 {
-
 	//Create directional lights
 	DirectionalLight light1 = { XMFLOAT4(0.1f,0.1f,0.1f,1.0f),XMFLOAT4(1.0f,1.0f,1.0f,1.0f),XMFLOAT3(1.0f,-1.0f,0.5f) };
 	DirectionalLight light2 = { XMFLOAT4(0,0,0,0),XMFLOAT4(1.0f,0.0f,0.0f,1.0f),XMFLOAT3(-0.5f,-0.5f,0.25f) };
@@ -33,6 +32,16 @@ void Renderer::SetViewProjMatrix(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X
 
 void Renderer::Render(GameObject * gameObject)
 {
+	//Loop through lights and add them
+	for (unsigned int i = 0; i < directionalLights.size(); i++)
+	{
+		gameObject->GetMaterial()->GetPixelShader()->SetData(
+			("light" + i),
+			&directionalLights[i],
+			sizeof(DirectionalLight));
+	}
+
+	/*
 	gameObject->GetMaterial()->GetPixelShader()->SetData(
 		"light1",
 		&directionalLights[0],
@@ -41,7 +50,7 @@ void Renderer::Render(GameObject * gameObject)
 	gameObject->GetMaterial()->GetPixelShader()->SetData(
 		"light2",
 		&directionalLights[1],
-		sizeof(DirectionalLight));
+		sizeof(DirectionalLight));*/
 
 	//Prepare Material
 	//Get shaders from material

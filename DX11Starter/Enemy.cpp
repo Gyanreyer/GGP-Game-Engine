@@ -5,35 +5,24 @@ Enemy::Enemy()
 {
 }
 
-Enemy::Enemy(Transform tForm, Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx, byte pointValue, bool moveX, bool moveY, ProjectileManager* projManager) : GameObject(mesh, material, colliderType, isColliderOffset, ctx)
+Enemy::Enemy(Transform trans, Mesh * mesh, Material * material, byte pointValue, EnemyType eType, ProjectileManager* projManager)
+	: GameObject(trans, mesh, material, BOX)
 {
-	transform = tForm;
-	XMFLOAT3 position = transform.GetPosition();
+	transform = trans;
+
+	halfHeight = transform.GetScale().y / 2;
 
 	points = pointValue;
-	moveXAxis = moveX;
-	moveYAxis = moveY;
-	originPos = position;
-	isOffset = isColliderOffset;
+	type = eType;
+	originPos = transform.GetPosition();
+
+	movePositive = true;
+	offset = XMFLOAT3(2,2,0);
 
 	pManager = projManager; //Save the reference to the ProjectileManager
 	
 	time(&nowTime); //gets current time when game is launched
 	lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
-
-	//Move the shoot point if the collider is offset
-	if (!isOffset)
-	{
-		//Make player shoot
-		pManager->SpawnEnemyProjectile(position, transform.GetForward());
-	}
-	else
-	{
-		XMFLOAT3 shootPos;
-		XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
-
-		pManager->SpawnEnemyProjectile(shootPos, transform.GetForward());
-	}
 }
 
 Enemy::~Enemy()
@@ -43,33 +32,19 @@ Enemy::~Enemy()
 void Enemy::Update(float deltaTime)
 {
 	//I hate this but for now I just need this to work I will rewrite when we clean the engine up
-	if (moveXAxis) 
+	if (type == EnemyType::moveX) 
 	{
-		if (moveRight) 
-		{
-			transform.Move(1*deltaTime, 0, 0);
-			if (transform.GetPosition().x >= originPos.x + xOffset)
-				moveRight = false;
-		}
-		else {
-			transform.Move(-1*deltaTime, 0, 0);
-			if (transform.GetPosition().x <= originPos.x - xOffset)
-				moveRight = true;
-		}
+		int sign = (movePositive ? 1 : -1);
+		transform.MoveRelative(0, sign*deltaTime,0);
+
+		movePositive = transform.GetPosition().x <= (originPos.x + offset.x*sign);
 	}
-	if (moveYAxis)
+	else if (type == EnemyType::moveY)
 	{
-		if (moveUp)
-		{
-			transform.Move(0, 1 * deltaTime, 0);
-			if (transform.GetPosition().y >= originPos.y + yOffset)
-				moveUp = false;
-		}
-		else {
-			transform.Move(0, -1 * deltaTime, 0);
-			if (transform.GetPosition().y <= originPos.y - yOffset)
-				moveUp = true;
-		}
+		int sign = (movePositive ? 1 : -1);
+		transform.MoveRelative(0, sign*deltaTime, 0);
+
+		movePositive = transform.GetPosition().y <= (originPos.y + offset.y*sign);
 	}
 
 	time(&nowTime); //get current time in game
@@ -78,23 +53,27 @@ void Enemy::Update(float deltaTime)
 
 	if (seconds >= 4)
 	{
-		//Move the shoot point if the collider is offset
-		if (!isOffset)
-		{
-			//Make player shoot
-			pManager->SpawnEnemyProjectile(transform.GetPosition(), transform.GetForward());
-		}
-		else
-		{
-			XMFLOAT3 shootPos;
-			XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
-
-			pManager->SpawnEnemyProjectile(shootPos, transform.GetForward());
-		}
-
-		time(&nowTime); //gets current time when shot is launched
-		lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
+		Shoot();
 	}
+}
+
+void Enemy::Shoot()
+{
+	ShootDirection(transform.GetForward());
+}
+
+void Enemy::ShootDirection(XMFLOAT3 dir)
+{
+	XMFLOAT3 shootPos = transform.GetPosition();
+
+	if (isOffset)
+		shootPos.y += halfHeight;
+
+	pManager->SpawnEnemyProjectile(shootPos, dir);
+
+	//This is theoretically pointless if we're using a timer to determine when shots should be fired - we already got the time
+	//time(&nowTime); //gets current time when shot is launched
+	lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
 }
 
 

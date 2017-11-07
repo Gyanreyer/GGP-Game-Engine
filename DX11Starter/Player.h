@@ -8,7 +8,7 @@ class Player: public GameObject
 {
 public:
 	Player();
-	Player(ColliderType colliderType, unsigned int projectionWidth, unsigned int projectionHeight);
+	Player(Transform trans, unsigned int projectionWidth, unsigned int projectionHeight);
 	~Player();
 
 	void Update(float deltaTime);
@@ -44,9 +44,14 @@ private:
 
 	bool jumpButtonHeld;//Whether jump button is being held
 
-	bool isOnGameObject; //Is the player on a GameObject
+	//bool isOnGameObject; //Is the player on a GameObject
+
+	bool onGround;
 
 	//Move based on keyboard input
 	void UpdateKeyInput(float deltaTime);
+
+	void StopFalling();
+	bool CheckCollisions(float deltaTime);//This should probably be handled elsewhere
 };
 
