@@ -21,14 +21,15 @@ bool Collision::CheckCollisionBoxBox(Collider* box1, Collider* box2)
 	float box2Z = box2->dimensions.z / 2;
 
 	//Determine if there is a collision with booleans rather than if statements
-	bool right1Left2Check = box1->center.x + box1X > box2->center.x - box2X; //If the right side of box 1 is colliding with the left side of box 2
-	bool left1Right2Check = box1->center.x - box1X < box2->center.x + box2X; //If the left side of box 1 is colliding with the right side of box 2
-	bool top1Bottom2Check = box1->center.y + box1Y > box2->center.y - box2Y; //If the top side of box 1 is colliding with the bottom side of box 2
-	bool bottom1Top2Check = box1->center.y - box1Y < box2->center.y + box2Y; //If the bottom side of box 1 is colliding with the top side of box 2
-	bool front1Back2Check = box1->center.z + box1Z > box2->center.z - box2Z; //If the front side of box 1 is colliding with the back side of box 2
-	bool back2Front1Check = box1->center.z - box1Z < box2->center.z + box2Z; //If the back side of box 1 is colliding with the front side of box 2
+	//Colliders can be equal, which should be seen as true
+	bool right1Left2Check = box1->center.x + box1X >= box2->center.x - box2X; //If the right side of box 1 is colliding with the left side of box 2
+	bool left1Right2Check = box1->center.x - box1X <= box2->center.x + box2X; //If the left side of box 1 is colliding with the right side of box 2
+	bool top1Bottom2Check = box1->center.y + box1Y >= box2->center.y - box2Y; //If the top side of box 1 is colliding with the bottom side of box 2
+	bool bottom1Top2Check = box1->center.y - box1Y <= box2->center.y + box2Y; //If the bottom side of box 1 is colliding with the top side of box 2
+	bool front1Back2Check = box1->center.z + box1Z >= box2->center.z - box2Z; //If the front side of box 1 is colliding with the back side of box 2
+	bool back2Front1Check = box1->center.z - box1Z <= box2->center.z + box2Z; //If the back side of box 1 is colliding with the front side of box 2
 
-	//If there 
+	//If there is a collision
 	if (right1Left2Check && left1Right2Check && top1Bottom2Check && bottom1Top2Check && front1Back2Check && back2Front1Check)
 	{
 		//TODO: COLLISION RESOLUTION & REMOVING printf

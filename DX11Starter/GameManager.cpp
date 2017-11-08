@@ -35,7 +35,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 	player = Player(
 		Transform(XMFLOAT3(0,1,-5),//Init position
 			XMFLOAT3(0,0,0),//Init rot
-			XMFLOAT3(0.5f,1,0.5f)),//Init scale (this doesn't seem right, how the hell do colliders work...)
+			XMFLOAT3(0.5f,1,0.5f)),//Init scale
 		(unsigned int)screenWidth, (unsigned int)screenHeight);//Screen dimensions for projection matrix
 
 	//PROJECTILE MANAGER

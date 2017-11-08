@@ -44,6 +44,7 @@ void Player::Update(float deltaTime)
 	else if (yPos < playerHeight)
 	{
 		onGround = true;
+		//isOnGameObject = false;
 
 		XMFLOAT3 newPos = transform.GetPosition();
 		newPos.y = playerHeight;
@@ -62,8 +63,8 @@ void Player::Update(float deltaTime)
 
 void Player::UpdateKeyInput(float deltaTime)
 {
-	float fwdForce = 0;//+ forward, - backward
-	float sideForce = 0;//+ right, - left
+	fwdForce = 0;//+ forward, - backward
+	sideForce = 0;//+ right, - left
 
 	//Move forward on XZ plane when W pressed
 	if (GetAsyncKeyState('W') & 0x8000) {
@@ -89,19 +90,24 @@ void Player::UpdateKeyInput(float deltaTime)
 	else {
 		jumpButtonHeld = false;
 	}
-
-	transform.ApplyForceRelative(fwdForce, sideForce, 0);
 	
-	if (CheckCollisions(deltaTime)) {
-		transform.SetVelocity(XMFLOAT3(0, transform.GetVelocity().y,0));
+	transform.ApplyForceRelative(fwdForce, sideForce, 0);
+
+	if (CheckCollisions(deltaTime))
+	{
+		transform.SetVelocity(XMFLOAT3(0, transform.GetVelocity().y, 0));
 	}
+	//else
+	//{
+	//	transform.ApplyForceRelative(fwdForce, sideForce, 0);
+	//}
 }
 
 void Player::StopFalling()
 {
 	XMFLOAT3 vel = transform.GetVelocity();
 	vel.y = 0;
-	transform.SetVelocity(vel);//Stop downard velocity
+	transform.SetVelocity(vel);//Stop downward velocity
 }
 
 bool Player::CheckCollisions(float deltaTime)
@@ -110,58 +116,35 @@ bool Player::CheckCollisions(float deltaTime)
 
 	//GAMEOBJECT COLLISIONS
 	vector<GameObject>* goVector = GameManager::getInstance().GetGameObjectVector(); //Get the instance of the GameManager
-	Collider nextFrameCollider = collider; //Make a collider to represent where the player will be on the next frame
-
-	//Store the collider's next center point
-	XMStoreFloat3(&nextFrameCollider.center,XMLoadFloat3(&transform.GetPosition())+
-		XMLoadFloat3(&transform.GetVelocity())*deltaTime);
-
-	//Oof this code is uhh... rough
+	printf("%d\n", onGround);
 	//Start at 1, 0 is the ground
 	for (byte i = 1; i < goVector->size(); i++)
 	{
 		//WITH PLAYER
 		Collider* goCollider = (*goVector)[i].GetCollider(); //The GameObject's collider
 
-		if (goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, &nextFrameCollider))
+		if ((goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, &collider)) || (goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, &collider)))
 		{
-			if (collider.center.y - collider.dimensions.y/2 < goCollider->dimensions.y - .005f) //If the player isn't on top of the GameObject
+			if (onGround)//&& transform.GetVelocity().y >= 0) //If the player isn't on top of the GameObject
 			{
 				//There shouldn't be any breakage due to that small offset value, but I'm leaving debug stuff here just in case
-				//printf("NOT ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
-				//goto breakEnd;//Da fuck, aren't we supposed to avoid goto at all costs?
+				printf("NOT ON TOP %f, %f\n", collider.center.y - (collider.dimensions.y / 2), goCollider->dimensions.y + .005f);
+				//transform.SetVelocity(XMFLOAT3(0, transform.GetVelocity().y, 0));
 				return true;
 			}
-			else //If the player is on top of the GameObject
+			else if (collider.center.y - (collider.dimensions.y / 2) <= goCollider->dimensions.y && !onGround) //If the player is on top of the GameObject
 			{
-				//printf("ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
-				transform.SetPosition(transform.GetPosition().x, goCollider->dimensions.y + collider.dimensions.y/2, transform.GetPosition().z); //Move the player to the top of the GameObject
+				printf("ON TOP %f, %f\n", collider.center.y - (collider.dimensions.y / 2), goCollider->dimensions.y + .005f);
+				transform.SetPosition(transform.GetPosition().x, goCollider->dimensions.y + (collider.dimensions.y / 2), transform.GetPosition().z); //Move the player to the top of the GameObject
 				isOnGameObject = true;
 				StopFalling();
-			}
-		}
-		else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, &nextFrameCollider))
-		{
-			if (collider.center.y - (collider.dimensions.y / 2) < goCollider->dimensions.y - .005f) //If the player isn't on top of the GameObject
-			{
-				//There shouldn't be any breakage due to that small offset value, but I'm leaving debug stuff here just in case
-				//printf("NOT ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
-				return true;
-			}
-			else //If the player is on top of the GameObject
-			{
-				XMFLOAT3 newPos = transform.GetPosition();
-				newPos.y = (float)(goCollider->dimensions.y + (collider.dimensions.y / 2));
 
-				//printf("ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
-				transform.SetPosition(newPos); //Move the player to the top of the GameObject
-				isOnGameObject = true;
-				StopFalling();
+				return true;
 			}
 		}
 	}
 
-	return false;
+	return false; //Not colliding with anything
 }
 
 void Player::UpdateMouseInput(float xAxis, float yAxis)

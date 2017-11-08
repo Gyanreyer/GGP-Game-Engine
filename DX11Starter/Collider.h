@@ -1,6 +1,5 @@
 //Colliders for entities
 #pragma once
-#include "Transform.h"
 #include <DirectXMath.h> //DirctX math functions
 
 using namespace DirectX;
@@ -51,7 +50,7 @@ struct Collider
 			//Right now, this assumes that the collider is at the "feet" of a model
 			//If the need arises, this can be generalized
 			//This should only be true on some enemies and environmental GameObjects
-			center.y += dimensions.y;
+			center.y += dimensions.y / 2;
 		}
 	}
 };

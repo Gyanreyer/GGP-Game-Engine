@@ -39,7 +39,10 @@ private:
 
 	byte health;
 
-	float verticalSpeed;//Current vertical speed of player - 0 when on ground
+	float fwdForce; //+ forward, - backward
+	float sideForce; //+ right, - left
+
+	//float verticalSpeed;//Current vertical speed of player - 0 when on ground
 	float playerHeight;//Height of player's camera view from the ground
 
 	bool jumpButtonHeld;//Whether jump button is being held

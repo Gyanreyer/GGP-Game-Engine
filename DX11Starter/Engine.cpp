@@ -198,7 +198,7 @@ void Engine::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	//////Engine update Loop
+	//Engine update Loop
 	gameManager->GameUpdate(deltaTime);
 }
 
