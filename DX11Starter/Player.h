@@ -44,7 +44,7 @@ private:
 
 	bool jumpButtonHeld;//Whether jump button is being held
 
-	//bool isOnGameObject; //Is the player on a GameObject
+	bool isOnGameObject; //Is the player on a GameObject
 
 	bool onGround;
 

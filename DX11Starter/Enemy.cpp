@@ -5,8 +5,8 @@ Enemy::Enemy()
 {
 }
 
-Enemy::Enemy(Transform trans, Mesh * mesh, Material * material, byte pointValue, EnemyType eType, ProjectileManager* projManager)
-	: GameObject(trans, mesh, material, BOX)
+Enemy::Enemy(Transform trans, Mesh * mesh, Material * material, ProjectileManager* projManager, byte pointValue, EnemyType eType)
+	: GameObject(trans, mesh, material)
 {
 	transform = trans;
 
@@ -17,7 +17,7 @@ Enemy::Enemy(Transform trans, Mesh * mesh, Material * material, byte pointValue,
 	originPos = transform.GetPosition();
 
 	movePositive = true;
-	offset = XMFLOAT3(2,2,0);
+	offset = XMFLOAT3(1,1,0);
 
 	pManager = projManager; //Save the reference to the ProjectileManager
 	
@@ -35,14 +35,14 @@ void Enemy::Update(float deltaTime)
 	if (type == EnemyType::moveX) 
 	{
 		int sign = (movePositive ? 1 : -1);
-		transform.MoveRelative(0, sign*deltaTime,0);
+		transform.Move(0.5f*sign*deltaTime, 0, 0);
 
 		movePositive = transform.GetPosition().x <= (originPos.x + offset.x*sign);
 	}
 	else if (type == EnemyType::moveY)
 	{
 		int sign = (movePositive ? 1 : -1);
-		transform.MoveRelative(0, sign*deltaTime, 0);
+		transform.Move(0, 0.5f*sign*deltaTime, 0); 
 
 		movePositive = transform.GetPosition().y <= (originPos.y + offset.y*sign);
 	}
@@ -66,7 +66,7 @@ void Enemy::ShootDirection(XMFLOAT3 dir)
 {
 	XMFLOAT3 shootPos = transform.GetPosition();
 
-	if (isOffset)
+	if (collider.isOffset)
 		shootPos.y += halfHeight;
 
 	pManager->SpawnEnemyProjectile(shootPos, dir);

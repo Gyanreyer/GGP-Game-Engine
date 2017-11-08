@@ -2,30 +2,14 @@
 
 GameObject::GameObject() {}
 
-GameObject::GameObject(Transform trans, Mesh * mes, Material * material, Collider coll)
+GameObject::GameObject(Transform trans, Mesh * mesh, Material * material)
 {
 	transform = trans;
 
 	SetMesh(mesh);
 	SetMaterial(material);
 
-	collider = coll;
-}
-
-GameObject::GameObject(Transform trans, Mesh * mesh, Material * material, ColliderType colliderType)
-{
-	transform = trans;
-
-	SetMesh(mesh);
-	SetMaterial(material);
-
-	collider = Collider(colliderType, &transform);
-}
-
-GameObject::GameObject(Transform trans, Collider coll)
-{
-	transform = trans;
-	collider = coll;
+	collider = Collider(mesh->GetColliderType(), transform.GetPosition(), transform.GetScale(), mesh->GetIsColliderOffset());
 }
 
 //Just a collider, no visible object
@@ -34,7 +18,7 @@ GameObject::GameObject(Transform trans, ColliderType colliderType)
 	transform = trans;
 
 	//This collider type will never be offset
-	collider = Collider(colliderType, &transform);
+	collider = Collider(colliderType, transform.GetPosition(), transform.GetScale());
 }
 
 GameObject::~GameObject() {}

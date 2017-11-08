@@ -18,9 +18,13 @@ public:
 	~AssetManager();
 
 	//Create/Import Methods
+	//Meshes without colliders
 	void ImportMesh(char* meshName, char* meshFile, //Holds the file path to the model that needs to be loaded
-		ID3D11Device* drawDevice);	//Reference to directX 11 Device need to create buffers		
-	void ImportTexture(char* textureName,//key that texture will be stored in library under
+		ID3D11Device* drawDevice); //Reference to directX 11 Device need to create buffers
+	//Meshes with colliders
+	void ImportMesh(char* meshName, char* meshFile, //Holds the file path to the model that needs to be loaded
+		ID3D11Device* drawDevice, ColliderType cType, bool isCollOffset); //Reference to directX 11 Device need to create buffers		
+	void ImportTexture(char* textureName, //Key that texture will be stored in library under
 		const wchar_t* textureFile,		//FilePath to the texture
 		ID3D11Device* device, ID3D11DeviceContext* context); //DirectX device and device context used to create texture
 	void CreateMaterial(char* materialName, SimpleVertexShader* vShader, SimplePixelShader* pShader, ID3D11ShaderResourceView* texture, ID3D11SamplerState* textureSampler);

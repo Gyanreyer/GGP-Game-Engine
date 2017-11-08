@@ -40,7 +40,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 
 	//PROJECTILE MANAGER
 	projectileManager = ProjectileManager(asset->GetMesh("Sphere"),
-		asset->GetMaterial("HazardCrateMat"),//Placeholder until make new mats for bullets
+		asset->GetMaterial("HazardCrateMat"), //Placeholder until make new mats for bullets
 		asset->GetMaterial("PurpleGhost"),
 		context);
 
@@ -64,24 +64,24 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	);
 
 	//Create enemies
-	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), 10, EnemyType::moveX, &projectileManager));
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), &projectileManager, 10, EnemyType::moveX));
 	enemyTransform.SetPosition(-2, 2, 0);
-	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), 20, EnemyType::moveY, &projectileManager));
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), &projectileManager, 20, EnemyType::moveY));
 	enemyTransform.SetPosition(0, 0, -2);
-	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), 20, EnemyType::moveX, &projectileManager));
+	enemies.push_back(Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), &projectileManager, 20, EnemyType::moveX));
 
 	///OTHER GAMEOBJECTS
 	gameObjects.clear(); //Clear this out for new game instances
 
 	//Store references to all GOs in vector
 	gameObjects.push_back(GameObject(Transform(XMFLOAT3(0,0,0),XMFLOAT3(0,0,0),XMFLOAT3(10,0.001f,10)),
-		asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial"), BOX));
+		asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial")));
 	gameObjects.push_back(GameObject(Transform(XMFLOAT3(4,0.5f,-2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
-		asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX));
+		asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
 	gameObjects.push_back(GameObject(Transform(XMFLOAT3(2,0.25f,-2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
-		asset->GetMesh("Cube"), asset->GetMaterial("StoneMat"), BOX));
+		asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
 	gameObjects.push_back(GameObject(Transform(XMFLOAT3(-2, 0.25f, -2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
-		asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat"), SPHERE));
+		asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat")));
 }
 
 void GameManager::GameUpdate(float deltaTime)
@@ -92,7 +92,6 @@ void GameManager::GameUpdate(float deltaTime)
 		player.Update(deltaTime);
 
 		projectileManager.UpdateProjectiles(deltaTime);
-
 
 		//Get and update enemies
 		for (int i = 0; i < enemies.size(); i++)
@@ -183,9 +182,6 @@ void GameManager::GameUpdate(float deltaTime)
 
 void GameManager::GameDraw(Renderer* renderer)
 {
-	//XMFLOAT4X4 viewMat = player->GetViewMatrix();
-	//XMFLOAT4X4 projMat = player->GetProjectionMatrix();
-
 	renderer->SetViewProjMatrix(player.GetViewMatrix(), player.GetProjectionMatrix());
 
 	//Loop through GameObjects and draw them
@@ -205,12 +201,11 @@ void GameManager::GameDraw(Renderer* renderer)
 
 	//Display game stats
 	std::string score = "Score: ";
-	char intChar[10];
-	score += itoa(GetGameScore() ,intChar, 10);
+	score += to_string(GetGameScore());
 	std::string health = "Health: ";
-	health += itoa(player.GetHealth(), intChar, 10);
+	health += to_string(player.GetHealth());
 	std::string timeLeft = "Time Left: ";
-	timeLeft += itoa((int)getTimeLeft(), intChar, 10);
+	timeLeft += to_string((int)getTimeLeft());
 	ImGui::Begin("GGP Game", (bool*)1);
 	ImGui::Text(timeLeft.c_str());
 	ImGui::Text(health.c_str());
@@ -230,10 +225,10 @@ Player * GameManager::GetPlayer()
 	return &player;
 }
 
-//ProjectileManager * GameManager::GetProjectileManager()
-//{
-//	return &projectileManager;
-//}
+ProjectileManager * GameManager::GetProjectileManager()
+{
+	return &projectileManager;
+}
 
 //Return the vector of gameObjects
 vector<GameObject>* GameManager::GetGameObjectVector()

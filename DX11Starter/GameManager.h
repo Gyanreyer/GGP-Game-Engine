@@ -1,11 +1,14 @@
 #pragma once
 #include <d3d11.h>
 #include <time.h>
+#include <string> //Int conversion to string
 #include "Enemy.h"
 #include "ProjectileManager.h"
 #include "Player.h"
 #include "AssetManager.h"
 #include "Renderer.h"
+
+using std::to_string; //Alternative to atoi
 
 class GameManager
 {
@@ -27,7 +30,7 @@ public:
 
 	//Engine Get Methods
 	Player* GetPlayer();
-	//ProjectileManager* GetProjectileManager();
+	ProjectileManager* GetProjectileManager();
 	vector<GameObject>* GetGameObjectVector();
 	vector<Enemy>* GetEnemyVector();
 	double getTimeLeft();

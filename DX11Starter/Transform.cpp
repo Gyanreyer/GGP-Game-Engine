@@ -294,18 +294,20 @@ void Transform::ApplyForce(float xMagnitude, float yMagnitude, float zMagnitude)
 
 void Transform::ApplyForce(XMFLOAT3 force)
 {
+	XMStoreFloat3(&velocity, XMLoadFloat3(&velocity)+ XMLoadFloat3(&force));
+
 	XMStoreFloat3(&velocity,
-		XMVector3ClampLength(XMLoadFloat3(&velocity) + XMLoadFloat3(&force),
-			0, maxVel));//Clamp between magnitude of 0 and max
+		XMVectorSet(0,velocity.y,0,0) +
+		XMVector3ClampLength(XMVectorSet(velocity.x, 0, velocity.z, 0), 0, maxVel));
 }
 
 void Transform::ApplyForceRelative(float fwdMagnitude, float sideMagnitude, float vertMagnitude)
 {
 	XMFLOAT3 forceVec;
 	XMStoreFloat3(&forceVec,
-		XMLoadFloat3(&forward)*fwdMagnitude +
+		XMLoadFloat3(&GetForwardXZ())*fwdMagnitude +
 		XMLoadFloat3(&right)*sideMagnitude +
-		UP * vertMagnitude);
+		UP*vertMagnitude);
 
 	ApplyForce(forceVec);
 }
@@ -316,16 +318,11 @@ void Transform::UpdatePhysics(float deltaTime)
 
 	Move(velocityVec*deltaTime);
 
-	velocityVec *= 0.1f;
+	//Apply friction
+	velocity.x *= 0.5f;
+	velocity.z *= 0.5f;
 	
-	XMFLOAT3 length;
-
-	XMStoreFloat3(&length, XMVector3LengthEst(velocityVec));
-
-	if (length.x < 0.05f)
-	{
-		velocityVec *= 0;
-	}
+	velocityVec = XMLoadFloat3(&velocity);
 
 	XMStoreFloat3(&velocity, velocityVec);
 }

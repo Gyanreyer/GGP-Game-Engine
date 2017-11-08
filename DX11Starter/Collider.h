@@ -36,22 +36,22 @@ struct Collider
 
 	//Parameterized constructor
 	//Using optional params to keep things cleaner
-	Collider(ColliderType coltype, Transform * trans, bool isColliderOffset = false, bool trigger = false)
+	Collider(ColliderType coltype, XMFLOAT3 cent, XMFLOAT3 dims, bool isColliderOffset = false, bool trigger = false)
 	{
 		collType = coltype;
 		isTrigger = trigger;
 		isOffset = isColliderOffset;
 
 		//Take scale from transform and divide by two for dimensions
-		XMStoreFloat3(&dimensions, XMLoadFloat3(&trans->GetScale()) / 2);//DIVIDE HERE BECAUSE NOT DOING IT HERE HAS ALREADY TORN THIS FAMILY APART
-		center = trans->GetPosition();//Get position from transform
+		XMStoreFloat3(&dimensions, XMLoadFloat3(&dims) / 2);//DIVIDE HERE BECAUSE NOT DOING IT HERE HAS ALREADY TORN THIS FAMILY APART
+		center = cent;//Get position from transform
 
 		if (isOffset) 
 		{
 			//Right now, this assumes that the collider is at the "feet" of a model
 			//If the need arises, this can be generalized
 			//This should only be true on some enemies and environmental GameObjects
-			center = XMFLOAT3(center.x, center.y + dimensions.y, center.z);
+			center.y += dimensions.y;
 		}
 	}
 };

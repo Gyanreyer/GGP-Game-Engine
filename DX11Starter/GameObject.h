@@ -13,10 +13,8 @@ class GameObject
 {
 public:
 	GameObject();//Default constructor does nothing
-	GameObject(Transform trans, Mesh * mesh, Material * material, Collider coll);
-	GameObject(Transform trans, Mesh * mesh, Material * material, ColliderType colliderType);//Constructor uses a given transform so we can set that up during initialization
-	GameObject(Transform trans, Collider coll);
-	GameObject(Transform trans, ColliderType colliderType);//Constructor for object with no mesh
+	GameObject(Transform trans, Mesh * mesh, Material * material);
+	GameObject(Transform trans, ColliderType colliderType);
 	~GameObject();
 
 	//Takes a Mesh pointer to use for drawing this object
@@ -45,6 +43,7 @@ protected:
 
 	Mesh * mesh;//Mesh for drawing
 	Material * material;//Material to apply to mesh
+
 	Collider collider; //The collider on this object
 
 	ID3D11DeviceContext * context; //Render target (I think)

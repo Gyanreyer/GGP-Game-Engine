@@ -1,7 +1,6 @@
 #pragma once
 #include "GameObject.h"
 
-//Refactor after colliderType and context are moved
 class Projectile :
 	public GameObject
 {
