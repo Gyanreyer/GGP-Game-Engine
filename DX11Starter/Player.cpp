@@ -36,12 +36,12 @@ void Player::Update(float deltaTime)
 
 	float yPos = transform.GetPosition().y;
 
-	if (yPos > playerHeight && !isOnGameObject)
+	if (yPos > playerHeight)// && !isOnGameObject)
 	{
 		onGround = false;
 		transform.ApplyForceRelative(0,0,-5*deltaTime);
 	}
-	else if (yPos < playerHeight)
+	else if (yPos <= 0) //This was playerHeight, but I don't think it should be
 	{
 		onGround = true;
 		//isOnGameObject = false;
@@ -112,7 +112,7 @@ void Player::StopFalling()
 
 bool Player::CheckCollisions(float deltaTime)
 {
-	isOnGameObject = false;
+	//isOnGameObject = false;
 
 	//GAMEOBJECT COLLISIONS
 	vector<GameObject>* goVector = GameManager::getInstance().GetGameObjectVector(); //Get the instance of the GameManager
@@ -136,7 +136,7 @@ bool Player::CheckCollisions(float deltaTime)
 			{
 				printf("ON TOP %f, %f\n", collider.center.y - (collider.dimensions.y / 2), goCollider->dimensions.y + .005f);
 				transform.SetPosition(transform.GetPosition().x, goCollider->dimensions.y + (collider.dimensions.y / 2), transform.GetPosition().z); //Move the player to the top of the GameObject
-				isOnGameObject = true;
+				//isOnGameObject = true;
 				StopFalling();
 
 				return true;
