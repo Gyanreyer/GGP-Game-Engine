@@ -39,6 +39,7 @@ private:
 
 	byte health;
 
+	//Used in next-frame collisions
 	float fwdForce; //+ forward, - backward
 	float sideForce; //+ right, - left
 

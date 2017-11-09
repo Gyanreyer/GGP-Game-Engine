@@ -78,10 +78,12 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 		asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial")));
 	gameObjects.push_back(GameObject(Transform(XMFLOAT3(4,0.5f,-2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
 		asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
+	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(2, 1, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2)),
+	//	asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
 	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(2,0.25f,-2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
 	//	asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
-	gameObjects.push_back(GameObject(Transform(XMFLOAT3(-2, 0.25f, -2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
-		asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat")));
+	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(-2, 0.25f, -2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
+	//	asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat")));
 }
 
 void GameManager::GameUpdate(float deltaTime)

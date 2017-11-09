@@ -34,19 +34,18 @@ void Player::Update(float deltaTime)
 	UpdateKeyInput(deltaTime);
 	UpdateViewMatrix();
 
+	//The player's Y position is at it's feet
 	float yPos = transform.GetPosition().y - playerHeight;
-	printf("%f\n", yPos);
-	printf("Ground: %d, OnGO: %d\n", onGround, isOnGameObject);
+
+	//Changed to not use playerHeight, since the Y position is now at it's feet
 	if (yPos > 0 && !isOnGameObject)
 	{
-		printf("TACO TUESDAY BOI\n");
 		onGround = false;
 		transform.ApplyForceRelative(0, 0, -5*deltaTime);
 	}
 	else if (yPos < 0)
 	{
 		onGround = true;
-		//isOnGameObject = false;
 
 		XMFLOAT3 newPos = transform.GetPosition();
 		newPos.y = playerHeight;
@@ -65,8 +64,9 @@ void Player::Update(float deltaTime)
 
 void Player::UpdateKeyInput(float deltaTime)
 {
-	fwdForce = 0;//+ forward, - backward
-	sideForce = 0;//+ right, - left
+	//Global for next-frame collisions
+	fwdForce = 0; //+ forward, - backward
+	sideForce = 0; //+ right, - left
 
 	//Move forward on XZ plane when W pressed
 	if (GetAsyncKeyState('W') & 0x8000) {
@@ -95,14 +95,13 @@ void Player::UpdateKeyInput(float deltaTime)
 	
 	transform.ApplyForceRelative(fwdForce, sideForce, 0);
 
+	//If the player is colliding with a GameObject and is not on top of it
+	//Since this is done with next-frame collisions, we can break away
+	//by turning around and walking away
 	if (CheckCollisions(deltaTime) && !isOnGameObject)
 	{
-		transform.SetVelocity(XMFLOAT3(0, transform.GetVelocity().y, 0));
+		transform.SetVelocity(XMFLOAT3(0, transform.GetVelocity().y, 0)); //Don't move
 	}
-	//else
-	//{
-	//	transform.ApplyForceRelative(fwdForce, sideForce, 0);
-	//}
 }
 
 void Player::StopFalling()
@@ -114,6 +113,8 @@ void Player::StopFalling()
 
 bool Player::CheckCollisions(float deltaTime)
 {
+	//Reset, if the player is on a GameObject this will be changed back
+	//Allows the player to fall off the box with some degree of grace
 	isOnGameObject = false;
 
 	//GAMEOBJECT COLLISIONS
@@ -135,19 +136,18 @@ bool Player::CheckCollisions(float deltaTime)
 		//WITH PLAYER
 		Collider* goCollider = (*goVector)[i].GetCollider(); //The GameObject's collider
 
-		if ((goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, &nextFrameCollider)) || (goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, &nextFrameCollider)))
+		if ((goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, &nextFrameCollider)))// || (goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, &nextFrameCollider)))
 		{
-			if (onGround)//&& transform.GetVelocity().y >= 0) //If the player isn't on top of the GameObject
+			if (onGround) //If the player isn't on top of the GameObject
 			{
 				//There shouldn't be any breakage due to that small offset value, but I'm leaving debug stuff here just in case
-				printf("NOT ON TOP %f, %f\n", nextFrameCollider.center.y - (nextFrameCollider.dimensions.y / 2), goCollider->dimensions.y + .005f);
+				//printf("NOT ON TOP %f, %f\n", nextFrameCollider.center.y - (nextFrameCollider.dimensions.y / 2), goCollider->dimensions.y);
 
 				return true;
 			}
 			else if (nextFrameCollider.center.y - (nextFrameCollider.dimensions.y / 2) <= goCollider->dimensions.y && !onGround) //If the player is on top of the GameObject
 			{
-				printf("ON TOP %f, %f\n", nextFrameCollider.center.y - (nextFrameCollider.dimensions.y / 2), goCollider->dimensions.y + .005f);
-				printf("NewPos: %d\n", goCollider->dimensions.y + (collider.dimensions.y / 2));
+				//printf("ON TOP %f, %f\n", nextFrameCollider.center.y - (nextFrameCollider.dimensions.y / 2), goCollider->dimensions.y);
 				transform.SetPosition(transform.GetPosition().x, goCollider->dimensions.y + (collider.dimensions.y / 2), transform.GetPosition().z); //Move the player to the top of the GameObject
 				isOnGameObject = true;
 				StopFalling();
