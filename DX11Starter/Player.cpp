@@ -34,14 +34,16 @@ void Player::Update(float deltaTime)
 	UpdateKeyInput(deltaTime);
 	UpdateViewMatrix();
 
-	float yPos = transform.GetPosition().y;
-
-	if (yPos > playerHeight)// && !isOnGameObject)
+	float yPos = transform.GetPosition().y - playerHeight;
+	printf("%f\n", yPos);
+	printf("Ground: %d, OnGO: %d\n", onGround, isOnGameObject);
+	if (yPos > 0 && !isOnGameObject)
 	{
+		printf("TACO TUESDAY BOI\n");
 		onGround = false;
-		transform.ApplyForceRelative(0,0,-5*deltaTime);
+		transform.ApplyForceRelative(0, 0, -5*deltaTime);
 	}
-	else if (yPos <= 0) //This was playerHeight, but I don't think it should be
+	else if (yPos < 0)
 	{
 		onGround = true;
 		//isOnGameObject = false;
@@ -93,7 +95,7 @@ void Player::UpdateKeyInput(float deltaTime)
 	
 	transform.ApplyForceRelative(fwdForce, sideForce, 0);
 
-	if (CheckCollisions(deltaTime))
+	if (CheckCollisions(deltaTime) && !isOnGameObject)
 	{
 		transform.SetVelocity(XMFLOAT3(0, transform.GetVelocity().y, 0));
 	}
@@ -112,31 +114,42 @@ void Player::StopFalling()
 
 bool Player::CheckCollisions(float deltaTime)
 {
-	//isOnGameObject = false;
+	isOnGameObject = false;
 
 	//GAMEOBJECT COLLISIONS
 	vector<GameObject>* goVector = GameManager::getInstance().GetGameObjectVector(); //Get the instance of the GameManager
-	printf("%d\n", onGround);
+
+	Collider nextFrameCollider = collider; //Make a collider to represent where the player will be on the next frame
+
+	//Store the collider's next center point
+	//Do this without a physics calculation, because fuck physics
+	XMStoreFloat3(&nextFrameCollider.center,
+		XMLoadFloat3(&transform.GetPosition()) +
+		XMLoadFloat3(&transform.GetForwardXZ()) * (fwdForce * deltaTime) +
+		XMLoadFloat3(&transform.GetRight()) * (sideForce * deltaTime) +
+		XMLoadFloat3(&transform.GetUp()) * (0 * deltaTime));
+
 	//Start at 1, 0 is the ground
 	for (byte i = 1; i < goVector->size(); i++)
 	{
 		//WITH PLAYER
 		Collider* goCollider = (*goVector)[i].GetCollider(); //The GameObject's collider
 
-		if ((goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, &collider)) || (goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, &collider)))
+		if ((goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, &nextFrameCollider)) || (goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, &nextFrameCollider)))
 		{
 			if (onGround)//&& transform.GetVelocity().y >= 0) //If the player isn't on top of the GameObject
 			{
 				//There shouldn't be any breakage due to that small offset value, but I'm leaving debug stuff here just in case
-				printf("NOT ON TOP %f, %f\n", collider.center.y - (collider.dimensions.y / 2), goCollider->dimensions.y + .005f);
-				//transform.SetVelocity(XMFLOAT3(0, transform.GetVelocity().y, 0));
+				printf("NOT ON TOP %f, %f\n", nextFrameCollider.center.y - (nextFrameCollider.dimensions.y / 2), goCollider->dimensions.y + .005f);
+
 				return true;
 			}
-			else if (collider.center.y - (collider.dimensions.y / 2) <= goCollider->dimensions.y && !onGround) //If the player is on top of the GameObject
+			else if (nextFrameCollider.center.y - (nextFrameCollider.dimensions.y / 2) <= goCollider->dimensions.y && !onGround) //If the player is on top of the GameObject
 			{
-				printf("ON TOP %f, %f\n", collider.center.y - (collider.dimensions.y / 2), goCollider->dimensions.y + .005f);
+				printf("ON TOP %f, %f\n", nextFrameCollider.center.y - (nextFrameCollider.dimensions.y / 2), goCollider->dimensions.y + .005f);
+				printf("NewPos: %d\n", goCollider->dimensions.y + (collider.dimensions.y / 2));
 				transform.SetPosition(transform.GetPosition().x, goCollider->dimensions.y + (collider.dimensions.y / 2), transform.GetPosition().z); //Move the player to the top of the GameObject
-				//isOnGameObject = true;
+				isOnGameObject = true;
 				StopFalling();
 
 				return true;
@@ -162,7 +175,7 @@ void Player::Jump()
 	//If the player is on another GameObject, just jump
 	if (onGround || transform.GetPosition().y <= playerHeight + 0.1f)
 	{
-		transform.ApplyForce(0,3,0);
+		transform.ApplyForce(0, 3, 0);
 		onGround = false;
 	}
 }
