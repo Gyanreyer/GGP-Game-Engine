@@ -3,11 +3,12 @@
 #include "GameObject.h"
 #include "Collision.h"
 
+//ColliderType may be revamped, since it's going to be from the mesh into the gameobject
 class Player: public GameObject
 {
 public:
 	Player();
-	Player(ColliderType colliderType, unsigned int projectionWidth, unsigned int projectionHeight);
+	Player(Transform trans, unsigned int projectionWidth, unsigned int projectionHeight);
 	~Player();
 
 	void Update(float deltaTime);
@@ -38,14 +39,23 @@ private:
 
 	byte health;
 
-	float verticalSpeed;//Current vertical speed of player - 0 when on ground
+	//Used in next-frame collisions
+	float fwdForce; //+ forward, - backward
+	float sideForce; //+ right, - left
+
+	//float verticalSpeed;//Current vertical speed of player - 0 when on ground
 	float playerHeight;//Height of player's camera view from the ground
 
 	bool jumpButtonHeld;//Whether jump button is being held
 
 	bool isOnGameObject; //Is the player on a GameObject
 
+	bool onGround;
+
 	//Move based on keyboard input
 	void UpdateKeyInput(float deltaTime);
+
+	void StopFalling();
+	bool CheckCollisions(float deltaTime);//This should probably be handled elsewhere
 };
 

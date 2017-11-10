@@ -1,10 +1,14 @@
 #pragma once
 #include <d3d11.h>
 #include <time.h>
+#include <string> //Int conversion to string
 #include "Enemy.h"
 #include "ProjectileManager.h"
 #include "Player.h"
 #include "AssetManager.h"
+#include "Renderer.h"
+
+using std::to_string; //Alternative to atoi
 
 class GameManager
 {
@@ -17,12 +21,14 @@ public:
 
 	void StartGame(AssetManager* asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context);
 	void CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context); //Initializes GameObjects
+	void GameUpdate(float deltaTime);
+	void GameDraw(Renderer* renderer);
 	bool isGameOver();
 
 	void AddScore(int addAmount);
 	void ResetGame();
 
-	//Game Get Methods
+	//Engine Get Methods
 	Player* GetPlayer();
 	ProjectileManager* GetProjectileManager();
 	vector<GameObject>* GetGameObjectVector();

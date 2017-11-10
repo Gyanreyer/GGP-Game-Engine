@@ -2,39 +2,23 @@
 
 GameObject::GameObject() {}
 
-//GameObject without collider
-GameObject::GameObject(Mesh * mesh, Material * material, ID3D11DeviceContext * ctx)
+GameObject::GameObject(Transform trans, Mesh * mesh, Material * material)
 {
-	SetMesh(mesh);//Set mesh to given mesh
-	SetMaterial(material);//Set material to given material
+	transform = trans;
 
-	coll = Collider();
-	context = ctx;
+	SetMesh(mesh);
+	SetMaterial(material);
 
-	transform = Transform();//Initialize transform
-}
-
-//GameObject with collider
-GameObject::GameObject(Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx)
-{
-	SetMesh(mesh);//Set mesh to given mesh
-	SetMaterial(material);//Set material to given material
-
-	transform = Transform();//Initialize transform
-
-	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false, isColliderOffset);
-
-	context = ctx;
+	collider = Collider(mesh->GetColliderType(), transform.GetPosition(), transform.GetScale(), mesh->GetIsColliderOffset());
 }
 
 //Just a collider, no visible object
-GameObject::GameObject(ColliderType colliderType)
+GameObject::GameObject(Transform trans, ColliderType colliderType)
 {
-	transform = Transform();
+	transform = trans;
 
-	coll = Collider(colliderType, transform.GetPosition(), transform.GetScale(), false, false);
-
-	hasMesh = false;//This object doesn't have a mesh to be drawn
+	//This collider type will never be offset
+	collider = Collider(colliderType, transform.GetPosition(), transform.GetScale());
 }
 
 GameObject::~GameObject() {}
@@ -43,46 +27,6 @@ GameObject::~GameObject() {}
 void GameObject::SetMesh(Mesh * mesh)
 {
 	this->mesh = mesh;
-	vertexBuffer = mesh->GetVertexBuffer();
-	indexBuffer = mesh->GetIndexBuffer();
-
-	meshIndexCount = mesh->GetIndexCount();
-
-	hasMesh = true;
-}
-
-//Draw the mesh!
-void GameObject::Draw(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
-{
-	UpdateWorldMatrix(); //Update here, removes additional method call
-	PrepareMaterial(viewMat, projMat);
-	context->DrawIndexed(meshIndexCount, 0, 0);
-}
-
-//Prepare material to be drawn, takes camera matrices
-void GameObject::PrepareMaterial(XMFLOAT4X4 viewMat, XMFLOAT4X4 projMat)
-{
-	//Get shaders from material
-	SimpleVertexShader * vertexShader = material->GetVertexShader();
-	SimplePixelShader * pixelShader = material->GetPixelShader();
-
-	//Set up shader data
-	vertexShader->SetMatrix4x4("view", viewMat);
-	vertexShader->SetMatrix4x4("projection", projMat);
-	vertexShader->SetMatrix4x4("world", worldMatrix);//Set vertex shader's world matrix to this object's wm
-	vertexShader->CopyAllBufferData();
-	vertexShader->SetShader();
-
-	pixelShader->SetShaderResourceView("diffuseTexture",material->GetSRV());
-	pixelShader->SetSamplerState("basicSampler",material->GetSampler());
-	pixelShader->CopyAllBufferData();
-	pixelShader->SetShader();
-
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-
-	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 }
 
 void GameObject::SetMaterial(Material * newMat)
@@ -100,9 +44,14 @@ Material * GameObject::GetMaterial()
 	return material;
 }
 
+Mesh * GameObject::GetMesh()
+{
+	return mesh;
+}
+
 Collider* GameObject::GetCollider()
 {
-	return &coll;
+	return &collider;
 }
 
 XMFLOAT4X4 GameObject::GetWorldMatrix()
@@ -131,16 +80,14 @@ void GameObject::UpdateWorldMatrix()
 
 		transform.DoneUpdating();//Notify transform that matrix has been updated successfully
 
-		coll.dimensions = transform.GetScale();
+		collider.dimensions = transform.GetScale();
+		collider.center = transform.GetPosition();
 
 		//Check if the collider is offset
-		if (!coll.isOffset)
-			//If the collider is not offset, proceed as normal
-			coll.center = transform.GetPosition();
-		else
+		if (collider.isOffset)
 			//Adjust for offset here
 			//Right now, this assumes that the collider is at the "feet" of a model
 			//If the need arises, this can be generalized
-			coll.center = XMFLOAT3(transform.GetPosition().x, transform.GetPosition().y + (coll.dimensions.y / 2), transform.GetPosition().z);
+			collider.center.y += collider.dimensions.y / 2;			
 	}
 }

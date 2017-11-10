@@ -1,6 +1,6 @@
 
 #include <Windows.h>
-#include "Game.h"
+#include "Engine.h"
 
 // --------------------------------------------------------
 // Entry point for a graphical (non-console) Windows application
@@ -44,9 +44,9 @@ int WINAPI WinMain(
 		}
 	}
 
-	// Create the Game object using
+	// Create the Engine object using
 	// the app handle we got from WinMain
-	Game dxGame(hInstance);
+	Engine dxGame(hInstance);
 
 	// Result variable for function calls below
 	HRESULT hr = S_OK;

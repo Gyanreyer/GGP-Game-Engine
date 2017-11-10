@@ -1,36 +1,28 @@
 //Enemies, inherits from GameObject
 #include "Enemy.h"
-#include "GameManager.h"
 
 Enemy::Enemy()
 {
 }
 
-Enemy::Enemy(XMFLOAT3 position, Mesh * mesh, Material * material, ColliderType colliderType, bool isColliderOffset, ID3D11DeviceContext * ctx, byte pointValue, bool moveX, bool moveY) : GameObject(mesh, material, colliderType, isColliderOffset, ctx)
+Enemy::Enemy(Transform trans, Mesh * mesh, Material * material, ProjectileManager* projManager, byte pointValue, EnemyType eType)
+	: GameObject(trans, mesh, material)
 {
+	transform = trans;
+
+	halfHeight = transform.GetScale().y / 2;
+
 	points = pointValue;
-	moveXAxis = moveX;
-	moveYAxis = moveY;
-	transform.SetPosition(position);
-	originPos = position;
-	isOffset = isColliderOffset;
+	type = eType;
+	originPos = transform.GetPosition();
+
+	movePositive = true;
+	offset = XMFLOAT3(1,1,0);
+
+	pManager = projManager; //Save the reference to the ProjectileManager
 	
 	time(&nowTime); //gets current time when game is launched
 	lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
-
-	//Move the shoot point if the collider is offset
-	if (!isOffset)
-	{
-		//Make player shoot
-		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(position, transform.GetForward());
-	}
-	else
-	{
-		XMFLOAT3 shootPos;
-		XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
-
-		GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(shootPos, transform.GetForward());
-	}
 }
 
 Enemy::~Enemy()
@@ -40,33 +32,19 @@ Enemy::~Enemy()
 void Enemy::Update(float deltaTime)
 {
 	//I hate this but for now I just need this to work I will rewrite when we clean the engine up
-	if (moveXAxis) 
+	if (type == EnemyType::moveX) 
 	{
-		if (moveRight) 
-		{
-			transform.Move(1*deltaTime, 0, 0);
-			if (transform.GetPosition().x >= originPos.x + xOffset)
-				moveRight = false;
-		}
-		else {
-			transform.Move(-1*deltaTime, 0, 0);
-			if (transform.GetPosition().x <= originPos.x - xOffset)
-				moveRight = true;
-		}
+		int sign = (movePositive ? 1 : -1);
+		transform.Move(0.5f*sign*deltaTime, 0, 0);
+
+		movePositive = transform.GetPosition().x <= (originPos.x + offset.x*sign);
 	}
-	if (moveYAxis)
+	else if (type == EnemyType::moveY)
 	{
-		if (moveUp)
-		{
-			transform.Move(0, 1 * deltaTime, 0);
-			if (transform.GetPosition().y >= originPos.y + yOffset)
-				moveUp = false;
-		}
-		else {
-			transform.Move(0, -1 * deltaTime, 0);
-			if (transform.GetPosition().y <= originPos.y - yOffset)
-				moveUp = true;
-		}
+		int sign = (movePositive ? 1 : -1);
+		transform.Move(0, 0.5f*sign*deltaTime, 0); 
+
+		movePositive = transform.GetPosition().y <= (originPos.y + offset.y*sign);
 	}
 
 	time(&nowTime); //get current time in game
@@ -75,23 +53,27 @@ void Enemy::Update(float deltaTime)
 
 	if (seconds >= 4)
 	{
-		//Move the shoot point if the collider is offset
-		if (!isOffset)
-		{
-			//Make player shoot
-			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(transform.GetPosition(), transform.GetForward());
-		}
-		else
-		{
-			XMFLOAT3 shootPos;
-			XMStoreFloat3(&shootPos, XMLoadFloat3(&XMFLOAT3(originPos.x, originPos.y + (transform.GetScale().y / 2), originPos.z)));
-
-			GameManager::getInstance().GetProjectileManager()->SpawnEnemyProjectile(shootPos, transform.GetForward());
-		}
-
-		time(&nowTime); //gets current time when shot is launched
-		lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
+		Shoot();
 	}
+}
+
+void Enemy::Shoot()
+{
+	ShootDirection(transform.GetForward());
+}
+
+void Enemy::ShootDirection(XMFLOAT3 dir)
+{
+	XMFLOAT3 shootPos = transform.GetPosition();
+
+	if (collider.isOffset)
+		shootPos.y += halfHeight;
+
+	pManager->SpawnEnemyProjectile(shootPos, dir);
+
+	//This is theoretically pointless if we're using a timer to determine when shots should be fired - we already got the time
+	//time(&nowTime); //gets current time when shot is launched
+	lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
 }
 
 
