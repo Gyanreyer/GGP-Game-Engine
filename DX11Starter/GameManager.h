@@ -7,6 +7,7 @@
 #include "Player.h"
 #include "AssetManager.h"
 #include "Renderer.h"
+#include "OctreeNode.h"
 
 using std::to_string; //Alternative to atoi
 
@@ -57,5 +58,9 @@ private:
 	//Not pointers, just do these directly
 	vector<Enemy> enemies;
 	Player player;
+
+	OctreeNode spacePartitionHead;
+
+	void InitSpatialPartition();
 };
 

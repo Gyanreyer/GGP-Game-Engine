@@ -45,6 +45,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 		context);
 
 	CreateGameObjects(asset, context);
+	InitSpatialPartition();
 }
 
 // --------------------------------------------------------
@@ -86,6 +87,25 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	//	asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat")));
 }
 
+void GameManager::InitSpatialPartition()
+{
+	//NOTE TO SELF: ADD A TAG SYSTEM TO GAMEOBJECTS
+	//ALSO GIVE OBJECTS A REFERENCE TO WHAT NODE THEY'RE IN
+	spacePartitionHead = OctreeNode(XMFLOAT3(0,-20,0),500,nullptr);//Will have to discuss size of play area, for now 1000x1000
+
+	for (int i = 0; i < gameObjects.size(); i++)
+	{
+		spacePartitionHead.AddObject(&gameObjects[i]);
+	}
+
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		spacePartitionHead.AddObject(&enemies[i]);
+	}
+
+	spacePartitionHead.AddObject(&player);
+}
+
 void GameManager::GameUpdate(float deltaTime)
 {
 	//1. Make sure game is has not ended
@@ -100,6 +120,8 @@ void GameManager::GameUpdate(float deltaTime)
 		{
 			(enemies)[i].Update(deltaTime);
 		}
+
+		spacePartitionHead.Update();
 
 		//PLAYER PROJECTILE COLLISIONS
 		for (byte i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)

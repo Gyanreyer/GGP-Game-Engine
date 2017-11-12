@@ -10,8 +10,8 @@ public:
 	OctreeNode(XMFLOAT3 centerPoint, float boundingRadius, OctreeNode* parentNode);
 	~OctreeNode();
 
-	GameObject * GetObjects();
-	unsigned int GetObjectCount();
+	vector<GameObject*> GetObjects();
+	vector<GameObject*> GetAllContainedObjects();
 
 	void AddObject(GameObject * obj);
 
@@ -19,22 +19,24 @@ public:
 
 	void Update();
 
+	OctreeNode * GetParent();
+	vector<OctreeNode> GetChildren();
+
 private:
 	vector<GameObject*> objects;
 
 	OctreeNode * parent;
-	OctreeNode * children;
+	vector<OctreeNode> children;
 
 	XMFLOAT3 center;
 	float radius;
 
 	int GetContainingChildIndex(XMFLOAT3 pos, XMFLOAT3 dimensions);
-	bool MoveObject(GameObject* obj);
 
 	XMFLOAT3 GetMinPt();
 	XMFLOAT3 GetMaxPt();
 
-	int maxItems = 7;
+	int maxItems = 8;
 	float minBoundsSize = 1;
 };
 
