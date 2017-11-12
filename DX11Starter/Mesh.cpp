@@ -6,10 +6,10 @@
 // For the DirectX Math library
 using namespace DirectX;
 
-//Defining and drawing our own shapes
+//Creating a model in AssetManager without a collider
 Mesh::Mesh(Vertex * vertices, int numVertices, unsigned int * indicies, int numIndices, ID3D11Device * drawDevice)
 {
-	//Tangents for normal mapping
+	//Calculate the tangents of the vertices for normal maps
 	CalculateTangents(vertices, numVertices, indicies, numIndices);
 
 	//Create DX11 Vertex Buffer
@@ -43,22 +43,14 @@ Mesh::Mesh(Vertex * vertices, int numVertices, unsigned int * indicies, int numI
 	drawDevice->CreateBuffer(&ibd, &initialIndexData, &indexBufferPtr);
 
 	indexCount = numIndices; //update index count
-}
 
-//Creating a model in AssetManager without a collider
-Mesh::Mesh(ID3D11Buffer * vertexBuffer, int vertCount, ID3D11Buffer * indexBuffer, int indexNum)
-{
-	vertexBufferPtr = vertexBuffer;
-	vertexCount = vertCount;
-	indexBufferPtr = indexBuffer;
-	indexCount = indexNum;
 	collType = NONE;
 	isColliderOffset = false;
 }
 
 //Creating a model in AssetManager with a collider
-Mesh::Mesh(ID3D11Buffer * vertexBuffer, int vertCount, ID3D11Buffer * indexBuffer, int indexNum, ColliderType cType, bool isCollOffset) 
-	: Mesh(vertexBuffer, vertCount, indexBuffer, indexNum)
+Mesh::Mesh(Vertex * vertices, int numVertices, unsigned int * indicies, int numIndices, ID3D11Device * drawDevice, ColliderType cType, bool isCollOffset)
+	: Mesh(vertices, numVertices, indicies, numIndices, drawDevice)
 {
 	collType = cType;
 	isColliderOffset = isCollOffset;

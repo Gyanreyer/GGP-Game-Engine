@@ -48,9 +48,9 @@ Texture2D diffuseTexture : register(t0);
 Texture2D normalMap : register(t1);
 SamplerState basicSampler : register(s0);
 
-float4 getLightingColor(float3 normal, DirectionalLight light)
+float4 calculateDirectionalLight(DirectionalLight light, float3 normal)
 {
-	return light.AmbientColor + (light.DiffuseColor * saturate(dot(normal,normalize(-light.Direction))));
+	return (light.DiffuseColor * saturate(dot(normal, normalize(-light.Direction)))) + light.AmbientColor;
 }
 
 // --------------------------------------------------------
@@ -64,8 +64,25 @@ float4 getLightingColor(float3 normal, DirectionalLight light)
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	float4 surfaceColor = diffuseTexture.Sample(basicSampler,  input.uv);
+	//Normalize these, they may be larger due to interpolation
+	input.normal = normalize(input.normal);
+	input.tangent = normalize(input.tangent);
 
-	return surfaceColor *
-		(getLightingColor(input.normal, dLight1) + getLightingColor(input.normal, dLight2));
+	float4 textureColor = diffuseTexture.Sample(basicSampler,  input.uv);
+
+	//Sample and unpack the normal
+	float3 normalFromTexture = normalMap.Sample(basicSampler, input.uv).xyz * 2 - 1;
+	
+	//Create the Tangent-BiTangent-Normal (TBN) matrix
+	//Translates from tangent to world space
+	float3 N = input.normal;
+	float3 T = normalize(input.tangent - N * dot(input.tangent, N));
+	float3 B = cross(T, N);
+	float3x3 TBN = float3x3(T, B, N);
+	
+	//Overwrite the existing normal with the one from
+	//the normal map after it's been converted to world space
+	input.normal = normalize(mul(normalFromTexture, TBN));
+
+	return textureColor * (calculateDirectionalLight(dLight1, input.normal) + calculateDirectionalLight(dLight2, input.normal));
 }
