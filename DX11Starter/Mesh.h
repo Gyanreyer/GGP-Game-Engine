@@ -42,6 +42,10 @@ public:
 	int GetVerticesCount();
 	int GetIndexCount();
 
+	// Calculates the tangents of the vertices in a mesh
+	// Code adapted from: http://www.terathon.com/code/tangent.html
+	void CalculateTangents(Vertex * verts, int numVerts, unsigned int * indices, int numIndices);
+
 private:
 	ID3D11Buffer* vertexBufferPtr;
 	ID3D11Buffer* indexBufferPtr;

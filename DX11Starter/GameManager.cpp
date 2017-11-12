@@ -79,6 +79,8 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 		asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial")));
 	gameObjects.push_back(GameObject(Transform(XMFLOAT3(4,0.5f,-2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
 		asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
+	gameObjects.push_back(GameObject(Transform(XMFLOAT3(0, 1, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("SphereHP"), asset->GetMaterial("RockMaterial")));
 	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(2, 1, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2)),
 	//	asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
 	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(2,0.25f,-2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
@@ -211,12 +213,14 @@ void GameManager::GameDraw(Renderer* renderer)
 	//Loop through GameObjects and draw them
 	for (byte i = 0; i < gameObjects.size(); i++)
 	{
+		gameObjects[i].GetMaterial()->GetPixelShader()->SetFloat3("cameraPosition", player.GetTransform()->GetPosition()); //Set the player position in the pixel shader for specular calculations
 		renderer->Render(&gameObjects[i]);
 	}
 
 	//Loop through Enemies and draw them
 	for (byte i = 0; i < enemies.size(); i++)
 	{
+		enemies[i].GetMaterial()->GetPixelShader()->SetFloat3("cameraPosition", player.GetTransform()->GetPosition()); //Set the player position in the pixel shader for specular calculations
 		renderer->Render(&enemies[i]);
 	}
 

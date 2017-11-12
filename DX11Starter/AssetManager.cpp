@@ -511,6 +511,19 @@ void AssetManager::CreateMaterial(char * materialName, char * vShaderKey, char *
 	StoreMaterial(materialName, material);
 }
 
+//Create material with normal
+void AssetManager::CreateMaterial(char * materialName, char * vShaderKey, char * pShaderKey, char * textureKey, char * normalKey, char * samplerKey)
+{
+	SimpleVertexShader* vShader = vertexShaderLibrary[vShaderKey];
+	SimplePixelShader* pShader = pixelShaderLibrary[pShaderKey];
+	ID3D11ShaderResourceView* texture = textureLibrary[textureKey];
+	ID3D11ShaderResourceView* normal = textureLibrary[normalKey];
+	ID3D11SamplerState* textureSampler = textureSamplerLibrary[samplerKey];
+
+	Material* material = new Material(vShader, pShader, texture, normal, textureSampler);
+	StoreMaterial(materialName, material);
+}
+
 void AssetManager::StoreVShader(char * vShaderName, SimpleVertexShader * vShader)
 {
 	if (vertexShaderLibrary.count(vShaderName) == 0)

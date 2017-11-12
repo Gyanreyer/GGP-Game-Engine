@@ -1,4 +1,3 @@
-
 // Constant Buffer
 // - Allows us to define a buffer of individual variables 
 //    which will (eventually) hold data from our C++ code
@@ -18,16 +17,16 @@ cbuffer externalData : register(b0)
 // - The name of the struct itself is unimportant, but should be descriptive
 // - Each variable must have a semantic, which defines its usage
 struct VertexShaderInput
-{ 
+{
 	// Data type
 	//  |
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float3 position		: POSITION;     // XYZ position
+	float3 position		: POSITION; // XYZ position
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
-	
+	float3 tangent		: TANGENT; //Tangent of the surface for normal maps, U direction
 };
 
 // Struct representing the data we're sending down the pipeline
@@ -42,10 +41,11 @@ struct VertexToPixel
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
+	float4 position		: SV_POSITION; // XYZW position (System Value Position)
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
-	
+	float3 tangent		: TANGENT; //Tangent of the surface for normal maps, U direction
+	float3 worldPos		: POSITION; //World position of this vertex
 };
 
 // --------------------------------------------------------

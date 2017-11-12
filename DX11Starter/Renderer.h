@@ -6,7 +6,7 @@
 class Renderer
 {
 public:
-	Renderer(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat, ID3D11DeviceContext* context,ID3D11Device* device);
+	Renderer(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat, ID3D11DeviceContext* context, ID3D11Device* device);
 	~Renderer();
 	void CreateLights();
 	void SetViewProjMatrix(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat);
@@ -21,5 +21,5 @@ private:
 	XMFLOAT4X4 projectionMatrix;
 
 	vector<DirectionalLight> directionalLights;
+	vector<PointLight> pointLights;
 };
-
