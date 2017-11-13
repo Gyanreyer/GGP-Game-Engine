@@ -1,5 +1,5 @@
 #include "ProjectileManager.h"
-#include "Lights.h"
+//#include "Lights.h"
 
 ProjectileManager::ProjectileManager()
 {
@@ -74,7 +74,6 @@ void ProjectileManager::UpdateProjectiles(float deltaTime)
 //Iterate through and draw all projectiles
 void ProjectileManager::DrawProjectiles(Renderer* renderer)
 {
-
 	for (int i = 0; i < playerProjectiles.size(); i++)
 		renderer->Render(&playerProjectiles[i]);
 

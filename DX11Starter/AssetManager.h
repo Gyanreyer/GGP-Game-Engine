@@ -31,7 +31,8 @@ public:
 		const wchar_t* textureFile, 
 		ID3D11Device* device);
 	void CreateMaterial(char* materialName, SimpleVertexShader* vShader, SimplePixelShader* pShader, ID3D11ShaderResourceView* texture, ID3D11SamplerState* textureSampler);
-	void CreateMaterial(char* materialName, char* vShaderKey, char* pShaderKey, char* textureKey, char* samplerKey);
+	void CreateMaterial(char* materialName, char* vShaderKey, char* pShaderKey, char* textureKey, char* samplerKey); //Create material without normal
+	void CreateMaterial(char* materialName, char* vShaderKey, char* pShaderKey, char* textureKey, char* normalKey, char* samplerKey); //Create material with normal
 
 	//Add Methods
 	void StoreVShader(char* vShaderName, SimpleVertexShader* vShader);

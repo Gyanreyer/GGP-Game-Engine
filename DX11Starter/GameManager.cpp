@@ -45,6 +45,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 		context);
 
 	CreateGameObjects(asset, context);
+	InitSpatialPartition();
 }
 
 // --------------------------------------------------------
@@ -78,12 +79,33 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 		asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial")));
 	gameObjects.push_back(GameObject(Transform(XMFLOAT3(4,0.5f,-2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
 		asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
+	gameObjects.push_back(GameObject(Transform(XMFLOAT3(0, 1, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("SphereHP"), asset->GetMaterial("RockMaterial")));
 	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(2, 1, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2)),
 	//	asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
 	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(2,0.25f,-2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
 	//	asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
 	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(-2, 0.25f, -2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
 	//	asset->GetMesh("Sphere"), asset->GetMaterial("StoneMat")));
+}
+
+void GameManager::InitSpatialPartition()
+{
+	//NOTE TO SELF: ADD A TAG SYSTEM TO GAMEOBJECTS
+	//ALSO GIVE OBJECTS A REFERENCE TO WHAT NODE THEY'RE IN
+	spacePartitionHead = OctreeNode(XMFLOAT3(0,-20,0),500,nullptr);//Will have to discuss size of play area, for now 1000x1000
+
+	for (int i = 0; i < gameObjects.size(); i++)
+	{
+		spacePartitionHead.AddObject(&gameObjects[i]);
+	}
+
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		spacePartitionHead.AddObject(&enemies[i]);
+	}
+
+	spacePartitionHead.AddObject(&player);
 }
 
 void GameManager::GameUpdate(float deltaTime)
@@ -100,6 +122,8 @@ void GameManager::GameUpdate(float deltaTime)
 		{
 			(enemies)[i].Update(deltaTime);
 		}
+
+		spacePartitionHead.Update();
 
 		//PLAYER PROJECTILE COLLISIONS
 		for (byte i = 0; i < projectileManager.GetPlayerProjectiles().size(); i++)
@@ -189,12 +213,14 @@ void GameManager::GameDraw(Renderer* renderer)
 	//Loop through GameObjects and draw them
 	for (byte i = 0; i < gameObjects.size(); i++)
 	{
+		gameObjects[i].GetMaterial()->GetPixelShader()->SetFloat3("cameraPosition", player.GetTransform()->GetPosition()); //Set the player position in the pixel shader for specular calculations
 		renderer->Render(&gameObjects[i]);
 	}
 
 	//Loop through Enemies and draw them
 	for (byte i = 0; i < enemies.size(); i++)
 	{
+		enemies[i].GetMaterial()->GetPixelShader()->SetFloat3("cameraPosition", player.GetTransform()->GetPosition()); //Set the player position in the pixel shader for specular calculations
 		renderer->Render(&enemies[i]);
 	}
 

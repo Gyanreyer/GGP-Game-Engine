@@ -1,4 +1,3 @@
-
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
 // - The name of the struct itself is unimportant
@@ -11,11 +10,14 @@ struct VertexToPixel
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float4 position		: SV_POSITION;
-	float3 normal		: NORMAL;	
+	float4 position		: SV_POSITION; // XYZW position (System Value Position)
+	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
+	float3 tangent		: TANGENT; //Tangent of the surface for normal maps, U direction
+	float3 worldPos		: POSITION; //World position of this vertex
 };
 
+//DirectionalLight struct
 struct DirectionalLight
 {
 	float4 AmbientColor;
@@ -23,20 +25,33 @@ struct DirectionalLight
 	float3 Direction;
 };
 
-cbuffer externalData : register(b0)
+//PointLight struct
+struct PointLight
 {
-	DirectionalLight light1;
-	DirectionalLight light2;
+	float4 AmbientColor;
+	float4 DiffuseColor;
+	float3 Position;
 };
 
+//Constant buffer, pulls data from C++
+cbuffer externalData : register(b0)
+{
+	DirectionalLight dLight1;
+	DirectionalLight dLight2;
+	PointLight pLight1;
+
+	float3 cameraPosition; //For specular (reflection) calculation
+};
+
+//Texture variables
 Texture2D diffuseTexture : register(t0);
+Texture2D normalMap : register(t1);
 SamplerState basicSampler : register(s0);
 
-float4 getLightingColor(float3 normal, DirectionalLight light)
+float4 calculateDirectionalLight(DirectionalLight light, float3 normal)
 {
-	return light.AmbientColor + (light.DiffuseColor * saturate(dot(normal,normalize(-light.Direction))));
+	return (light.DiffuseColor * saturate(dot(normal, normalize(-light.Direction)))) + light.AmbientColor;
 }
-
 
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
@@ -49,8 +64,25 @@ float4 getLightingColor(float3 normal, DirectionalLight light)
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	float4 surfaceColor = diffuseTexture.Sample(basicSampler,  input.uv);
+	//Normalize these, they may be larger due to interpolation
+	input.normal = normalize(input.normal);
+	input.tangent = normalize(input.tangent);
 
-	return surfaceColor *
-		(getLightingColor(input.normal, light1) + getLightingColor(input.normal, light2));
+	float4 textureColor = diffuseTexture.Sample(basicSampler,  input.uv);
+
+	//Sample and unpack the normal
+	float3 normalFromTexture = normalMap.Sample(basicSampler, input.uv).xyz * 2 - 1;
+	
+	//Create the Tangent-BiTangent-Normal (TBN) matrix
+	//Translates from tangent to world space
+	float3 N = input.normal;
+	float3 T = normalize(input.tangent - N * dot(input.tangent, N));
+	float3 B = cross(T, N);
+	float3x3 TBN = float3x3(T, B, N);
+	
+	//Overwrite the existing normal with the one from
+	//the normal map after it's been converted to world space
+	input.normal = normalize(mul(normalFromTexture, TBN));
+
+	return textureColor * (calculateDirectionalLight(dLight1, input.normal) + calculateDirectionalLight(dLight2, input.normal));
 }

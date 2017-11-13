@@ -14,17 +14,24 @@ OctreeNode::OctreeNode(XMFLOAT3 centerPoint, float boundingRadius, OctreeNode* p
 
 OctreeNode::~OctreeNode()
 {
-	if(children) delete[] children;
 }
 
-GameObject * OctreeNode::GetObjects()
+vector<GameObject*> OctreeNode::GetObjects()
 {
-	return *objects.data();
+	return objects;
 }
 
-unsigned int OctreeNode::GetObjectCount()
+vector<GameObject*> OctreeNode::GetAllContainedObjects()
 {
-	return (unsigned int)objects.size();
+	vector<GameObject*> allObjects(objects);
+
+	for (int i = 0; i < children.size(); i++)
+	{
+		vector<GameObject*> childObjects = children[i].GetAllContainedObjects();
+		allObjects.insert(allObjects.end(), childObjects.begin(), childObjects.end());
+	}
+	
+	return allObjects;
 }
 
 void OctreeNode::AddObject(GameObject * obj)
@@ -39,8 +46,6 @@ void OctreeNode::AddObject(GameObject * obj)
 		}
 		else//Create child octants
 		{
-			children = new OctreeNode[8];
-
 			//Radius for child is half as wide as parent
 			float newRadius = radius / 2;
 
@@ -57,32 +62,56 @@ void OctreeNode::AddObject(GameObject * obj)
 				newCenter.y += radius * (i & 2 ? 0.5f : -0.5f);
 				newCenter.z += radius * (i & 1 ? 0.5f : -0.5f);
 
-				children[i] = OctreeNode(newCenter, newRadius, this);
+				children.push_back(OctreeNode(newCenter, newRadius, this));
 			}
 
 			vector<GameObject*>::iterator iter;
 			//Transfer all objects stored in this node to its children
 			for (iter = objects.begin(); iter != objects.end();)
 			{
-				if (MoveObject(*iter))
-					objects.erase(iter);
-				else
-					++iter;
+				int ind = GetContainingChildIndex((*iter)->GetTransform()->GetPosition(), (*iter)->GetCollider()->dimensions);
+
+				if (ind >= 0)
+				{
+					children[ind].AddObject(*iter);
+					iter = objects.erase(iter);
+					continue;
+				}
+				else if (ind <= -2 && parent)
+				{
+					parent->AddObject(*iter);
+					iter = objects.erase(iter);
+					continue;
+				}
+
+				++iter;
 			}
 		}
 	}
-	//Attempt to place object in child, if doesn't fit then store in this node
-	else if (!MoveObject(obj))
+	//Attempt to place object in a child node, if it doesn't fit then store in this node or parent
+	else
 	{
-		objects.push_back(obj);
-	}
+		int ind = GetContainingChildIndex(obj->GetTransform()->GetPosition(), obj->GetCollider()->dimensions);
 
+		if (ind >= 0)
+		{
+			children[ind].AddObject(obj);
+		}
+		else if (ind <= -2 && parent)
+		{
+			parent->AddObject(obj);
+		}
+		else
+		{
+			objects.push_back(obj);
+		}
+	}
 }
 
 //Return whether node has children
 bool OctreeNode::IsLeafNode()
 {
-	return children == nullptr;
+	return children.size() <= 0;
 }
 
 //Call every frame to make sure all objects are stored in right place still
@@ -99,12 +128,37 @@ void OctreeNode::Update()
 
 	//Iterate through all GameObjects in this node and check if they should remain in this node
 	for (vector<GameObject*>::iterator iter = objects.begin(); iter != objects.end();) {
-		//Check if object's transform has been updated and if so, if it needs to be moved
-		if ((*iter)->GetTransform()->MatrixNeedsUpdate() && MoveObject(*iter))
-			objects.erase(iter);//If object was moved, erase it from this node
-		else
-			++iter;//Otherwise, move on to next obj
+		//if ((*iter)->GetTransform()->MatrixNeedsUpdate()) {
+			int ind = GetContainingChildIndex((*iter)->GetTransform()->GetPosition(), (*iter)->GetCollider()->dimensions);
+
+			//Move object down to child node
+			if (ind >= 0)
+			{
+				children[ind].AddObject(*iter);
+				iter = objects.erase(iter);
+				continue;
+			}
+			//Move object up to parent node
+			else if (ind <= -2 && parent)
+			{
+				parent->AddObject(*iter);
+				iter = objects.erase(iter);
+				continue;
+			}
+		//}
+
+		++iter;//Otherwise, move on to next obj
 	}
+}
+
+OctreeNode * OctreeNode::GetParent()
+{
+	return parent;
+}
+
+vector<OctreeNode> OctreeNode::GetChildren()
+{
+	return children;
 }
 
 //Get index of child that contains given position
@@ -114,23 +168,18 @@ int OctreeNode::GetContainingChildIndex(XMFLOAT3 pos, XMFLOAT3 dimensions)
 	XMFLOAT3 minExtents = XMFLOAT3(pos.x - dimensions.x, pos.y - dimensions.y, pos.z - dimensions.z);
 	XMFLOAT3 maxExtents = XMFLOAT3(pos.x + dimensions.x, pos.y + dimensions.y, pos.z + dimensions.z);
 
-	//If this node has children, check if object fits into any of them
 	if (!IsLeafNode())
 	{
-		//Loop through child nodes and see if object fits inside any
-		for (unsigned int i = 0; i < 8; i++) {
-			OctreeNode oct = children[i];
+		int centerIndex = ((pos.x > center.x)? 4:0) + ((pos.y > center.y)? 2:0) + ((pos.z > center.z)? 1:0);
 
-			XMFLOAT3 min = oct.GetMinPt();
-			XMFLOAT3 max = oct.GetMaxPt();
+		XMFLOAT3 octMin = children[centerIndex].GetMinPt();
+		XMFLOAT3 octMax = children[centerIndex].GetMaxPt();
 
-			//Check if in bounds of this node
-			if (minExtents.x >= min.x && maxExtents.x <= max.x &&
-				minExtents.y >= min.y && maxExtents.y <= max.y &&
-				minExtents.z >= min.z && maxExtents.z <= max.z)
-			{
-				return i;//If in bounds of a node, return that node's index
-			}
+		if (minExtents.x >= octMin.x && maxExtents.x <= octMax.x &&
+			minExtents.y >= octMin.y && maxExtents.y <= octMax.y &&
+			minExtents.z >= octMin.z && maxExtents.z <= octMax.z)
+		{
+			return centerIndex;//Return calculated index if object fully fits into that node
 		}
 	}
 
@@ -138,7 +187,7 @@ int OctreeNode::GetContainingChildIndex(XMFLOAT3 pos, XMFLOAT3 dimensions)
 	XMFLOAT3 thisMin = GetMinPt();
 	XMFLOAT3 thisMax = GetMaxPt();
 
-	//Check if object still fits within this node
+	//Check if object fits within this node
 	if (minExtents.x >= thisMin.x && maxExtents.x <= thisMax.x &&
 		minExtents.y >= thisMin.y && maxExtents.y <= thisMax.y &&
 		minExtents.z >= thisMin.z && maxExtents.z <= thisMax.z)
@@ -147,28 +196,6 @@ int OctreeNode::GetContainingChildIndex(XMFLOAT3 pos, XMFLOAT3 dimensions)
 	}
 
 	return -2;//Return -2 if object didn't fit into this node (need to move up to parent)
-}
-
-//Moves object to other node as appropriate and returns whether moved or not
-bool OctreeNode::MoveObject(GameObject * obj)
-{
-	//Get index of child node object fits in
-	int childIndex = GetContainingChildIndex(obj->GetTransform()->GetPosition(), obj->GetCollider()->dimensions);
-
-	//If index is valid, add object to child
-	if (childIndex >= 0)
-	{
-		children[childIndex].AddObject(obj);
-		return true;
-	}
-	//If index is -2 it doesn't fit in this node, move up to parent
-	else if (childIndex == -2)
-	{
-		parent->AddObject(obj);
-		return true;
-	}
-
-	return false;//Return false if shouldn't be removed from this node
 }
 
 //Get min bounds of this box

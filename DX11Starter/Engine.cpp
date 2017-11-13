@@ -72,17 +72,10 @@ void Engine::Init()
 
 	gameManager = &GameManager::getInstance();
 	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device);
-	//Create camera object
-	//camera = Camera(width, height);
-
 
 	//Default prevMousePos to center of screen
 	prevMousePos.x = width / 2;
 	prevMousePos.y = height / 2;
-
-	//Set the starting point for the real mouth coordinates
-	//realMouse.x = screen.right / 2;
-	//realMouse.y = screen.bottom / 2;
 
 	LoadShaders();
 	CreateMaterials();
@@ -156,6 +149,7 @@ void Engine::CreateMeshes()
 	assetManager->ImportMesh("RustyPete", "../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device, BOX, true);
 	assetManager->ImportMesh("PurpleGhost", "../../DX11Starter/Assets/Models/ghost.obj", device, BOX, false);
 	assetManager->ImportMesh("Plane", "../../DX11Starter/Assets/Models/Quad.obj", device, BOX, false);
+	assetManager->ImportMesh("SphereHP", "../../DX11Starter/Assets/Models/sphereHP.obj", device, SPHERE, false);
 }
 
 ///Loads in textures and makes them into materials
@@ -164,7 +158,7 @@ void Engine::CreateMaterials()
 	//Asset Manager Loading
 	//Create Sampler State
 	ID3D11SamplerState* sample;
-	D3D11_SAMPLER_DESC sampleDesc = {};
+	D3D11_SAMPLER_DESC sampleDesc = {}; //Holds options for sampling
 
 	//Describes how to handle addresses outside 0-1 UV range
 	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -172,16 +166,17 @@ void Engine::CreateMaterials()
 	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 
 	sampleDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;	//Describes how to handle sampling between pixels
-	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX; //Mipmaps (if applicable)
 
 	HRESULT sampleResult = device->CreateSamplerState(&sampleDesc, &sample);
 	if (sampleResult != S_OK) {
 		printf("Sample State could not be created");
 	}
 
+	//Create the sampler object
 	assetManager->StoreSampler("BasicSampler", sample);
 
-	//create Texture
+	//Create Texture
 	assetManager->ImportTexture("HazardTexture", L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", device, context);
 	assetManager->CreateMaterial("HazardCrateMat", "BasicVShader", "BasicPShader", "HazardTexture", "BasicSampler");
 	assetManager->ImportTexture("RustyPete", L"../../DX11Starter/Assets/Models/RustyPete/rusty_pete_body_c.png", device, context);
@@ -192,10 +187,12 @@ void Engine::CreateMaterials()
 	assetManager->CreateMaterial("EnemyMaterial", "BasicVShader", "BasicPShader", "EnemyTexture", "BasicSampler");
 	assetManager->ImportTexture("PurpleGhost", L"../../DX11Starter/Assets/Textures/ghost-dark.png", device, context);
 	assetManager->CreateMaterial("PurpleGhost", "BasicVShader", "BasicPShader", "PurpleGhost", "BasicSampler");
+	assetManager->ImportTexture("RockTexture", L"../../DX11Starter/Assets/Textures/rock.jpg", device, context);
+	assetManager->ImportTexture("RockNormal", L"../../DX11Starter/Assets/Textures/rockNormals.jpg", device, context);
+	assetManager->CreateMaterial("RockMaterial", "BasicVShader", "BasicPShader", "RockTexture", "RockNormal", "BasicSampler");
 
 	//import skybox Texture
 	assetManager->ImportCubeMapTexture("SunnySkybox", L"../../DX11Starter/Assets/Textures/SunnyCubeMap.dds", device);
-
 }
 
 // --------------------------------------------------------
@@ -311,7 +308,9 @@ void Engine::Draw(float deltaTime, float totalTime)
 		}
 		ImGui::EndPopup();
 	}
+
 	ImGui::Render();
+
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
 	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)

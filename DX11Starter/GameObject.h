@@ -46,6 +46,6 @@ protected:
 
 	Collider collider; //The collider on this object
 
-	ID3D11DeviceContext * context; //Render target (I think)
+	//ID3D11DeviceContext * context; //Render target (I think)
 };
 
