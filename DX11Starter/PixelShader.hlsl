@@ -20,7 +20,6 @@ struct VertexToPixel
 //DirectionalLight struct
 struct DirectionalLight
 {
-	float4 AmbientColor;
 	float4 DiffuseColor;
 	float3 Direction;
 };
@@ -28,7 +27,6 @@ struct DirectionalLight
 //PointLight struct
 struct PointLight
 {
-	float4 AmbientColor;
 	float4 DiffuseColor;
 	float3 Position;
 };
@@ -40,6 +38,7 @@ cbuffer externalData : register(b0)
 	DirectionalLight dLight2;
 	PointLight pLight1;
 
+	float4 ambientLight; //The amount of ambient light in the scene
 	float3 cameraPosition; //For specular (reflection) calculation
 };
 
@@ -48,9 +47,51 @@ Texture2D diffuseTexture : register(t0);
 Texture2D normalMap : register(t1);
 SamplerState basicSampler : register(s0);
 
+//Directional light diffuse calculations
 float4 calculateDirectionalLight(DirectionalLight light, float3 normal)
 {
-	return (light.DiffuseColor * saturate(dot(normal, normalize(-light.Direction)))) + light.AmbientColor;
+	return light.DiffuseColor * saturate(dot(normal, normalize(-light.Direction)));
+}
+
+//Point light diffuse calculations
+//(Diffuse + reflection)
+float4 calculateLambertPointLight(PointLight light, VertexToPixel input)
+{
+	float3 directionToPointLight = normalize(light.Position - input.worldPos); //Direction from this vertex to the light
+	float pointLightAmount = saturate(dot(input.normal, directionToPointLight)); //Amount of light from this point light
+
+	return (light.DiffuseColor * pointLightAmount); //Return point light (color * amount)
+}
+
+//Point light specular calculations
+//Phong, slower than Blinn-Phong
+//(Diffuse + reflection)
+float4 calculatePhongPointLight(PointLight light, VertexToPixel input, float3 cameraPos)
+{
+	float3 directionToPointLight = normalize(light.Position - input.worldPos); //Direction from this vertex to the light
+	float pointLightAmount = saturate(dot(input.normal, directionToPointLight)); //Amount of light from this point light (NdotL)
+	float3 directionToCamera = normalize(cameraPos - input.worldPos); //Direction to the camera from the current pixel
+
+	float3 reflection = reflect(-directionToPointLight, input.normal); //Reflection vector of the incoming light
+	float pointLightSpecular = pow(saturate(dot(reflection, directionToCamera)), 64); //Calculate the specular highlight (1-64 for shininess)
+
+	return (light.DiffuseColor * pointLightAmount) + pointLightSpecular; //Return point light with specular reflection (color * amount + specular)
+}
+
+//Point light specular calculations
+//Blinn-Phong, faster than Phong
+//(Diffuse + reflection)
+float4 calculateBlinnPhongPointLight(PointLight light, VertexToPixel input, float3 cameraPos)
+{
+	float3 directionToPointLight = normalize(light.Position - input.worldPos); //Direction from this vertex to the light
+	float pointLightAmount = saturate(dot(input.normal, directionToPointLight)); //Amount of light from this point light (NdotL)
+	float3 directionToCamera = normalize(cameraPos - input.worldPos); //Direction to the camera from the current pixel
+
+	float3 halfWayVector = normalize(directionToPointLight + directionToCamera); //Halfway vector between the surface and camera
+	float NdotH = saturate(dot(input.normal, halfWayVector)); //Cosine of the normal and halfway vectors
+	float pointLightSpecular = pow(NdotH, 64); //Calculate the specular highlight (1-64 for shininess)
+
+	return (light.DiffuseColor * pointLightAmount) + pointLightSpecular; //Return point light with specular reflection (color * amount + specular)
 }
 
 // --------------------------------------------------------
@@ -68,7 +109,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	input.normal = normalize(input.normal);
 	input.tangent = normalize(input.tangent);
 
-	float4 textureColor = diffuseTexture.Sample(basicSampler,  input.uv);
+	float4 textureColor = diffuseTexture.Sample(basicSampler, input.uv);
 
 	//Sample and unpack the normal
 	float3 normalFromTexture = normalMap.Sample(basicSampler, input.uv).xyz * 2 - 1;
@@ -84,5 +125,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//the normal map after it's been converted to world space
 	input.normal = normalize(mul(normalFromTexture, TBN));
 
-	return textureColor * (calculateDirectionalLight(dLight1, input.normal) + calculateDirectionalLight(dLight2, input.normal));
+	return textureColor * 
+		(ambientLight + //Ambient light in the scene
+			calculateDirectionalLight(dLight1, input.normal) + calculateDirectionalLight(dLight2, input.normal) + //Directional lights
+			calculateBlinnPhongPointLight(pLight1, input, cameraPosition) //Point lights
+			);
 }

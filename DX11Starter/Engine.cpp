@@ -71,7 +71,7 @@ void Engine::Init()
 	ImGui_ImplDX11_Init(hWnd, device, context);
 
 	gameManager = &GameManager::getInstance();
-	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device);
+	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device, GameManager::getInstance().GetPlayer());
 
 	//Default prevMousePos to center of screen
 	prevMousePos.x = width / 2;

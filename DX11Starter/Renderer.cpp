@@ -1,7 +1,9 @@
 #include "Renderer.h"
 
-Renderer::Renderer(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat, ID3D11DeviceContext * context, ID3D11Device * device)
+Renderer::Renderer(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat, ID3D11DeviceContext * context, ID3D11Device * device, Player* play)
 {
+	player = play;
+
 	viewMatrix = viewMat;
 	projectionMatrix = projectMat;
 	this->device = device;
@@ -16,20 +18,21 @@ Renderer::~Renderer()
 
 void Renderer::CreateLights()
 {
+	//AMBIENT LIGHT IS PASSED SEPARATELY INTO THE SHADER
+	//IT'S MORE SIMPLE THAN MANAGING IT VIA ALL OF OUR LIGHTS
+
 	//Create directional lights
-	//Ambient
 	//Diffuse
 	//Direction
-	DirectionalLight dLight1 = { XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, -1.0f, 0.5f) };
-	DirectionalLight dLight2 = { XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.5f, -0.5f, 0.25f) };
+	DirectionalLight dLight1 = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, -1.0f, 0.5f) };
+	DirectionalLight dLight2 = { XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.5f, -0.5f, 0.25f) };
 	directionalLights.push_back(dLight1);
 	directionalLights.push_back(dLight2);
 
 	//Point lights
-	//Ambient
 	//Diffuse
 	//Position
-	PointLight pLight1 = { XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.5f, -0.5f, -0.5f) };
+	PointLight pLight1 = { XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(0, 2, 0) };
 	pointLights.push_back(pLight1);
 }
 
@@ -63,11 +66,12 @@ void Renderer::Render(GameObject * gameObject)
 	vertexShader->SetShader();
 
 	//Set up pixel shader data
+	//Send light data
 	pixelShader->SetData(
 		"dLight1",
 		&directionalLights[0],
 		sizeof(DirectionalLight));
-
+	
 	pixelShader->SetData(
 		"dLight2",
 		&directionalLights[1],
@@ -77,6 +81,9 @@ void Renderer::Render(GameObject * gameObject)
 		"pLight1",
 		&pointLights[0],
 		sizeof(PointLight));
+
+	pixelShader->SetFloat4("ambientLight", XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f));
+	pixelShader->SetFloat3("cameraPosition", player->GetTransform()->GetPosition()); //Set the player position in the pixel shader for point light specular calculations
 
 	pixelShader->SetShaderResourceView("diffuseTexture", goMaterial->GetSRV()); //Texture
 	pixelShader->SetShaderResourceView("normalMap", goMaterial->GetNormalSRV()); //Normal map, not every object has one right now, but they all probably should
