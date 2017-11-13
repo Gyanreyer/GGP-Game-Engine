@@ -18,6 +18,9 @@
     <Filter Include="External Libraries\ImGui">
       <UniqueIdentifier>{6527df07-5e7f-4618-b8e1-ff4ad4d90ad1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Particle System">
+      <UniqueIdentifier>{3c850fcb-d6a1-4c0f-a74e-e7c75af4ffd4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXCore.cpp">
@@ -85,6 +88,12 @@
     </ClCompile>
     <ClCompile Include="OctreeNode.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Emitter.cpp">
+      <Filter>Particle System</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>Particle System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +180,15 @@
     </ClInclude>
     <ClInclude Include="OctreeNode.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Particle.h">
+      <Filter>Particle System</Filter>
+    </ClInclude>
+    <ClInclude Include="Emitter.h">
+      <Filter>Particle System</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>Particle System</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
