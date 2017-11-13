@@ -54,6 +54,8 @@ Engine::~Engine()
 	ImGui_ImplDX11_Shutdown();
 
 	//asset manager cleans up assets when game is deleted
+	skyBoxRasterState->Release();
+	skyboxDepthStencilState->Release();
 
 	//Don't forget to delete the renderer
 	delete renderer;
@@ -79,7 +81,22 @@ void Engine::Init()
 	CreateMaterials();
 	CreateMeshes();
 
-	gameManager->StartGame(assetManager, (float)width, (float)height, context); //Starts the game
+	gameManager->StartGame(assetManager, (float)width, (float)height, context); //starts the game
+	
+	//----------Skybox DX States ---------------//
+	//rasterizer state that allows us to draw inside of cube
+	D3D11_RASTERIZER_DESC rasterizerDesc = {}; // Remember to zero it out! so there is no garbage data
+	rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.DepthClipEnable = true;
+	device->CreateRasterizerState(&rasterizerDesc, &skyBoxRasterState);
+
+	//Depth state for accepting pixels with depth equal to existing depth
+	D3D11_DEPTH_STENCIL_DESC depthStencil = {};
+	depthStencil.DepthEnable = true;
+	depthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencil.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&depthStencil, &skyboxDepthStencilState);
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -101,9 +118,19 @@ void Engine::LoadShaders()
 	SimplePixelShader* pixelShader = new SimplePixelShader(device, context);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
 
+	//Load Skybox Shaders
+	SimpleVertexShader* skyVShader = new SimpleVertexShader(device, context);
+	skyVShader->LoadShaderFile(L"SkyVertexShader.cso");
+
+	SimplePixelShader* skyPShader = new SimplePixelShader(device, context);
+	skyPShader->LoadShaderFile(L"SkyPixelShader.cso");
+
 	//Store Vertex and Pixel Shaders into the AssetManager
 	assetManager->StoreVShader("BasicVShader", vertexShader);
 	assetManager->StorePShader("BasicPShader", pixelShader);
+	assetManager->StoreVShader("SkyboxShader", skyVShader);
+	assetManager->StorePShader("SkyboxShader", skyPShader);
+
 }
 
 // ---------------------------------------------------------
@@ -163,6 +190,9 @@ void Engine::CreateMaterials()
 	assetManager->ImportTexture("RockTexture", L"../../DX11Starter/Assets/Textures/rock.jpg", device, context);
 	assetManager->ImportTexture("RockNormal", L"../../DX11Starter/Assets/Textures/rockNormals.jpg", device, context);
 	assetManager->CreateMaterial("RockMaterial", "BasicVShader", "BasicPShader", "RockTexture", "RockNormal", "BasicSampler");
+
+	//import skybox Texture
+	assetManager->ImportCubeMapTexture("SunnySkybox", L"../../DX11Starter/Assets/Textures/SunnyCubeMap.dds", device);
 }
 
 // --------------------------------------------------------
@@ -227,6 +257,44 @@ void Engine::Draw(float deltaTime, float totalTime)
 	}
 
 	gameManager->GameDraw(renderer);
+
+	//Draw Skybox Last
+	//only keeps pixels that haven't been drawn to yet (ones that have a depth of 1.0)
+	ID3D11Buffer* skyVB = assetManager->GetMesh("Cube")->GetVertexBuffer();
+	ID3D11Buffer* skyIB = assetManager->GetMesh("Cube")->GetIndexBuffer();
+
+	//set the skybox Buffers
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
+
+	SimpleVertexShader* skyVS = assetManager->GetVShader("SkyboxShader");
+	SimplePixelShader* skyPS = assetManager->GetPShader("SkyboxShader");
+
+	//copy Vertex shader constant data to shader
+	skyVS->SetMatrix4x4("view", gameManager->GetPlayer()->GetViewMatrix());
+	skyVS->SetMatrix4x4("projection", gameManager->GetPlayer()->GetProjectionMatrix());
+	skyVS->CopyAllBufferData();
+	skyVS->SetShader();
+
+	//copy pixel shader constant data to shader
+	skyPS->SetShaderResourceView("skyboxTexture", assetManager->GetTexture("SunnySkybox"));
+	skyPS->SetSamplerState("skySampler", assetManager->GetSampler("BasicSampler"));
+	skyPS->CopyAllBufferData();
+	skyPS->SetShader();
+
+	//Set skybox render state options
+	context->RSSetState(skyBoxRasterState);
+	context->OMSetDepthStencilState(skyboxDepthStencilState, 0);
+
+	//render sky box
+	context->DrawIndexed(assetManager->GetMesh("Cube")->GetIndexCount(), 0, 0);
+
+	//reset render state options
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
+
 
 	if (ImGui::BeginPopup("EndGame")) {
 		ImGui::TextColored(ImVec4(1, 0, 0, 1), "Game is over");

@@ -27,6 +27,9 @@ public:
 	void ImportTexture(char* textureName, //Key that texture will be stored in library under
 		const wchar_t* textureFile,		//FilePath to the texture
 		ID3D11Device* device, ID3D11DeviceContext* context); //DirectX device and device context used to create texture
+	void ImportCubeMapTexture(char* textureName,
+		const wchar_t* textureFile, 
+		ID3D11Device* device);
 	void CreateMaterial(char* materialName, SimpleVertexShader* vShader, SimplePixelShader* pShader, ID3D11ShaderResourceView* texture, ID3D11SamplerState* textureSampler);
 	void CreateMaterial(char* materialName, char* vShaderKey, char* pShaderKey, char* textureKey, char* samplerKey); //Create material without normal
 	void CreateMaterial(char* materialName, char* vShaderKey, char* pShaderKey, char* textureKey, char* normalKey, char* samplerKey); //Create material with normal

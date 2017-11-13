@@ -4,6 +4,7 @@
 #include <string>
 #include <DirectXMath.h>
 #include "WICTextureLoader.h" //used for texture loading
+#include "DDSTextureLoader.h" //used for cube map texture loading
 
 //For the DirectX Math Library
 using namespace DirectX;
@@ -417,6 +418,17 @@ void AssetManager::ImportTexture(char * textureName, const wchar_t* textureFile,
 {
 	ID3D11ShaderResourceView* texture;
 	HRESULT tResult = CreateWICTextureFromFile(device, context, textureFile, 0, &texture);
+	if (tResult != S_OK) {
+		printf("Texture is could not be loaded");
+		return;
+	}
+	StoreTexture(textureName, texture);
+}
+
+void AssetManager::ImportCubeMapTexture(char * textureName, const wchar_t * textureFile, ID3D11Device * device)
+{
+	ID3D11ShaderResourceView* texture;
+	HRESULT tResult = CreateDDSTextureFromFile(device, textureFile, 0, &texture);
 	if (tResult != S_OK) {
 		printf("Texture is could not be loaded");
 		return;
