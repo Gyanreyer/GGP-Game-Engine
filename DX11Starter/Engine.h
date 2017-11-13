@@ -5,14 +5,8 @@
 #include <string> //Int conversion to string
 #include "DXCore.h"
 #include "SimpleShader.h"
-//#include "GameObject.h"
-//#include "Collider.h"	 //Game Manager + Others
-//#include "Collision.h" //Game Manager + Others
 #include "Camera.h"
 #include "AssetManager.h"
-//#include "Player.h" //GameManager
-//#include "Enemy.h"	//GameManager
-//#include "ProjectileManager.h"	//GameManager
 #include "GameManager.h"
 
 using std::to_string; //Alternative to atoi
@@ -59,20 +53,9 @@ private:
 	GameManager* gameManager;
 	Renderer* renderer;
 
-	//Directional light
-	//DirectionalLight light1;
-	//DirectionalLight light2;
-
-	//Figure out implementing free cam later
-	//Camera camera;
-	//bool freelookEnabled;
-
-	//The player and enemy
-	//Player* player;
-	//ProjectileManager* projectileManager;
-
-	//Don't need this due to some thing I did but forgot how it works
-	//bool freeLookEnabled = false;	//tells whether freelook is enabled 
+	//Skybox DX Render States 
+	ID3D11RasterizerState* skyBoxRasterState;
+	ID3D11DepthStencilState* skyboxDepthStencilState;
 
 	//imgui Variables
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
