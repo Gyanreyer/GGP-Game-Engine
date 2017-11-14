@@ -2,7 +2,7 @@
 
 GameObject::GameObject() {}
 
-GameObject::GameObject(Transform trans, Mesh * mesh, Material * material)
+GameObject::GameObject(Transform trans, Mesh * mesh, Material * material, char * objTag)
 {
 	transform = trans;
 
@@ -10,15 +10,19 @@ GameObject::GameObject(Transform trans, Mesh * mesh, Material * material)
 	SetMaterial(material);
 
 	collider = Collider(mesh->GetColliderType(), transform.GetPosition(), transform.GetScale(), mesh->GetIsColliderOffset());
+
+	tag = objTag;
 }
 
 //Just a collider, no visible object
-GameObject::GameObject(Transform trans, ColliderType colliderType)
+GameObject::GameObject(Transform trans, ColliderType colliderType, char * objTag)
 {
 	transform = trans;
 
 	//This collider type will never be offset
 	collider = Collider(colliderType, transform.GetPosition(), transform.GetScale());
+
+	tag = objTag;
 }
 
 GameObject::~GameObject() {}
@@ -58,6 +62,21 @@ XMFLOAT4X4 GameObject::GetWorldMatrix()
 {
 	UpdateWorldMatrix();//Make sure world matrix is up to date before returning
 	return worldMatrix;
+}
+
+OctreeNode * GameObject::GetOctNode()
+{
+	return currentOctNode;
+}
+
+void GameObject::SetOctNode(OctreeNode * newOct)
+{
+	currentOctNode = newOct;
+}
+
+char * GameObject::GetTag()
+{
+	return tag;
 }
 
 //Update the world matrix if transform has changed

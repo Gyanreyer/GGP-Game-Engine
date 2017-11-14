@@ -6,7 +6,22 @@
 //Make do Something
 bool Collision::CheckCollision(Collider* collider1, Collider* collider2)
 {
-	return false;
+	if (collider1->collType == BOX && collider2->collType == BOX)
+	{
+		return CheckCollisionBoxBox(collider1, collider2);
+	}
+	else if (collider1->collType == SPHERE && collider2->collType == SPHERE)
+	{
+		return CheckCollisionSphereSphere(collider1, collider2);
+	}
+	else if (collider1->collType == SPHERE && collider2->collType == BOX)
+	{
+		return CheckCollisionSphereBox(collider1, collider2);
+	}
+	else
+	{
+		return CheckCollisionSphereBox(collider2, collider1);
+	}
 }
 
 //AABB-AABB Collisions

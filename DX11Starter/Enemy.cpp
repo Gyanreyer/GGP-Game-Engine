@@ -6,7 +6,7 @@ Enemy::Enemy()
 }
 
 Enemy::Enemy(Transform trans, Mesh * mesh, Material * material, ProjectileManager* projManager, byte pointValue, EnemyType eType)
-	: GameObject(trans, mesh, material)
+	: GameObject(trans, mesh, material, "Enemy")
 {
 	transform = trans;
 

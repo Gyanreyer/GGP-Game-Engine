@@ -62,5 +62,7 @@ private:
 	OctreeNode spacePartitionHead;
 
 	void InitSpatialPartition();
+
+	void CheckObjectCollisions();
 };
 

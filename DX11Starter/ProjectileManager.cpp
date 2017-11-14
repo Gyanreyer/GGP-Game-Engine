@@ -1,11 +1,12 @@
 #include "ProjectileManager.h"
+#include "OctreeNode.h"
 //#include "Lights.h"
 
 ProjectileManager::ProjectileManager()
 {
 }
 
-ProjectileManager::ProjectileManager(Mesh * projMesh, Material * playerProjMat, Material * enemyProjMat, ID3D11DeviceContext * ctx)
+ProjectileManager::ProjectileManager(Mesh * projMesh, Material * playerProjMat, Material * enemyProjMat, ID3D11DeviceContext * ctx, OctreeNode * headNode)
 {
 	projectileMesh = projMesh;
 	playerProjectileMaterial = playerProjMat;
@@ -13,6 +14,8 @@ ProjectileManager::ProjectileManager(Mesh * projMesh, Material * playerProjMat, 
 	context = ctx;
 
 	projectileLifetime = 3.0f;
+
+	spacePartitionHead = headNode;
 }
 
 ProjectileManager::~ProjectileManager()
@@ -22,49 +25,45 @@ ProjectileManager::~ProjectileManager()
 void ProjectileManager::SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 direction)
 {
 	//Add new player projectile
-	//Only spawn new projectiles when there aren't too many on screen
-	if (playerProjectiles.size() < 3)
-	{
-		playerProjectiles.push_back(
-			Projectile(projectileMesh,
-				playerProjectileMaterial,//Use player proj material
-				startPt,//Point bullet will start from
-				direction,//Rotation for bullet to move in
-				5.0f));//Move at speed of 5 units/second
-	}
+	Projectile newProj(projectileMesh,
+		playerProjectileMaterial,//Use player proj material
+		startPt,//Point bullet will start from
+		direction,//Rotation for bullet to move in
+		7.0f);//Move at speed of 7 units/second
+
+	spacePartitionHead->AddObject(&newProj);//Add to spatial partition octree for coll management
+
+	//Store new player projectile
+	//playerProjectiles.push_back(newProj);
+	projectiles.push_back(newProj);
 }
 
 void ProjectileManager::SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 direction)
 {
-	//Add new enemy projectile
-	enemyProjectiles.push_back(
-		Projectile(projectileMesh,
-			enemyProjectileMaterial,//Use enemy proj material
-			startPt,//Point buller will start from
-			direction,//Rotation for bullet to move in
-			3.0f));//Enemy bullets move slower?
+	Projectile newProj(projectileMesh,
+		enemyProjectileMaterial,//Use enemy proj material
+		startPt,//Point buller will start from
+		direction,//Rotation for bullet to move in
+		5.0f);//Move at speed of 5 units/second, slower than player's bullets
+
+	spacePartitionHead->AddObject(&newProj);//Add to spatial partition octree
+
+	//Store new enemy projectile
+	//enemyProjectiles.push_back(newProj);
+	projectiles.push_back(newProj);
 }
 
 //Iterate through all projectiles and move them (or delete them if lifetime has expired)
 void ProjectileManager::UpdateProjectiles(float deltaTime)
 {
-	//Iterator to iterate over projectiles
-	vector<Projectile>::iterator iter;
-
 	//Loop through player and then enemy projs, remove any that have expired and update rest
-	for (iter = playerProjectiles.begin(); iter != playerProjectiles.end();) {
+	for (vector<Projectile>::iterator iter = projectiles.begin(); iter != projectiles.end();) {
 		if (iter->GetTimeAlive() > projectileLifetime)
-			iter = playerProjectiles.erase(iter);
-		else {
-			iter->Update(deltaTime);
-			++iter;
+		{
+			iter = RemoveProjectile(iter);
 		}
-	}
-
-	for (iter = enemyProjectiles.begin(); iter != enemyProjectiles.end();) {
-		if (iter->GetTimeAlive() > projectileLifetime)
-			iter = enemyProjectiles.erase(iter);
-		else {
+		else
+		{
 			iter->Update(deltaTime);
 			++iter;
 		}
@@ -74,46 +73,36 @@ void ProjectileManager::UpdateProjectiles(float deltaTime)
 //Iterate through and draw all projectiles
 void ProjectileManager::DrawProjectiles(Renderer* renderer)
 {
-	for (int i = 0; i < playerProjectiles.size(); i++)
-		renderer->Render(&playerProjectiles[i]);
-
-	for (int i = 0; i < enemyProjectiles.size(); i++)
-		renderer->Render(&enemyProjectiles[i]);
+	for (int i = 0; i < projectiles.size(); i++)
+		renderer->Render(&projectiles[i]);
 }
 
-void ProjectileManager::RemovePlayerProjectile(int i)
+void ProjectileManager::RemoveProjectile(int i)
 {
-	playerProjectiles.erase(playerProjectiles.begin() + i);
+	projectiles[i].GetOctNode()->RemoveObject(&projectiles[i]);//Stop tracking object in octree
+	projectiles.erase(projectiles.begin() + i);//Erase from vector
 }
 
-void ProjectileManager::RemoveEnemyProjectile(int i)
+vector<Projectile>::iterator ProjectileManager::RemoveProjectile(vector<Projectile>::iterator proj)
 {
-	enemyProjectiles.erase(enemyProjectiles.begin() + i);
+	proj->GetOctNode()->RemoveObject(&(*proj));//Stop tracking object in octree
+	return projectiles.erase(proj);//Erase from vector and return new iterator
 }
 
-////Player projectiles colliding with the enemies
-//bool ProjectileManager::CheckPlayerProjectileCollision(GameObject* other)
-//{
-//	for (byte i = 0; i < playerProjectiles.size(); i++)
-//	{
-//		
-//	}
-//}
-//
-////Enemy projectiles colliding with the player
-//bool ProjectileManager::CheckEnemyProjectileCollision(GameObject* other)
-//{
-//	return false;
-//}
-
-//Get the player's projectiles
-vector<Projectile> ProjectileManager::GetPlayerProjectiles()
+//Search for and remove a projectile given its address in memory
+void ProjectileManager::RemoveProjectileByAddress(GameObject * proj)
 {
-	return playerProjectiles;
+	for (vector<Projectile>::iterator iter = projectiles.begin(); iter != projectiles.end();++iter)
+	{
+		if (&(*iter)==proj)
+		{
+			RemoveProjectile(iter);
+			return;
+		}
+	}
 }
 
-//Get the list of projectiles the enemy fires
-vector<Projectile> ProjectileManager::GetEnemyProjectiles()
+vector<Projectile> ProjectileManager::GetProjectiles()
 {
-	return enemyProjectiles;
+	return projectiles;
 }

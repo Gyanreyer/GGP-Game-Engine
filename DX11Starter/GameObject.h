@@ -6,15 +6,14 @@
 #include "Transform.h"
 #include "Collider.h" //Colliders
 
-//context would be in renderer class
-//ColliderType and ColliderOffset will be from Mesh
-//Draw will be moved to Renderer class
+
+class OctreeNode;//Resolves circular dependency
 class GameObject
 {
 public:
 	GameObject();//Default constructor does nothing
-	GameObject(Transform trans, Mesh * mesh, Material * material);
-	GameObject(Transform trans, ColliderType colliderType);
+	GameObject(Transform trans, Mesh * mesh, Material * material, char* objTag);
+	GameObject(Transform trans, ColliderType colliderType, char* objTag);
 	~GameObject();
 
 	//Takes a Mesh pointer to use for drawing this object
@@ -34,6 +33,11 @@ public:
 	Collider* GetCollider();
 	XMFLOAT4X4 GetWorldMatrix();
 
+	OctreeNode * GetOctNode();
+	void SetOctNode(OctreeNode * newOct);
+
+	char * GetTag();
+
 private:
 	XMFLOAT4X4 worldMatrix;
 	void UpdateWorldMatrix();
@@ -46,6 +50,8 @@ protected:
 
 	Collider collider; //The collider on this object
 
-	//ID3D11DeviceContext * context; //Render target (I think)
+	OctreeNode * currentOctNode;
+
+	char * tag;
 };
 

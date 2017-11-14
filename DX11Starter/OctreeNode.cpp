@@ -39,10 +39,11 @@ void OctreeNode::AddObject(GameObject * obj)
 	//If this node is currently a leaf w/ no children
 	if (IsLeafNode())
 	{
+		objects.push_back(obj);//Store object in objects vector
+
 		if (objects.size() < maxItems ||//Don't create new octant until surpass max # of items
 			(radius / 2) < minBoundsSize) {//Prevent creating new octants if they'll be too small
-			objects.push_back(obj);//Store object in objects vector
-			return;
+			obj->SetOctNode(this);//Store object's current octant as this one
 		}
 		else//Create child octants
 		{
@@ -104,8 +105,18 @@ void OctreeNode::AddObject(GameObject * obj)
 		else
 		{
 			objects.push_back(obj);
+			obj->SetOctNode(this);
 		}
 	}
+}
+
+void OctreeNode::RemoveObject(GameObject * obj)
+{
+	if (std::find(objects.begin(), objects.end(), obj) != objects.end())
+	{
+		printf("Hello");
+	}
+	objects.erase(std::find(objects.begin(), objects.end(), obj), objects.end());
 }
 
 //Return whether node has children
@@ -117,7 +128,7 @@ bool OctreeNode::IsLeafNode()
 //Call every frame to make sure all objects are stored in right place still
 void OctreeNode::Update()
 {
-	//If this isn't a leaf node, just update the children
+	//If this isn't a leaf node, update the children
 	if (!IsLeafNode()) {
 		for (unsigned int i = 0; i < 8; i++) {
 			children[i].Update();
@@ -128,7 +139,7 @@ void OctreeNode::Update()
 
 	//Iterate through all GameObjects in this node and check if they should remain in this node
 	for (vector<GameObject*>::iterator iter = objects.begin(); iter != objects.end();) {
-		//if ((*iter)->GetTransform()->MatrixNeedsUpdate()) {
+		if ((*iter)->GetTransform()->MatrixNeedsUpdate()) {
 			int ind = GetContainingChildIndex((*iter)->GetTransform()->GetPosition(), (*iter)->GetCollider()->dimensions);
 
 			//Move object down to child node
@@ -139,13 +150,13 @@ void OctreeNode::Update()
 				continue;
 			}
 			//Move object up to parent node
-			else if (ind <= -2 && parent)
+			else if (ind <= -2 && parent != nullptr)
 			{
 				parent->AddObject(*iter);
 				iter = objects.erase(iter);
 				continue;
 			}
-		//}
+		}
 
 		++iter;//Otherwise, move on to next obj
 	}

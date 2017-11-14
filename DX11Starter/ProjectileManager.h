@@ -7,7 +7,7 @@ class ProjectileManager
 {
 public:
 	ProjectileManager();
-	ProjectileManager(Mesh * projMesh, Material * playerProjMat, Material * enemyProjMat, ID3D11DeviceContext * ctx);
+	ProjectileManager(Mesh * projMesh, Material * playerProjMat, Material * enemyProjMat, ID3D11DeviceContext * ctx, OctreeNode * headNode);
 	~ProjectileManager();
 
 	//Spawn projectiles
@@ -18,19 +18,11 @@ public:
 
 	//Draw all projectiles
 	void DrawProjectiles(Renderer* renderer);
-	void RemovePlayerProjectile(int i);
-	void RemoveEnemyProjectile(int i);
+	void RemoveProjectile(int i);
+	vector<Projectile>::iterator RemoveProjectile(vector<Projectile>::iterator proj);
+	void RemoveProjectileByAddress(GameObject * proj);
 
-	//Investigate spatial partitioning?
-	//Not sure what current state of collision detection is so will leave this for now
-	//Moved this out, I think it's more efficient to do one function call in game
-	//to directly compare collisions. Created Get methods for vectors instead.
-	//Can change back later if needed
-	//bool CheckPlayerProjectileCollision(GameObject* other);
-	//bool CheckEnemyProjectileCollision(GameObject* other);
-
-	vector<Projectile> GetPlayerProjectiles();
-	vector<Projectile> GetEnemyProjectiles();
+	vector<Projectile> GetProjectiles();
 
 private:
 	ID3D11DeviceContext * context;
@@ -38,9 +30,10 @@ private:
 	Material * playerProjectileMaterial;
 	Material * enemyProjectileMaterial;
 
-	vector<Projectile> playerProjectiles;
-	vector<Projectile> enemyProjectiles;
+	vector<Projectile> projectiles;
 
 	float projectileLifetime;
+
+	OctreeNode * spacePartitionHead;
 };
 

@@ -6,7 +6,7 @@ Player::Player()
 }
 
 Player::Player(Transform trans, unsigned int projectionWidth, unsigned int projectionHeight)
-	: GameObject(trans, BOX)
+	: GameObject(trans, BOX, "Player")
 {
 	//BYTE VALUES MUST BE BETWEEN 0 AND 255
 	//UNSIGNED SHORT VALUES MUST BE BETWEEN 0 AND 65535

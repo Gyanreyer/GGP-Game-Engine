@@ -14,6 +14,7 @@ public:
 	vector<GameObject*> GetAllContainedObjects();
 
 	void AddObject(GameObject * obj);
+	void RemoveObject(GameObject * obj);
 
 	bool IsLeafNode();
 
