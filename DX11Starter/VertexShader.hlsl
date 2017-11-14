@@ -1,3 +1,7 @@
+//Calculates texture information
+//Calculates normal map information
+//Calculates directional and point lights
+
 // Constant Buffer
 // - Allows us to define a buffer of individual variables 
 //    which will (eventually) hold data from our C++ code

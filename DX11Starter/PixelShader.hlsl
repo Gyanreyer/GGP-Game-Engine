@@ -1,3 +1,7 @@
+//Calculates texture information
+//Calculates normal map information
+//Calculates directional and point lights
+
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
 // - The name of the struct itself is unimportant

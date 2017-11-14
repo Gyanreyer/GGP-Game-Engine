@@ -57,6 +57,10 @@ private:
 	ID3D11RasterizerState* skyBoxRasterState;
 	ID3D11DepthStencilState* skyboxDepthStencilState;
 
+	//Post processing variables
+	ID3D11RenderTargetView* ppRTV; //Allows us to render a texture
+	ID3D11ShaderResourceView* ppSRV; //Allows us to sample from that same texture
+
 	//imgui Variables
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 };
