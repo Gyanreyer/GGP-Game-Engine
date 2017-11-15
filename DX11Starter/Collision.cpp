@@ -77,6 +77,6 @@ bool Collision::CheckCollisionSphereBox(Collider * sphere, Collider * box)
 
 	//We don't sqrt here, since using pow later is more efficient
 	//If the distance squared is greater than the sphere's radius squared, there is no collision
-	return (float)pow(x - sphere->center.x, 2) + (float)pow(y - sphere->center.y, 2) + (float)pow(z - sphere->center.z, 2) >
+	return (float)pow(x - sphere->center.x, 2) + (float)pow(y - sphere->center.y, 2) + (float)pow(z - sphere->center.z, 2) <
 		pow(sphereRadius, 2);
 }

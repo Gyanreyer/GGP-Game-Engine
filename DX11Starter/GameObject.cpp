@@ -55,14 +55,16 @@ Mesh * GameObject::GetMesh()
 
 Collider* GameObject::GetCollider()
 {
-	XMStoreFloat3(&collider.center, XMLoadFloat3(&transform.GetPosition()));
+	if (transform.MatrixNeedsUpdate()) {
+		XMStoreFloat3(&collider.center, XMLoadFloat3(&transform.GetPosition()));
 
-	//Check if the collider is offset
-	if (collider.isOffset)
+		//Check if the collider is offset
+		if (collider.isOffset)
 			//Adjust for offset here
 			//Right now, this assumes that the collider is at the "feet" of a model
 			//If the need arises, this can be generalized
-		collider.center.y += collider.dimensions.y;
+			collider.center.y += collider.dimensions.y;
+	}
 
 	return &collider;
 }

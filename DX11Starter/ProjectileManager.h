@@ -21,7 +21,7 @@ public:
 	void DrawProjectiles(Renderer* renderer);
 	void RemoveProjectile(int i);
 	vector<Projectile *>::iterator RemoveProjectile(vector<Projectile *>::iterator proj);
-	void RemoveProjectileByAddress(GameObject * proj);
+	void RemoveProjectile(Projectile * proj);
 
 	vector<Projectile *> GetProjectiles();
 

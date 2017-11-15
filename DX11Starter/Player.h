@@ -14,6 +14,11 @@ public:
 
 	void Update(float deltaTime);
 	void UpdateMouseInput(float xAxis, float yAxis);
+	
+	XMFLOAT3 GetVelocity();
+	void SetVelocity(XMFLOAT3 vel);
+	void Accelerate(float fwdMagnitude, float sideMagnitude, float vertMagnitude);
+	void UpdatePhysics(float deltaTime);
 
 	void Jump(); //Jump w/ some sort of physics
 
@@ -31,7 +36,7 @@ public:
 
 	void Shoot();
 
-	void SetIsOnGO(bool onGO);
+	void StopFalling(float newY);
 
 private:
 	//BYTE VALUES MUST BE BETWEEN 0 AND 255
@@ -60,9 +65,9 @@ private:
 	//Move based on keyboard input
 	void UpdateKeyInput(float deltaTime);
 
-	void StopFalling();
-	bool CheckCollisions(float deltaTime);//This should probably be handled elsewhere
-
 	ProjectileManager * projManager;
+
+	XMFLOAT3 velocity;
+	float maxVel;
 };
 

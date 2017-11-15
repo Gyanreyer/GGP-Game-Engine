@@ -11,11 +11,6 @@ Transform::Transform(XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale)
 	SetScale(scale);
 
 	parent = nullptr;
-
-	mass = 1;
-	maxVel = 0;
-
-	velocity = XMFLOAT3(0,0,0);
 }
 
 Transform::~Transform()
@@ -272,61 +267,6 @@ Transform * Transform::GetChild(int index)
 size_t Transform::GetChildCount()
 {
 	return children.size();
-}
-
-void Transform::SetMaxVelocity(float v)
-{
-	maxVel = v;
-}
-
-void Transform::SetVelocity(XMFLOAT3 vel)
-{
-	velocity = vel;
-}
-
-XMFLOAT3 Transform::GetVelocity()
-{
-	return velocity;
-}
-
-void Transform::ApplyForce(float xMagnitude, float yMagnitude, float zMagnitude)
-{
-	ApplyForce(XMFLOAT3(xMagnitude,yMagnitude,zMagnitude));
-}
-
-void Transform::ApplyForce(XMFLOAT3 force)
-{
-	XMStoreFloat3(&velocity, XMLoadFloat3(&velocity)+ XMLoadFloat3(&force));
-
-	XMStoreFloat3(&velocity,
-		XMVectorSet(0,velocity.y,0,0) +
-		XMVector3ClampLength(XMVectorSet(velocity.x, 0, velocity.z, 0), 0, maxVel));
-}
-
-void Transform::ApplyForceRelative(float fwdMagnitude, float sideMagnitude, float vertMagnitude)
-{
-	XMFLOAT3 forceVec;
-	XMStoreFloat3(&forceVec,
-		XMLoadFloat3(&GetForwardXZ())*fwdMagnitude +
-		XMLoadFloat3(&right)*sideMagnitude +
-		UP*vertMagnitude);
-
-	ApplyForce(forceVec);
-}
-
-void Transform::UpdatePhysics(float deltaTime)
-{
-	XMVECTOR velocityVec = XMLoadFloat3(&velocity);
-
-	Move(velocityVec*deltaTime);
-
-	//Apply friction
-	velocity.x *= 0.5f;
-	velocity.z *= 0.5f;
-	
-	velocityVec = XMLoadFloat3(&velocity);
-
-	XMStoreFloat3(&velocity, velocityVec);
 }
 
 //Store reference to parent - SHOULD ONLY BE USED IN CONJUNCTION WITH StoreChild()

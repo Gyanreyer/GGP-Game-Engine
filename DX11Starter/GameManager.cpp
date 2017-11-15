@@ -44,7 +44,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 
 	//PLAYER
 	player = Player(
-		Transform(XMFLOAT3(0, 1, -5),//Init position
+		Transform(XMFLOAT3(0, 0, -5),//Init position
 			XMFLOAT3(0, 0, 0),//Init rot
 			XMFLOAT3(0.5f, 1, 0.5f)),//Init scale
 		(unsigned int)screenWidth, (unsigned int)screenHeight,//Screen dimensions for projection matrix
@@ -79,12 +79,11 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	enemyTransform.SetPosition(0, 1, 0);
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("SphereHP"), asset->GetMaterial("RockMaterial"), EnemyType::moveX, 20, &projectileManager )); //DIRTY BUBBLE!
 	
-
 	///OTHER GAMEOBJECTS
 	gameObjects.clear(); //Clear this out for new game instances
 
 	//Store references to all GOs in vector
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(0,0,0),XMFLOAT3(0,0,0),XMFLOAT3(10, 0.001f, 10)),
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(0,0,0),XMFLOAT3(0,0,0),XMFLOAT3(20, 0.001f, 20)),
 		asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial"),"Floor"));
 	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4,0.5f,-2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
 		asset->GetMesh("Cube"), asset->GetMaterial("RockMaterial"),"Obstacle"));
@@ -105,7 +104,6 @@ void GameManager::InitSpatialPartition()
 
 	for (int i = 0; i < enemies.size(); i++)
 	{
-		printf("Enemy pointer: %p\n", enemies[i]);
 		spacePartitionHead.AddObject(enemies[i]);
 	}
 
@@ -114,35 +112,67 @@ void GameManager::InitSpatialPartition()
 
 void GameManager::CheckObjectCollisions(float deltaTime)
 {
+	//Check collisions for projectiles with everything
+	vector<Projectile *> projs = projectileManager.GetProjectiles();
+
+	for (vector<Projectile *>::iterator projIter = projs.begin(); projIter != projs.end(); ++projIter)
+	{
+		//Get objects to check collision with
+		vector<GameObject *> projOctObjects = (*projIter)->GetOctNode()->GetAllObjectsForCollision();
+
+		for (vector<GameObject *>::iterator otherIter = projOctObjects.begin(); otherIter != projOctObjects.end(); ++otherIter)
+		{
+			const char* tag = (*otherIter)->GetTag();//Get object's tag so we know how to handle collision
+
+			//Check collision and destory projectile if it hits anything
+			//Ignore collision with other projectiles
+			if (strcmp(tag, "Projectile") != 0 && Collision::CheckCollision((*otherIter)->GetCollider(), (*projIter)->GetCollider()))
+			{
+				projectileManager.RemoveProjectile(*projIter);//Destroy projectile
+
+				//Check tag to determine what else to do
+				if (strcmp(tag, "Player") == 0)
+				{
+					player.DecrementHealth();//Do other checks here in future?
+				}
+				else if (strcmp(tag, "Enemy") == 0)
+				{
+					vector<Enemy *>::iterator enemyIter = std::find(enemies.begin(), enemies.end(), *otherIter);
+
+					AddScore((*enemyIter)->GetPoints());//Add points to score
+					(*enemyIter)->GetOctNode()->RemoveObject(*enemyIter);//Remove enemy from octree
+					enemies.erase(enemyIter);//Destroy enemy
+				}
+			}
+		}
+	}
+
 	//Check collisions for player
 	vector<GameObject *> playerOctObjects = player.GetOctNode()->GetAllObjectsForCollision();
-	
-	for (vector<GameObject *>::iterator iterColl = playerOctObjects.begin(); iterColl != playerOctObjects.end();++iterColl)
+
+	for (vector<GameObject *>::iterator otherIter = playerOctObjects.begin(); otherIter != playerOctObjects.end(); ++otherIter)
 	{
-		const char* tag = (*iterColl)->GetTag();//Get object's tag so we know how to handle collision
+		const char* tag = (*otherIter)->GetTag();//Get object's tag so we know how to handle collision
 
-		if (strcmp(tag, "Player") == 0) continue;//Skip the player, no need to check against self
-
-		//If projectile, check for collision and take damage if hit
-		else if (strcmp(tag, "Projectile") == 0 && Collision::CheckCollisionSphereBox((*iterColl)->GetCollider(), player.GetCollider()))
+		if (strcmp(tag, "Floor") == 0 &&
+			Collision::CheckCollision((*otherIter)->GetCollider(), player.GetCollider()))
 		{
-			player.DecrementHealth();
-			projectileManager.RemoveProjectileByAddress(*iterColl);//Destroy projectile
+			player.StopFalling((*otherIter)->GetCollider()->center.y + (*otherIter)->GetCollider()->dimensions.y);
 		}
+
 		//If an object or enemy, the player should collide and be unable to pass through them
-		else if ((strcmp(tag, "Obstacle") == 0 || strcmp(tag, "Enemy") == 0 ) &&
-			Collision::CheckCollision((*iterColl)->GetCollider(), player.GetCollider()))
+		if ((strcmp(tag, "Obstacle") == 0 || strcmp(tag, "Enemy") == 0 ) &&
+			Collision::CheckCollision((*otherIter)->GetCollider(), player.GetCollider()))
 		{
-			Transform* playerTrans = player.GetTransform();
+			XMFLOAT3 playerVelocity = player.GetVelocity();
+
+			Collider* otherColl = (*otherIter)->GetCollider();
 
 			XMFLOAT3 vecToPlayer;
 
 			//Get vector from other object's center to player
-			XMStoreFloat3(&vecToPlayer, XMLoadFloat3(&player.GetCollider()->center) - XMLoadFloat3(&(*iterColl)->GetCollider()->center));
-
-			XMFLOAT3 playerVelocity = playerTrans->GetVelocity();
-
-			Collider* otherColl = (*iterColl)->GetCollider();
+			XMStoreFloat3(&vecToPlayer,
+				XMVector3Normalize(XMLoadFloat3(&player.GetCollider()->center) - XMLoadFloat3(&otherColl->center)));
 
 			//Resolve collision
 			if (otherColl->collType == BOX)
@@ -150,87 +180,45 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 				//Get absolute value vector so we can see which component is longest
 				XMFLOAT3 absVecToObject(fabs(vecToPlayer.x), fabs(vecToPlayer.y), fabs(vecToPlayer.z));
 
-				//Cancel out the player's movement into the box based on what side they're on
-				if (absVecToObject.x >= absVecToObject.y && absVecToObject.x >= absVecToObject.z)
-				{
-					playerVelocity.x = 0;
-				}
-				else if (absVecToObject.z >= absVecToObject.x && absVecToObject.z >= absVecToObject.y)
-				{
-					playerVelocity.z = 0;
-				}
 				//If player is jumping/moving up away from the box, don't do anything
-				else if(playerVelocity.y <= 0)
+				if (absVecToObject.y >= absVecToObject.x && absVecToObject.y >= absVecToObject.z &&
+					player.GetCollider()->center.y >= otherColl->center.y)
 				{
-					playerVelocity.y = 0;
-
 					//Snap to top of box
-					XMFLOAT3 pos = playerTrans->GetPosition();
-					pos.y = otherColl->center.y + otherColl->dimensions.y + player.GetCollider()->dimensions.y;
-	
-					playerTrans->SetPosition(pos);
-
-					player.SetIsOnGO(true);//Indicate player landed on box so they can jump
+					player.StopFalling(otherColl->center.y + otherColl->dimensions.y);
 				}
+				//Cancel out the player's movement into the box based on what side they're on
+				else
+				{
+					if (absVecToObject.x > absVecToObject.z)
+					{
+						playerVelocity.x = 0;
+					}
+					else
+					{
+						playerVelocity.z = 0;
+					}
 
-				//Set new modified velocity
-				playerTrans->SetVelocity(playerVelocity);
+					//Set new modified velocity
+					player.SetVelocity(playerVelocity);
+				}
 			}
 			else
 			{
-				//Let's do some goddamn math, WOOOOO
-				//Well, tomorrow because I should sleep
-				//But this will get a projection of the vector to the player
-				//onto the inverse of the player's velocity vector, and then
-				//we'll apply as a force to cancel movement towards the sphere's center
+				//This doesn't work properly yet, still trying to figure out why
+
+				//Get a projection of the opposite of the player's velocity onto the normal from the object
+				XMFLOAT3 accel;
+				XMStoreFloat3(&accel,
+					XMLoadFloat3(&vecToPlayer) * XMVector3Dot(-XMLoadFloat3(&playerVelocity), XMLoadFloat3(&vecToPlayer)));//Projection
+
+				XMFLOAT3 newVel;
+				XMStoreFloat3(&newVel, XMLoadFloat3(&playerVelocity) + XMLoadFloat3(&accel));
+				
+				player.SetVelocity(newVel);
+				
 			}
 		}	
-	}
-
-	//Check collisions between enemies and projectiles
-	for (vector<Enemy *>::iterator enemyIter = enemies.begin(); enemyIter != enemies.end();)
-	{
-		byte incAmt = 1;
-
-		vector<GameObject *> enemyOctObjects = (*enemyIter)->GetOctNode()->GetAllObjectsForCollision();
-
-		for (vector<GameObject *>::iterator iterColl = enemyOctObjects.begin(); iterColl != enemyOctObjects.end();++iterColl)
-		{
-			const char* tag = (*iterColl)->GetTag();//Get object's tag so we know how to handle collision
-
-			//If projectile, check for collision and die if hit
-			if (strcmp(tag, "Projectile") == 0 && Collision::CheckCollision((*iterColl)->GetCollider(), (*enemyIter)->GetCollider()))
-			{
-				AddScore((*enemyIter)->GetPoints());//Add points to score
-				(*enemyIter)->GetOctNode()->RemoveObject(*enemyIter._Ptr);//Remove enemy from octree
-				enemyIter = enemies.erase(enemyIter);//Destroy enemy
-				projectileManager.RemoveProjectileByAddress(*iterColl);//Destroy projectile
-				incAmt = 0;
-				break;
-			}
-		}
-
-		enemyIter += incAmt;
-	}
-
-	//Check collisions for projectiles with objects
-	vector<Projectile *> projs = projectileManager.GetProjectiles();
-
-	for (vector<Projectile *>::iterator projIter = projs.begin(); projIter != projs.end(); ++projIter)
-	{
-		vector<GameObject *> projOctObjects = (*projIter)->GetOctNode()->GetAllObjectsForCollision();
-
-		for (vector<GameObject *>::iterator iterColl = projOctObjects.begin(); iterColl != projOctObjects.end(); ++iterColl)
-		{
-			const char* tag = (*iterColl)->GetTag();//Get object's tag so we know how to handle collision
-
-			//Destroy projectiles when they hit obstacles
-			//This will ignore the floor... Might not be a problem though since they're destroyed after certain time anyways
-			if (strcmp(tag,"Obstacle") == 0 && Collision::CheckCollision((*iterColl)->GetCollider(), (*projIter)->GetCollider()))
-			{
-				projectileManager.RemoveProjectileByAddress((*projIter));//Destroy projectile
-			}
-		}
 	}
 }
 
@@ -243,6 +231,7 @@ void GameManager::GameUpdate(float deltaTime)
 {
 	//1. Make sure game is has not ended
 	if (!isGameOver()) {
+		player.UpdatePhysics(deltaTime);
 
 		//Update the player
 		player.Update(deltaTime);
@@ -259,7 +248,7 @@ void GameManager::GameUpdate(float deltaTime)
 		//Update what nodes objects are stored in, delete unnecessary ones
 		spacePartitionHead.UpdateAll();
 
-		CheckObjectCollisions(deltaTime);
+		CheckObjectCollisions(deltaTime);//Check all collisions		
 	}
 	else {
 		ImGui::OpenPopup("EndGame");

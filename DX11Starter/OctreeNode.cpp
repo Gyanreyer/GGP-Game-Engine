@@ -8,7 +8,7 @@ OctreeNode::OctreeNode(XMFLOAT3 centerPoint, float boundingRadius, OctreeNode* p
 {
 	center = centerPoint;
 	radius = boundingRadius;
-
+	
 	parent = parentNode;
 }
 
@@ -104,14 +104,7 @@ void OctreeNode::AddObject(GameObject * obj)
 
 void OctreeNode::RemoveObject(GameObject * obj)
 {
-	for (vector<GameObject *>::iterator iter = objects.begin(); iter != objects.end(); ++iter)
-	{
-		if (*iter == obj)
-		{
-			objects.erase(iter);
-			return;
-		}
-	}
+	objects.erase(std::find(objects.begin(), objects.end(), obj));
 }
 
 //Return whether node has children

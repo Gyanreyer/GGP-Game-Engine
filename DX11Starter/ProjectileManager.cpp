@@ -37,11 +37,6 @@ void ProjectileManager::SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 directi
 		direction,//Rotation for bullet to move in
 		7.0f);//Move at speed of 7 units/second
 
-	if (projectiles.size() > 0)
-	{
-		printf("Already one bullet");
-	}
-
 	spacePartitionHead->AddObject(newProj);//Add to spatial partition octree for coll management
 
 	//Store new player projectile
@@ -100,17 +95,9 @@ vector<Projectile *>::iterator ProjectileManager::RemoveProjectile(vector<Projec
 	return projectiles.erase(proj);//Erase from vector and return new iterator
 }
 
-//Search for and remove a projectile given its address in memory
-void ProjectileManager::RemoveProjectileByAddress(GameObject * proj)
+void ProjectileManager::RemoveProjectile(Projectile * proj)
 {
-	for (vector<Projectile *>::iterator iter = projectiles.begin(); iter != projectiles.end();++iter)
-	{
-		if (*iter==proj)
-		{
-			RemoveProjectile(iter);
-			return;
-		}
-	}
+	projectiles.erase(std::find(projectiles.begin(), projectiles.end(), proj));
 }
 
 vector<Projectile *> ProjectileManager::GetProjectiles()
