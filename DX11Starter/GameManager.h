@@ -1,10 +1,15 @@
 #pragma once
 #include <d3d11.h>
 #include <time.h>
+#include <string> //Int conversion to string
 #include "Enemy.h"
 #include "ProjectileManager.h"
 #include "Player.h"
 #include "AssetManager.h"
+#include "Renderer.h"
+#include "OctreeNode.h"
+
+using std::to_string; //Alternative to atoi
 
 class GameManager
 {
@@ -17,18 +22,19 @@ public:
 
 	void StartGame(AssetManager* asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context);
 	void CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context); //Initializes GameObjects
+	void GameUpdate(float deltaTime);
+	void GameDraw(Renderer* renderer);
 	bool isGameOver();
 
 	void AddScore(int addAmount);
 	void ResetGame();
 
-	//Game Get Methods
-	Player* GetPlayer();
-	ProjectileManager* GetProjectileManager();
-	vector<GameObject>* GetGameObjectVector();
-	vector<Enemy>* GetEnemyVector();
+	//Engine Get Methods
+	Player* GetPlayer();//We shouldn't need this, at some point need to do some housekeeping on Engine.cpp
 	double getTimeLeft();
 	int GetGameScore();
+
+	void OnLeftClick();
 
 private:
 	GameManager();
@@ -45,11 +51,18 @@ private:
 
 	//Array of GameObjects so we can draw them in an easy loop
 	//Not pointers, just do these directly
-	vector<GameObject> gameObjects;
+	vector<GameObject *> gameObjects;
 
 	//Array of Enemies so we can draw them in an easy loop
 	//Not pointers, just do these directly
-	vector<Enemy> enemies;
+	vector<Enemy *> enemies;
 	Player player;
+
+	OctreeNode spacePartitionHead;
+
+	void InitSpatialPartition();
+	void CheckObjectCollisions(float deltaTime);
+
+	void ClearObjects();
 };
 

@@ -56,7 +56,7 @@ void Transform::SetRotation(XMVECTOR rot)
 //Currently doesn't work
 void Transform::SetForward(XMFLOAT3 fwd)
 {
-	SetRotation(asin(-fwd.y), atan2(fwd.x, fwd.z), 0);
+	SetRotation(asin(-fwd.y), atan2(fwd.x, fwd.z), rotation.z);
 }
 
 void Transform::SetScale(float scalar)

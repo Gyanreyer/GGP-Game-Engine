@@ -1,5 +1,4 @@
 #pragma once
-
 #include <DirectXMath.h>
 
 // --------------------------------------------------------
@@ -12,4 +11,5 @@ struct Vertex
 	DirectX::XMFLOAT3 Position;	    // The position of the vertex
 	DirectX::XMFLOAT3 Normal;		//Normal vector for vertex
 	DirectX::XMFLOAT2 UV;			//Texture coords for vertex
+	DirectX::XMFLOAT3 Tangent;		//Tangent for normal mapping
 };

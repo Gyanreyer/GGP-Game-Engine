@@ -1,4 +1,3 @@
-
 // Constant Buffer
 // - Allows us to define a buffer of individual variables 
 //    which will (eventually) hold data from our C++ code
@@ -18,16 +17,16 @@ cbuffer externalData : register(b0)
 // - The name of the struct itself is unimportant, but should be descriptive
 // - Each variable must have a semantic, which defines its usage
 struct VertexShaderInput
-{ 
+{
 	// Data type
 	//  |
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float3 position		: POSITION;     // XYZ position
+	float3 position		: POSITION; // XYZ position
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
-	
+	float3 tangent		: TANGENT; //Tangent of the surface for normal maps, U direction
 };
 
 // Struct representing the data we're sending down the pipeline
@@ -42,10 +41,11 @@ struct VertexToPixel
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
+	float4 position		: SV_POSITION; // XYZW position (System Value Position)
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
-	
+	float3 tangent		: TANGENT; //Tangent of the surface for normal maps, U direction
+	float3 worldPos		: POSITION; //World position of this vertex
 };
 
 // --------------------------------------------------------
@@ -67,21 +67,24 @@ VertexToPixel main( VertexShaderInput input )
 	//
 	// First we multiply them together to get a single matrix which represents
 	// all of those transformations (world to view to projection space)
-	matrix worldViewProj = mul(mul(world, view), projection);
-
+	//
 	// Then we convert our 3-component position vector to a 4-component vector
 	// and multiply it by our final 4x4 matrix.
 	//
 	// The result is essentially the position (XY) of the vertex on our 2D 
 	// screen and the distance (Z) from the camera (the "depth" of the pixel)
+	matrix worldViewProj = mul(mul(world, view), projection);
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
 
-	// Pass the color through 
-	// - The values will be interpolated per-pixel by the rasterizer
-	// - We don't need to alter it here, but we do need to send it to the pixel shader
-	//output.color = input.color;
+	//World position of this vertex
+	//Used for point/spot lights
+	output.worldPos = mul(float4(input.position, 1.0f), world).xyz;
 
+	//Normal has to be in world space, normalized
 	output.normal = normalize(mul(input.normal,(float3x3)world));
+
+	//Tangent has to be in world space, normalized
+	output.tangent = normalize(mul(input.tangent, (float3x3)world));
 
 	output.uv = input.uv;//Pass UV through
 

@@ -1,13 +1,14 @@
 #include "Player.h"
-#include "GameManager.h"
 
 Player::Player()
 {
 }
 
-Player::Player(ColliderType colliderType, unsigned int projectionWidth, unsigned int projectionHeight):
-	GameObject(colliderType)//Should this extend GameObject if doesn't have mesh?
+Player::Player(Transform trans, unsigned int projectionWidth, unsigned int projectionHeight, ProjectileManager * pm)
+	: GameObject(trans, BOX, "Player")
 {
+	collider.isOffset = true;
+
 	//BYTE VALUES MUST BE BETWEEN 0 AND 255
 	//UNSIGNED SHORT VALUES MUST BE BETWEEN 0 AND 65535
 	movementSpeed = 2; //The camera's movement speed
@@ -17,12 +18,15 @@ Player::Player(ColliderType colliderType, unsigned int projectionWidth, unsigned
 
 	UpdateProjectionMatrix(projectionWidth,projectionHeight);
 
-	playerHeight = 0.8f;
+	playerHeight = trans.GetScale().y;
 
-	transform.SetPosition(0, playerHeight, -5);
-	transform.SetScale(0.5f, 1, 0.5f);
+	isOnGameObject = true;
 
-	isOnGameObject = false;
+	projManager = pm;
+
+	maxVel = 3;
+
+	velocity = XMFLOAT3(0, 0, 0);
 }
 
 Player::~Player()
@@ -32,48 +36,39 @@ Player::~Player()
 void Player::Update(float deltaTime)
 {
 	UpdateKeyInput(deltaTime);
-	UpdateViewMatrix();
 
-	float yPos = transform.GetPosition().y;
-
-	if (yPos > playerHeight)
+	//Changed to not use playerHeight, since the Y position is now at it's feet
+	if (!isOnGameObject)
 	{
-		verticalSpeed -= 3 * deltaTime;
+		Accelerate(0, 0, -5 * deltaTime);
 	}
-	else if (yPos < playerHeight)
+	else
 	{
-		verticalSpeed = 0;
-		XMFLOAT3 newPos = transform.GetPosition();
-		newPos.y = 0.8f;
-		transform.SetPosition(newPos);
+		isOnGameObject = false;
 	}
-
-	//Update collider information
-	//Collider probably won't be offset, so we won't even worry about that
-	coll.center = transform.GetPosition();
-	coll.dimensions = transform.GetScale();
 }
 
 void Player::UpdateKeyInput(float deltaTime)
 {
-	float fwdSpeed = 0;//+ forward, - backward
-	float sideSpeed = 0;//+ right, - left
+	//Global for next-frame collisions
+	fwdForce = 0; //+ forward, - backward
+	sideForce = 0; //+ right, - left
 
 	//Move forward on XZ plane when W pressed
 	if (GetAsyncKeyState('W') & 0x8000) {
-		fwdSpeed += movementSpeed * deltaTime;
+		fwdForce += movementSpeed;// *deltaTime;
 	}
 	//Move backward on XZ plane when S pressed
 	if (GetAsyncKeyState('S') & 0x8000) {
-		fwdSpeed -= movementSpeed * deltaTime;
+		fwdForce -= movementSpeed;// *deltaTime;
 	}
 	//Move right relative to forward on XZ plane when D pressed
 	if (GetAsyncKeyState('D') & 0x8000) {
-		sideSpeed -= movementSpeed * deltaTime;
+		sideForce -= movementSpeed;// *deltaTime;
 	}
 	//Move left relative to forward on XZ plane when A pressed
 	if (GetAsyncKeyState('A') & 0x8000) {
-		sideSpeed += movementSpeed * deltaTime;
+		sideForce += movementSpeed;// *deltaTime;
 	}
 	//Jump when spacebar pressed
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000) {
@@ -83,69 +78,31 @@ void Player::UpdateKeyInput(float deltaTime)
 	else {
 		jumpButtonHeld = false;
 	}
-
-	//GAMEOBJECT COLLISIONS
-	vector<GameObject>* goVector = GameManager::getInstance().GetGameObjectVector(); //Get the instance of the GameManager
-	Collider nextFrameCollider = coll; //Make a collider to represent where the player will be on the next frame
-
-	//Store the collider's next center point
-	XMStoreFloat3(&nextFrameCollider.center,
-		XMLoadFloat3(&transform.GetPosition()) + 
-		XMLoadFloat3(&transform.GetForwardXZ()) * fwdSpeed + 
-		XMLoadFloat3(&transform.GetRight()) * sideSpeed + 
-		XMLoadFloat3(&transform.GetUp()) * (verticalSpeed * deltaTime));
-
-	isOnGameObject = false; //Reset here
-
-	//Start at 1, 0 is the ground
-	for (byte i = 1; i < goVector->size(); i++)
-	{
-		//WITH PLAYER
-		Collider* goCollider = (*goVector)[i].GetCollider(); //The GameObject's collider
-
-		if (goCollider->collType == BOX && Collision::CheckCollisionBoxBox(goCollider, &nextFrameCollider))
-		{
-			if (coll.center.y - (coll.dimensions.y / 2) < goCollider->dimensions.y - .005f) //If the player isn't on top of the GameObject
-			{
-				//There shouldn't be any breakage due to that small offset value, but I'm leaving debug stuff here just in case
-				//printf("NOT ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
-				goto breakEnd;
-			}
-			else //If the player is on top of the GameObject
-			{
-				//printf("ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
-				transform.SetPosition(transform.GetPosition().x, (float)(goCollider->dimensions.y + (coll.dimensions.y / 2)), transform.GetPosition().z); //Move the player to the top of the GameObject
-				transform.MoveRelativeAxes(fwdSpeed, sideSpeed, 0);
-				isOnGameObject = true;
-				goto breakEnd;
-			}
-		}
-		else if (goCollider->collType == SPHERE && Collision::CheckCollisionSphereBox(goCollider, &nextFrameCollider))
-		{
-			if (coll.center.y - (coll.dimensions.y / 2) < goCollider->dimensions.y - .005f) //If the player isn't on top of the GameObject
-			{
-				//There shouldn't be any breakage due to that small offset value, but I'm leaving debug stuff here just in case
-				//printf("NOT ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
-				goto breakEnd;
-			}
-			else //If the player is on top of the GameObject
-			{
-				//printf("ON TOP %f, %f\n", coll.center.y - (coll.dimensions.y / 2), goCollider->dimensions.y);
-				transform.SetPosition(transform.GetPosition().x, (float)(goCollider->dimensions.y + (coll.dimensions.y / 2)), transform.GetPosition().z); //Move the player to the top of the GameObject
-				transform.MoveRelativeAxes(fwdSpeed, sideSpeed, 0);
-				isOnGameObject = true;
-				goto breakEnd;
-			}
-		}
-	}
 	
-	//Move relative to direction we're facing, with no movement on the Y axis
-	transform.MoveRelativeAxes(fwdSpeed, sideSpeed, verticalSpeed * deltaTime);
+	Accelerate(fwdForce, sideForce, 0);
+}
 
-	breakEnd: //This is super useful and I'm sad I didn't know about it sooner
-	{
-		//These brackets totally aren't a janky workaround at all
-	}
+void Player::StopFalling(float newY)
+{
+	if (velocity.y > 0) return;
+
+	velocity.y = 0;
+
+	XMFLOAT3 pos = transform.GetPosition();
+
+	pos.y = newY;
+
+	transform.SetPosition(pos);
+
+	isOnGameObject = true;
+}
+
+void Player::Shoot()
+{
+	XMFLOAT3 shootPos = transform.GetPosition();
+	shootPos.y += playerHeight;
+
+	projManager->SpawnPlayerProjectile(shootPos, transform.GetForward());
 }
 
 void Player::UpdateMouseInput(float xAxis, float yAxis)
@@ -154,13 +111,46 @@ void Player::UpdateMouseInput(float xAxis, float yAxis)
 	transform.RotateClamped(yAxis / mouseSensitivity, xAxis / mouseSensitivity, 0, -XM_PIDIV2+0.1f, XM_PIDIV2-0.1f);
 }
 
+XMFLOAT3 Player::GetVelocity()
+{
+	return velocity;
+}
+
+void Player::SetVelocity(XMFLOAT3 vel)
+{
+	velocity = vel;
+}
+
+void Player::Accelerate(float fwdMagnitude, float sideMagnitude, float vertMagnitude)
+{
+	XMStoreFloat3(&velocity, XMLoadFloat3(&velocity) +
+		XMLoadFloat3(&transform.GetForwardXZ())*fwdMagnitude +
+		XMLoadFloat3(&transform.GetRight())*sideMagnitude +
+		XMVectorSet(0, 1, 0, 0)*vertMagnitude);
+
+	XMStoreFloat3(&velocity,
+		XMVectorSet(0, velocity.y, 0, 0) +
+		XMVector3ClampLength(XMVectorSet(velocity.x, 0, velocity.z, 0), 0, maxVel));
+}
+
+void Player::UpdatePhysics(float deltaTime)
+{
+	transform.Move(XMLoadFloat3(&velocity)*deltaTime);
+
+	velocity.x *= 0.25f;
+	velocity.z *= 0.25f;
+}
+
 void Player::Jump()
 {
+	if (jumpButtonHeld) return;
+
 	//Make sure not already in air and jump button was not previously held
 	//Give a small cushion from ground where players can jump again, this feels way better
 	//If the player is on another GameObject, just jump
-	if ((!jumpButtonHeld && transform.GetPosition().y <= playerHeight + 0.1f) || (!jumpButtonHeld && isOnGameObject)) {
-		verticalSpeed = 2;
+	if ( isOnGameObject)
+	{
+		Accelerate(0, 0, 3);
 	}
 }
 
@@ -183,11 +173,15 @@ void Player::UpdateViewMatrix()
 	//Only update when transform properties have been modified
 	if (!transform.MatrixNeedsUpdate()) return;
 
+	//Modify view pos so that it's at top of player
+	XMFLOAT3 viewPos = transform.GetPosition();
+	viewPos.y += playerHeight;
+
 	//Store view matrix based on transform's position and direction
 	XMStoreFloat4x4(&viewMatrix,
 		XMMatrixTranspose(//Transpose for HLSL
 			XMMatrixLookToLH(
-				XMLoadFloat3(&transform.GetPosition()),//Position
+				XMLoadFloat3(&viewPos),//Position
 				XMLoadFloat3(&transform.GetForward()),//Direction
 				XMVectorSet(0, 1, 0, 0)//Up
 	)));
@@ -197,6 +191,7 @@ void Player::UpdateViewMatrix()
 
 XMFLOAT4X4 Player::GetViewMatrix()
 {
+	UpdateViewMatrix();
 	return viewMatrix;
 }
 
