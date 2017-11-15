@@ -55,6 +55,15 @@ Mesh * GameObject::GetMesh()
 
 Collider* GameObject::GetCollider()
 {
+	XMStoreFloat3(&collider.center, XMLoadFloat3(&transform.GetPosition()));
+
+	//Check if the collider is offset
+	if (collider.isOffset)
+			//Adjust for offset here
+			//Right now, this assumes that the collider is at the "feet" of a model
+			//If the need arises, this can be generalized
+		collider.center.y += collider.dimensions.y;
+
 	return &collider;
 }
 
@@ -97,16 +106,6 @@ void GameObject::UpdateWorldMatrix()
 		//Store transposed matrix as worldMatrix
 		XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(newWM));
 
-		transform.DoneUpdating();//Notify transform that matrix has been updated successfully
-
-		collider.dimensions = transform.GetScale();
-		collider.center = transform.GetPosition();
-
-		//Check if the collider is offset
-		if (collider.isOffset)
-			//Adjust for offset here
-			//Right now, this assumes that the collider is at the "feet" of a model
-			//If the need arises, this can be generalized
-			collider.center.y += collider.dimensions.y / 2;			
+		transform.DoneUpdating();//Notify transform that matrix has been updated successfully	
 	}
 }

@@ -340,11 +340,7 @@ void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 	//Duh, it's a bitwise &
 	if (buttonState & MK_LBUTTON)
 	{
-		//Make Player function to shoot
-		Transform* pt = gameManager->GetPlayer()->GetTransform();
-
-		//Make player shoot
-		gameManager->GetProjectileManager()->SpawnPlayerProjectile(pt->GetPosition(), pt->GetForward());
+		gameManager->OnLeftClick();
 	}
 }
 

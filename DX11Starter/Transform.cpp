@@ -14,6 +14,8 @@ Transform::Transform(XMFLOAT3 pos, XMFLOAT3 rot, XMFLOAT3 scale)
 
 	mass = 1;
 	maxVel = 0;
+
+	velocity = XMFLOAT3(0,0,0);
 }
 
 Transform::~Transform()

@@ -3,6 +3,7 @@
 #include "Renderer.h"
 
 //Refactor after context is moved
+class Renderer;
 class ProjectileManager
 {
 public:
@@ -19,10 +20,10 @@ public:
 	//Draw all projectiles
 	void DrawProjectiles(Renderer* renderer);
 	void RemoveProjectile(int i);
-	vector<Projectile>::iterator RemoveProjectile(vector<Projectile>::iterator proj);
+	vector<Projectile *>::iterator RemoveProjectile(vector<Projectile *>::iterator proj);
 	void RemoveProjectileByAddress(GameObject * proj);
 
-	vector<Projectile> GetProjectiles();
+	vector<Projectile *> GetProjectiles();
 
 private:
 	ID3D11DeviceContext * context;
@@ -30,7 +31,7 @@ private:
 	Material * playerProjectileMaterial;
 	Material * enemyProjectileMaterial;
 
-	vector<Projectile> projectiles;
+	vector<Projectile *> projectiles;
 
 	float projectileLifetime;
 
