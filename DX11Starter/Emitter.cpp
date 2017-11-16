@@ -1,6 +1,6 @@
 #include "Emitter.h"
 
-
+using namespace DirectX;
 
 Emitter::Emitter()
 {
@@ -33,7 +33,9 @@ Emitter::Emitter(
 	this->endSize = endSize;
 	this->startColor = startColor;
 	this->endColor = endColor;
-	intialVelocity = startVelocity;
+	this->emmissionRate = emitRate;
+	this->secondsPerParticle = 1.0f / emitRate;
+	initialVelocity = startVelocity;
 	this->emitterPosition = emitterPosition;
 	emitterParticleAcceleration = emitterAcceleration;
 
@@ -174,6 +176,38 @@ void Emitter::ParticleUpdate(float deltaTime, int index)
 	particles[index].size = startSize + agePercent * (endSize - startSize);
 
 	//Adjust the Position
+	DirectX::XMVECTOR startPos = DirectX::XMLoadFloat3(&emitterPosition);
+	DirectX::XMVECTOR startVel = DirectX::XMLoadFloat3(&particles[index].startVel);
+	DirectX::XMVECTOR accel = DirectX::XMLoadFloat3(&emitterParticleAcceleration);
+	float t = particles[index].age;
+
+	//use constant acceleration function
+	DirectX::XMStoreFloat3(
+		&particles[index].position,
+		accel * t * t / 2.0f + startVel * t + startPos);
+}
+
+void Emitter::SpawnParticle()
+{
+	//Any left to spawn?
+	if (aliveParticleCount == maxParticles)
+		return;
+
+	//Reset the first dead particle
+	particles[firstDeadParticle].age = 0;
+	particles[firstDeadParticle].size = startSize;
+	particles[firstDeadParticle].color = startColor;
+	particles[firstDeadParticle].position = emitterPosition;
+	particles[firstDeadParticle].startVel = initialVelocity;
+	particles[firstDeadParticle].startVel.x += ((float)rand() / RAND_MAX) * 0.4f - 2.0f;
+	particles[firstDeadParticle].startVel.y += ((float)rand() / RAND_MAX) * 0.4f - 2.0f;
+	particles[firstDeadParticle].startVel.z += ((float)rand() / RAND_MAX) * 0.4f - 2.0f;
+
+	//increment and wrap
+	firstDeadParticle++;
+	firstDeadParticle %= maxParticles;
+
+	aliveParticleCount++;
 }
 
 void Emitter::CopyParticleDataToGPU(ID3D11DeviceContext * context)
@@ -232,4 +266,39 @@ void Emitter::CopyToParticleVertex(int particleIndex)
 	particleVertices[i + 3].color = particles[particleIndex].color;
 
 	//We don't bother copying uvs because UVs don't change
+}
+
+void Emitter::Render(ID3D11DeviceContext * context, DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj)
+{
+	//copy particles to GPU
+	CopyParticleDataToGPU(context);
+
+	//Set up buffers
+	UINT stride = sizeof(ParticleVertex);
+	UINT offset = 0;
+	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	vertexShader->SetMatrix4x4("view", view);
+	vertexShader->SetMatrix4x4("projection", proj);
+	vertexShader->SetShader();
+	vertexShader->CopyAllBufferData();
+
+	pixelShader->SetShaderResourceView("particle", particleTexture);
+	pixelShader->SetShader();
+	pixelShader->CopyAllBufferData();
+
+	//Draw the correct parts of the buffer
+	if (firstAliveParticle < firstDeadParticle) 
+	{
+		context->DrawIndexed(aliveParticleCount * 6, firstAliveParticle * 6, 0);
+	}
+	else
+	{
+		//draw first half (0 -> dead)
+		context->DrawIndexed(firstDeadParticle * 6, 0, 0);
+
+		//Draw second half (alive -> max)
+		context->DrawIndexed((maxParticles - firstAliveParticle) * 6, firstAliveParticle * 6, 0 );
+	}
 }

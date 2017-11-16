@@ -37,7 +37,7 @@ public:
 
 private:
 	//Emitter properties
-	DirectX::XMFLOAT3 intialVelocity;	//velocity to emit particles at
+	DirectX::XMFLOAT3 initialVelocity;	//velocity to emit particles at
 	DirectX::XMFLOAT3 emitterParticleAcceleration;	//acceleration to apply to particles
 	DirectX::XMFLOAT3 emitterPosition;	//position to emit particles from
 

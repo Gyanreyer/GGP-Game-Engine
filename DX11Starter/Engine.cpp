@@ -81,6 +81,44 @@ void Engine::Init()
 	CreateMaterials();
 	CreateMeshes();
 
+	// A depth state for the particles
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+
+
+	// Blend for particles (additive)
+	D3D11_BLEND_DESC blend = {};
+	blend.AlphaToCoverageEnable = false;
+	blend.IndependentBlendEnable = false;
+	blend.RenderTarget[0].BlendEnable = true;
+	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blend, &particleBlendState);
+
+	emitter = Emitter(
+		1000,
+		100, 
+		5, 
+		0.1f, 
+		5.0f,
+		XMFLOAT4(1, 0.1f, 0.1f, 0.2f),	// Start color
+		XMFLOAT4(1, 0.6f, 0.1f, 0),		// End color
+		XMFLOAT3(-2, 2, 0),				// Start velocity
+		XMFLOAT3(2, 0, 0),				// Start position
+		XMFLOAT3(0, -1, 0),				// Start acceleration
+		assetManager->GetVShader("ParticleShader"),
+		assetManager->GetPShader("ParticleShader"),
+		assetManager->GetTexture("ParticleTexture"),
+		device);
+
 	gameManager->StartGame(assetManager, (float)width, (float)height, context); //starts the game
 	
 	//----------Skybox DX States ---------------//
@@ -125,12 +163,19 @@ void Engine::LoadShaders()
 	SimplePixelShader* skyPShader = new SimplePixelShader(device, context);
 	skyPShader->LoadShaderFile(L"SkyPixelShader.cso");
 
+	SimpleVertexShader* particleVShader = new SimpleVertexShader(device, context);
+	particleVShader->LoadShaderFile(L"ParticleVertexShader.cso");
+
+	SimplePixelShader* particlePShader = new SimplePixelShader(device, context);
+	particlePShader->LoadShaderFile(L"ParticlePixelShader.cso");
+
 	//Store Vertex and Pixel Shaders into the AssetManager
 	assetManager->StoreVShader("BasicVShader", vertexShader);
 	assetManager->StorePShader("BasicPShader", pixelShader);
 	assetManager->StoreVShader("SkyboxShader", skyVShader);
 	assetManager->StorePShader("SkyboxShader", skyPShader);
-
+	assetManager->StoreVShader("ParticleShader", particleVShader);
+	assetManager->StorePShader("ParticleShader", particlePShader);
 }
 
 // ---------------------------------------------------------
@@ -190,7 +235,9 @@ void Engine::CreateMaterials()
 	assetManager->ImportTexture("RockTexture", L"../../DX11Starter/Assets/Textures/rock.jpg", device, context);
 	assetManager->ImportTexture("RockNormal", L"../../DX11Starter/Assets/Textures/rockNormals.jpg", device, context);
 	assetManager->CreateMaterial("RockMaterial", "BasicVShader", "BasicPShader", "RockTexture", "RockNormal", "BasicSampler");
-
+	
+	//import particle texture
+	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
 	//import skybox Texture
 	assetManager->ImportCubeMapTexture("SunnySkybox", L"../../DX11Starter/Assets/Textures/SunnyCubeMap.dds", device);
 }
@@ -221,6 +268,9 @@ void Engine::Update(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
+
+	//Temp
+	emitter.Update(deltaTime);
 
 	//Engine update Loop
 	gameManager->GameUpdate(deltaTime);
@@ -257,6 +307,18 @@ void Engine::Draw(float deltaTime, float totalTime)
 	}
 
 	gameManager->GameDraw(renderer);
+
+	// Particle states
+	float blend[4] = { 1,1,1,1 };
+	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
+	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
+
+																	// Draw the emitter
+	emitter.Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
+
+	// Reset to default states for next frame
+	context->OMSetBlendState(0, blend, 0xffffffff);
+	context->OMSetDepthStencilState(0, 0);
 
 	//Draw Skybox Last
 	//only keeps pixels that haven't been drawn to yet (ones that have a depth of 1.0)
