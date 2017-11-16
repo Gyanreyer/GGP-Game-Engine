@@ -148,7 +148,7 @@ void Player::Jump()
 	//Make sure not already in air and jump button was not previously held
 	//Give a small cushion from ground where players can jump again, this feels way better
 	//If the player is on another GameObject, just jump
-	if ( isOnGameObject)
+ 	if ( isOnGameObject)
 	{
 		Accelerate(0, 0, 3);
 	}

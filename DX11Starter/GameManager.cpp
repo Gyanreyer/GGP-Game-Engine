@@ -157,11 +157,11 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 		if (strcmp(tag, "Floor") == 0 &&
 			Collision::CheckCollision((*otherIter)->GetCollider(), player.GetCollider()))
 		{
-			player.StopFalling((*otherIter)->GetCollider()->center.y + (*otherIter)->GetCollider()->dimensions.y);
+			player.StopFalling(0);
 		}
 
 		//If an object or enemy, the player should collide and be unable to pass through them
-		if ((strcmp(tag, "Obstacle") == 0 || strcmp(tag, "Enemy") == 0 ) &&
+		else if ((strcmp(tag, "Obstacle") == 0 || strcmp(tag, "Enemy") == 0 ) &&
 			Collision::CheckCollision((*otherIter)->GetCollider(), player.GetCollider()))
 		{
 			XMFLOAT3 playerVelocity = player.GetVelocity();
