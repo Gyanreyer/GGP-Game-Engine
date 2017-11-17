@@ -61,6 +61,9 @@ Engine::~Engine()
 	ppRTV->Release();
 	ppSRV->Release();
 
+	particleBlendState->Release();
+	particleDepthState->Release();
+	delete emitter;
 	//Don't forget to delete the renderer
 	delete renderer;
 }
@@ -84,6 +87,44 @@ void Engine::Init()
 	LoadShaders();
 	CreateMaterials();
 	CreateMeshes();
+
+	// A depth state for the particles
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+
+
+	// Blend for particles (additive)
+	D3D11_BLEND_DESC blend = {};
+	blend.AlphaToCoverageEnable = false;
+	blend.IndependentBlendEnable = false;
+	blend.RenderTarget[0].BlendEnable = true;
+	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blend, &particleBlendState);
+
+	emitter = new Emitter(
+		1000,
+		100, 
+		5, 
+		0.1f, 
+		5.0f,
+		XMFLOAT4(1, 0.1f, 0.1f, 0.2f),	// Start color
+		XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
+		XMFLOAT3(-2, 2, 0),				// Start velocity
+		XMFLOAT3(2, 1, 0),				// Start position
+		XMFLOAT3(0, -1, 0),				// Start acceleration
+		assetManager->GetVShader("ParticleShader"),
+		assetManager->GetPShader("ParticleShader"),
+		assetManager->GetTexture("ParticleTexture"),
+		device);
 
 	gameManager->StartGame(assetManager, (float)width, (float)height, context); //starts the game
 	
@@ -179,13 +220,23 @@ void Engine::LoadShaders()
 	SimplePixelShader* ppPShader = new SimplePixelShader(device, context);
 	ppPShader->LoadShaderFile(L"PostProcessPixelShader.cso");
 
+	SimpleVertexShader* particleVShader = new SimpleVertexShader(device, context);
+	particleVShader->LoadShaderFile(L"ParticleVertexShader.cso");
+
+	SimplePixelShader* particlePShader = new SimplePixelShader(device, context);
+	particlePShader->LoadShaderFile(L"ParticlePixelShader.cso");
+
 	//Store Vertex and Pixel Shaders into the AssetManager
 	assetManager->StoreVShader("BasicVShader", vertexShader);
 	assetManager->StorePShader("BasicPShader", pixelShader);
 	assetManager->StoreVShader("SkyboxShader", skyVShader);
 	assetManager->StorePShader("SkyboxShader", skyPShader);
+
 	assetManager->StoreVShader("PostProcessVShader", ppVShader);
 	assetManager->StorePShader("PostProcessPShader", ppPShader);
+
+	assetManager->StoreVShader("ParticleShader", particleVShader);
+	assetManager->StorePShader("ParticleShader", particlePShader);
 }
 
 // ---------------------------------------------------------
@@ -228,8 +279,26 @@ void Engine::CreateMaterials()
 		printf("Sample State could not be created");
 	}
 
+	//Particle Sampler
+	ID3D11SamplerState* particleSample;
+	 sampleDesc = {}; //Holds options for sampling
+
+	//Describes how to handle addresses outside 0-1 UV range
+	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+	sampleDesc.Filter = D3D11_FILTER_ANISOTROPIC;	//Describes how to handle sampling between pixels
+	sampleDesc.MaxAnisotropy = 16;
+	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX; //Mipmaps (if applicable)
+
+	sampleResult = device->CreateSamplerState(&sampleDesc, &particleSample);
+	if (sampleResult != S_OK) {
+		printf("Sample State could not be created");
+	}
 	//Create the sampler object
 	assetManager->StoreSampler("BasicSampler", sample);
+	assetManager->StoreSampler("ParticleSampler", particleSample);
 
 	//Create Texture
 	assetManager->ImportTexture("HazardTexture", L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", device, context);
@@ -245,7 +314,9 @@ void Engine::CreateMaterials()
 	assetManager->ImportTexture("RockTexture", L"../../DX11Starter/Assets/Textures/rock.jpg", device, context);
 	assetManager->ImportTexture("RockNormal", L"../../DX11Starter/Assets/Textures/rockNormals.jpg", device, context);
 	assetManager->CreateMaterial("RockMaterial", "BasicVShader", "BasicPShader", "RockTexture", "RockNormal", "BasicSampler");
-
+	
+	//import particle texture
+	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
 	//import skybox Texture
 	assetManager->ImportCubeMapTexture("SunnySkybox", L"../../DX11Starter/Assets/Textures/SunnyCubeMap.dds", device);
 }
@@ -276,6 +347,9 @@ void Engine::Update(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
+
+	//Temp
+	emitter->Update(deltaTime);
 
 	//Engine update Loop
 	gameManager->GameUpdate(deltaTime);
@@ -319,6 +393,19 @@ void Engine::Draw(float deltaTime, float totalTime)
 
 	//Sampler has to be passed into other shaders, so get it here once
 	ID3D11SamplerState* sampler = assetManager->GetSampler("BasicSampler");
+
+	// Particle states
+	float blend[4] = { 1,1,1,1 };
+	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
+	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
+
+	// Draw the emitter
+	assetManager->GetPShader("ParticleShader")->SetSamplerState("trilinear", assetManager->GetSampler("ParticleSampler"));
+	emitter->Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
+
+	// Reset to default states for next frame
+	context->OMSetBlendState(0, blend, 0xffffffff);
+	context->OMSetDepthStencilState(0, 0);
 
 	//Draw Skybox Last
 	//only keeps pixels that haven't been drawn to yet (ones that have a depth of 1.0)

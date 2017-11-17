@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include "AssetManager.h"
 #include "GameManager.h"
+#include "Emitter.h"
 
 using std::to_string; //Alternative to atoi
 
@@ -43,7 +44,7 @@ private:
 	void LoadShaders(); 
 	void CreateMeshes(); //Generates and assigns meshes for GameObjects
 	void CreateMaterials();
-
+	
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
@@ -52,6 +53,11 @@ private:
 	AssetManager* assetManager;
 	GameManager* gameManager;
 	Renderer* renderer;
+
+	//Particle Stuff
+	ID3D11DepthStencilState* particleDepthState;
+	ID3D11BlendState* particleBlendState;
+	Emitter* emitter;
 
 	//Skybox DX Render States 
 	ID3D11RasterizerState* skyBoxRasterState;
