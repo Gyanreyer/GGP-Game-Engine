@@ -33,7 +33,8 @@ Engine::Engine(HINSTANCE hInstance)
 	//Hide cursor
 	GetWindowRect(GetDesktopWindow(), &screen); //Get the dimensions of the desktop
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
-	//ShowCursor(false);
+	ShowCursor(false);
+	freeMouse = false;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -74,8 +75,8 @@ void Engine::Init()
 	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device, GameManager::getInstance().GetPlayer());
 
 	//Default prevMousePos to center of screen
-	prevMousePos.x = width / 2;
-	prevMousePos.y = height / 2;
+	/*prevMousePos.x = width / 2;
+	prevMousePos.y = height / 2;*/
 
 	LoadShaders();
 	CreateMaterials();
@@ -327,21 +328,17 @@ void Engine::Draw(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-	// Save the previous mouse position, so we have it for the future
-	prevMousePos.x = x;
-	prevMousePos.y = y;
+	if (buttonState & MK_RBUTTON)
+	{
+		freeMouse = !freeMouse;
+		ShowCursor(freeMouse);
+	}
 
-	// Capture the mouse so we keep getting mouse move
-	// events even if the mouse leaves the window.  we'll be
-	// releasing the capture once a mouse button is released
-	SetCapture(hWnd);
-
-	//When the left mouse button is pressed
-	//Duh, it's a bitwise &
-	if (buttonState & MK_LBUTTON)
+	if (!freeMouse && buttonState & MK_LBUTTON)
 	{
 		gameManager->OnLeftClick();
 	}
+	
 }
 
 // --------------------------------------------------------
@@ -349,11 +346,6 @@ void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Engine::OnMouseUp(WPARAM buttonState, int x, int y)
 {
-	// Add any custom code here...
-
-	// We don't care about the tracking the cursor outside
-	// the window anymore (we're not dragging if the mouse is up)
-	ReleaseCapture();
 }
 
 // --------------------------------------------------------
@@ -361,24 +353,14 @@ void Engine::OnMouseUp(WPARAM buttonState, int x, int y)
 // if the mouse is currently over the window, or if we're 
 // currently capturing the mouse.
 // --------------------------------------------------------
-void Engine::OnMouseMove(WPARAM buttonState, int x, int y)
+void Engine::OnMouseMove(int x, int y)
 {
-	//When the right mouse button is pressed
-	//Duh, it's a bitwise &
-	if (buttonState & MK_RBUTTON)
-	{
-		//Distance the mouse moves in one frame
-		float deltaX = x - (float)prevMousePos.x;
-		float deltaY = y - (float)prevMousePos.y;
+	if (freeMouse) return;
 
-		//Rotate player
-		gameManager->GetPlayer()->UpdateMouseInput(deltaX, deltaY);
+	//Rotate player
+	gameManager->GetPlayer()->UpdateMouseInput(x, y);
 
-		//Update previous mose position
-		prevMousePos.x = x;
-		prevMousePos.y = y;
-
-	}
+	SetCursorPos(screen.right / 2, screen.bottom / 2);
 }
 
 // --------------------------------------------------------
