@@ -11,22 +11,25 @@ public:
 	~OctreeNode();
 
 	vector<GameObject*> GetObjects();
-	vector<GameObject*> GetAllContainedObjects();
+	vector<GameObject*> GetAllSubObjects(bool includeOwn);
+	vector<GameObject*> GetAllObjectsForCollision();
 
 	void AddObject(GameObject * obj);
+	void RemoveObject(GameObject * obj);
 
 	bool IsLeafNode();
 
-	void Update();
+	void UpdateAll();
+	vector<GameObject *>::iterator UpdateObject(vector<GameObject *>::iterator objIter);
 
 	OctreeNode * GetParent();
-	vector<OctreeNode> GetChildren();
+	vector<OctreeNode *> GetChildren();
 
 private:
 	vector<GameObject*> objects;
 
 	OctreeNode * parent;
-	vector<OctreeNode> children;
+	vector<OctreeNode *> children;
 
 	XMFLOAT3 center;
 	float radius;

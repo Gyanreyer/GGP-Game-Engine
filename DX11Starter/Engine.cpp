@@ -211,7 +211,7 @@ void Engine::CreateMeshes()
 	assetManager->ImportMesh("Sphere", "../../DX11Starter/Assets/Models/sphere.obj", device, SPHERE, false);
 	assetManager->ImportMesh("Torus", "../../DX11Starter/Assets/Models/torus.obj", device);
 	assetManager->ImportMesh("Cactus", "../../DX11Starter/Assets/Models/cactus.obj", device);
-	assetManager->ImportMesh("RustyPete", "../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device, BOX, true);
+	assetManager->ImportMesh("RustyPete", "../../DX11Starter/Assets/Models/RustyPete/RustyPete.obj", device, BOX, false);
 	assetManager->ImportMesh("PurpleGhost", "../../DX11Starter/Assets/Models/ghost.obj", device, BOX, false);
 	assetManager->ImportMesh("Plane", "../../DX11Starter/Assets/Models/Quad.obj", device, BOX, false);
 	assetManager->ImportMesh("SphereHP", "../../DX11Starter/Assets/Models/sphereHP.obj", device, SPHERE, false);
@@ -449,11 +449,7 @@ void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 	//Duh, it's a bitwise &
 	if (buttonState & MK_LBUTTON)
 	{
-		//Make Player function to shoot
-		Transform* pt = gameManager->GetPlayer()->GetTransform();
-
-		//Make player shoot
-		gameManager->GetProjectileManager()->SpawnPlayerProjectile(pt->GetPosition(), pt->GetForward());
+		gameManager->OnLeftClick();
 	}
 }
 

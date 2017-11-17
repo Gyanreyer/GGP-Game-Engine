@@ -5,8 +5,8 @@ Enemy::Enemy()
 {
 }
 
-Enemy::Enemy(Transform trans, Mesh * mesh, Material * material, ProjectileManager* projManager, byte pointValue, EnemyType eType)
-	: GameObject(trans, mesh, material)
+Enemy::Enemy(Transform trans, Mesh * mesh, Material * material, EnemyType eType, byte pointValue, ProjectileManager * pm)
+	: GameObject(trans, mesh, material, "Enemy")
 {
 	transform = trans;
 
@@ -18,9 +18,9 @@ Enemy::Enemy(Transform trans, Mesh * mesh, Material * material, ProjectileManage
 
 	movePositive = true;
 	offset = XMFLOAT3(1,1,0);
-
-	pManager = projManager; //Save the reference to the ProjectileManager
 	
+	projManager = pm;
+
 	time(&nowTime); //gets current time when game is launched
 	lastShotTime = *localtime(&nowTime); //assigns that time to lastShotTime to keep track of the time when shot was last fired
 }
@@ -51,10 +51,10 @@ void Enemy::Update(float deltaTime)
 
 	double seconds = difftime(nowTime, mktime(&lastShotTime));
 
-	if (seconds >= 4)
+	/*if (seconds >= 4)
 	{
 		Shoot();
-	}
+	}*/
 }
 
 void Enemy::Shoot()
@@ -69,7 +69,7 @@ void Enemy::ShootDirection(XMFLOAT3 dir)
 	if (collider.isOffset)
 		shootPos.y += halfHeight;
 
-	pManager->SpawnEnemyProjectile(shootPos, dir);
+	projManager->SpawnEnemyProjectile(shootPos, dir);
 
 	//This is theoretically pointless if we're using a timer to determine when shots should be fired - we already got the time
 	//time(&nowTime); //gets current time when shot is launched
