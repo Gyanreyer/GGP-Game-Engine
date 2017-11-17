@@ -2,6 +2,7 @@
 //Calculates texture information
 //Calculates normal map information
 //Calculates directional and point lights
+//Fog
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -102,11 +103,10 @@ float4 calculateBlinnPhongPointLight(PointLight light, VertexToPixel input, floa
 //Calculate how strong the fog should be
 float getFogFactor(float3 pos, float3 cameraPos)
 {
-	float dist = distance(pos, cameraPos);//Get dist from camera
+	float dist = distance(pos, cameraPos); //Get dist from camera
 
-	
-	const float minDist = 5;//Min dist before fog is applied
-	const float maxDist = 20;//Max dist before fog fully obscures object
+	const float minDist = 5; //Min dist before fog is applied
+	const float maxDist = 20; //Max dist before fog fully obscures object
 
 	//Return how strong the fog should be as a percentage 0-1
 	return saturate(1 - (maxDist - dist) / (maxDist - minDist));

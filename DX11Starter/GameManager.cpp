@@ -71,13 +71,13 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	);
 
 	//Create enemies
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::moveX, 10, &projectileManager));
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::moveX, 20, &projectileManager));
 	enemyTransform.SetPosition(-2, 2, 0);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), EnemyType::moveY, 20, &projectileManager));
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), EnemyType::moveY, 30, &projectileManager));
 	enemyTransform.SetPosition(0, 0, -2);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::moveX, 20, &projectileManager ));
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::noMove, 10, &projectileManager));
 	enemyTransform.SetPosition(0, 1, 0);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("SphereHP"), asset->GetMaterial("RockMaterial"), EnemyType::moveX, 20, &projectileManager )); //DIRTY BUBBLE!
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("SphereHP"), asset->GetMaterial("RockMaterial"), EnemyType::moveX, 20, &projectileManager)); //DIRTY BUBBLE!
 	
 	///OTHER GAMEOBJECTS
 	gameObjects.clear(); //Clear this out for new game instances
