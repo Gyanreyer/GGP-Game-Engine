@@ -2,7 +2,7 @@
 
 GameObject::GameObject() {}
 
-GameObject::GameObject(Transform trans, Mesh * mesh, Material * material)
+GameObject::GameObject(Transform trans, Mesh * mesh, Material * material, char * objTag)
 {
 	transform = trans;
 
@@ -10,15 +10,19 @@ GameObject::GameObject(Transform trans, Mesh * mesh, Material * material)
 	SetMaterial(material);
 
 	collider = Collider(mesh->GetColliderType(), transform.GetPosition(), transform.GetScale(), mesh->GetIsColliderOffset());
+
+	tag = objTag;
 }
 
 //Just a collider, no visible object
-GameObject::GameObject(Transform trans, ColliderType colliderType)
+GameObject::GameObject(Transform trans, ColliderType colliderType, char * objTag)
 {
 	transform = trans;
 
 	//This collider type will never be offset
 	collider = Collider(colliderType, transform.GetPosition(), transform.GetScale());
+
+	tag = objTag;
 }
 
 GameObject::~GameObject() {}
@@ -51,6 +55,17 @@ Mesh * GameObject::GetMesh()
 
 Collider* GameObject::GetCollider()
 {
+	if (transform.MatrixNeedsUpdate()) {
+		XMStoreFloat3(&collider.center, XMLoadFloat3(&transform.GetPosition()));
+
+		//Check if the collider is offset
+		if (collider.isOffset)
+			//Adjust for offset here
+			//Right now, this assumes that the collider is at the "feet" of a model
+			//If the need arises, this can be generalized
+			collider.center.y += collider.dimensions.y;
+	}
+
 	return &collider;
 }
 
@@ -58,6 +73,21 @@ XMFLOAT4X4 GameObject::GetWorldMatrix()
 {
 	UpdateWorldMatrix();//Make sure world matrix is up to date before returning
 	return worldMatrix;
+}
+
+OctreeNode * GameObject::GetOctNode()
+{
+	return currentOctNode;
+}
+
+void GameObject::SetOctNode(OctreeNode * newOct)
+{
+	currentOctNode = newOct;
+}
+
+char * GameObject::GetTag()
+{
+	return tag;
 }
 
 //Update the world matrix if transform has changed
@@ -78,16 +108,6 @@ void GameObject::UpdateWorldMatrix()
 		//Store transposed matrix as worldMatrix
 		XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(newWM));
 
-		transform.DoneUpdating();//Notify transform that matrix has been updated successfully
-
-		collider.dimensions = transform.GetScale();
-		collider.center = transform.GetPosition();
-
-		//Check if the collider is offset
-		if (collider.isOffset)
-			//Adjust for offset here
-			//Right now, this assumes that the collider is at the "feet" of a model
-			//If the need arises, this can be generalized
-			collider.center.y += collider.dimensions.y / 2;			
+		transform.DoneUpdating();//Notify transform that matrix has been updated successfully	
 	}
 }

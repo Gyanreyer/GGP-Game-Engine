@@ -199,12 +199,20 @@ void Engine::Init()
 void Engine::LoadShaders()
 {
 	//Load default shaders
-	//Textures, normal mapping, and lighting
-	SimpleVertexShader* vertexShader = new SimpleVertexShader(device, context);
-	vertexShader->LoadShaderFile(L"VertexShader.cso");
+	//Textures and lighting
+	SimpleVertexShader* baseVertexShader = new SimpleVertexShader(device, context);
+	baseVertexShader->LoadShaderFile(L"BaseVertexShader.cso");
 
-	SimplePixelShader* pixelShader = new SimplePixelShader(device, context);
-	pixelShader->LoadShaderFile(L"PixelShader.cso");
+	SimplePixelShader* basePixelShader = new SimplePixelShader(device, context);
+	basePixelShader->LoadShaderFile(L"BasePixelShader.cso");
+
+	//Load normal mapping shaders
+	//Textures, normal mapping, and lighting
+	SimpleVertexShader* normalVertexShader = new SimpleVertexShader(device, context);
+	normalVertexShader->LoadShaderFile(L"NormalMapVertexShader.cso");
+
+	SimplePixelShader* normalPixelShader = new SimplePixelShader(device, context);
+	normalPixelShader->LoadShaderFile(L"NormalMapPixelShader.cso");
 
 	//Load Skybox Shaders
 	SimpleVertexShader* skyVShader = new SimpleVertexShader(device, context);
@@ -227,8 +235,10 @@ void Engine::LoadShaders()
 	particlePShader->LoadShaderFile(L"ParticlePixelShader.cso");
 
 	//Store Vertex and Pixel Shaders into the AssetManager
-	assetManager->StoreVShader("BasicVShader", vertexShader);
-	assetManager->StorePShader("BasicPShader", pixelShader);
+	assetManager->StoreVShader("BaseVertexShader", baseVertexShader);
+	assetManager->StorePShader("BasePixelShader", basePixelShader);
+	assetManager->StoreVShader("NormalMapVertexShader", normalVertexShader);
+	assetManager->StorePShader("NormalMapPixelShader", normalPixelShader);
 	assetManager->StoreVShader("SkyboxShader", skyVShader);
 	assetManager->StorePShader("SkyboxShader", skyPShader);
 
@@ -302,23 +312,24 @@ void Engine::CreateMaterials()
 
 	//Create Texture
 	assetManager->ImportTexture("HazardTexture", L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", device, context);
-	assetManager->CreateMaterial("HazardCrateMat", "BasicVShader", "BasicPShader", "HazardTexture", "BasicSampler");
+	assetManager->CreateMaterial("HazardCrateMat", "BaseVertexShader", "BasePixelShader", "HazardTexture", "BasicSampler");
 	assetManager->ImportTexture("RustyPete", L"../../DX11Starter/Assets/Models/RustyPete/rusty_pete_body_c.png", device, context);
-	assetManager->CreateMaterial("RustyPeteMaterial", "BasicVShader", "BasicPShader", "RustyPete", "BasicSampler");
+	assetManager->CreateMaterial("RustyPeteMaterial", "BaseVertexShader", "BasePixelShader", "RustyPete", "BasicSampler");
 	assetManager->ImportTexture("Stone", L"../../DX11Starter/Assets/Textures/GreyStoneTexture.jpg", device, context);
-	assetManager->CreateMaterial("StoneMat", "BasicVShader", "BasicPShader", "Stone", "BasicSampler");
+	assetManager->CreateMaterial("StoneMat", "BaseVertexShader", "BasePixelShader", "Stone", "BasicSampler");
 	assetManager->ImportTexture("EnemyTexture", L"../../DX11Starter/Assets/Textures/aaaaaa.png", device, context);
-	assetManager->CreateMaterial("EnemyMaterial", "BasicVShader", "BasicPShader", "EnemyTexture", "BasicSampler");
+	assetManager->CreateMaterial("EnemyMaterial", "BaseVertexShader", "BasePixelShader", "EnemyTexture", "BasicSampler");
 	assetManager->ImportTexture("PurpleGhost", L"../../DX11Starter/Assets/Textures/ghost-dark.png", device, context);
-	assetManager->CreateMaterial("PurpleGhost", "BasicVShader", "BasicPShader", "PurpleGhost", "BasicSampler");
+	assetManager->CreateMaterial("PurpleGhost", "BaseVertexShader", "BasePixelShader", "PurpleGhost", "BasicSampler");
 	assetManager->ImportTexture("RockTexture", L"../../DX11Starter/Assets/Textures/rock.jpg", device, context);
 	assetManager->ImportTexture("RockNormal", L"../../DX11Starter/Assets/Textures/rockNormals.jpg", device, context);
-	assetManager->CreateMaterial("RockMaterial", "BasicVShader", "BasicPShader", "RockTexture", "RockNormal", "BasicSampler");
-	
+	assetManager->CreateMaterial("RockMaterial", "NormalMapVertexShader", "NormalMapPixelShader", "RockTexture", "RockNormal", "BasicSampler");
+
 	//import particle texture
 	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
+
 	//import skybox Texture
-	assetManager->ImportCubeMapTexture("SunnySkybox", L"../../DX11Starter/Assets/Textures/SunnyCubeMap.dds", device);
+	assetManager->ImportCubeMapTexture("NightSkybox", L"../../DX11Starter/Assets/Textures/NightSkybox.dds", device);
 }
 
 // --------------------------------------------------------
@@ -376,36 +387,8 @@ void Engine::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
-	// 1. Show a simple window
-	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-	{
-		static float f = 0.0f;
-		static char testText = char();
-		ImGui::Text("Hello, world!");
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-		ImGui::ColorEdit3("clear color", (float*)&clear_color);
-		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	}
-
-	gameManager->GameDraw(renderer);
-	//END GAME DRAWING
-
 	//Sampler has to be passed into other shaders, so get it here once
 	ID3D11SamplerState* sampler = assetManager->GetSampler("BasicSampler");
-
-	// Particle states
-	float blend[4] = { 1,1,1,1 };
-	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
-	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
-
-	// Draw the emitter
-	assetManager->GetPShader("ParticleShader")->SetSamplerState("trilinear", assetManager->GetSampler("ParticleSampler"));
-	emitter->Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
-
-	// Reset to default states for next frame
-	context->OMSetBlendState(0, blend, 0xffffffff);
-	context->OMSetDepthStencilState(0, 0);
 
 	//Draw Skybox Last
 	//only keeps pixels that haven't been drawn to yet (ones that have a depth of 1.0)
@@ -428,7 +411,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 	skyVS->SetShader();
 
 	//copy pixel shader constant data to shader
-	skyPS->SetShaderResourceView("skyboxTexture", assetManager->GetTexture("SunnySkybox"));
+	skyPS->SetShaderResourceView("skyboxTexture", assetManager->GetTexture("NightSkybox"));
 	skyPS->SetSamplerState("skySampler", sampler);
 	skyPS->CopyAllBufferData();
 	skyPS->SetShader();
@@ -444,6 +427,38 @@ void Engine::Draw(float deltaTime, float totalTime)
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
 	//END SKYBOX
+
+	// 1. Show a simple window
+	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+	{
+		static float f = 0.0f;
+		static char testText = char();
+		ImGui::Text("Hello, world!");
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("clear color", (float*)&clear_color);
+		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
+
+	gameManager->GameDraw(renderer);
+	//END GAME DRAWING
+
+	
+
+	// Particle states
+	float blend[4] = { 1,1,1,1 };
+	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
+	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
+
+	// Draw the emitter
+	assetManager->GetPShader("ParticleShader")->SetSamplerState("trilinear", assetManager->GetSampler("ParticleSampler"));
+	emitter->Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
+
+	// Reset to default states for next frame
+	context->OMSetBlendState(0, blend, 0xffffffff);
+	context->OMSetDepthStencilState(0, 0);
+
+	
 
 	//Begin post processing
 	context->OMSetRenderTargets(1, &backBufferRTV, 0); //Set the back buffer as the render target
@@ -526,11 +541,7 @@ void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 	//Duh, it's a bitwise &
 	if (buttonState & MK_LBUTTON)
 	{
-		//Make Player function to shoot
-		Transform* pt = gameManager->GetPlayer()->GetTransform();
-
-		//Make player shoot
-		gameManager->GetProjectileManager()->SpawnPlayerProjectile(pt->GetPosition(), pt->GetForward());
+		gameManager->OnLeftClick();
 	}
 }
 

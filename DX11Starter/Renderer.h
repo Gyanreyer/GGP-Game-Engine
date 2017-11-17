@@ -4,6 +4,7 @@
 #include "Lights.h"
 #include "Player.h"
 
+class Player;
 class Renderer
 {
 public:

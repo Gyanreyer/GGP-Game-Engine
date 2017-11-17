@@ -19,7 +19,7 @@ class Enemy : public GameObject
 {
 public:
 	Enemy();
-	Enemy(Transform trans, Mesh * mesh, Material * material, ProjectileManager* projManager, byte pointValue, EnemyType eType);
+	Enemy(Transform trans, Mesh * mesh, Material * material, EnemyType eType, byte pointValue, ProjectileManager * pm);
 	~Enemy();
 	void Update(float deltaTime);
 
@@ -34,9 +34,6 @@ private:
 	time_t nowTime;
 	tm lastShotTime;
 
-	//ProjectileManager reference
-	ProjectileManager* pManager;
-
 	//The number of points this enemy is worth
 	int points;
 
@@ -48,16 +45,7 @@ private:
 
 	bool movePositive;
 
-	//If the collider is offset
-	//bool isOffset;
-
 	float halfHeight;
-/*
-	int xOffset = 2;
-	int yOffset = 2;
-	bool moveXAxis = false;
-	bool moveRight = true;
-	bool moveUp = true;
-	bool moveYAxis = false;
-	*/
+
+	ProjectileManager * projManager;
 };

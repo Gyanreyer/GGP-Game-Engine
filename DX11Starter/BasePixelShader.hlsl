@@ -1,6 +1,7 @@
+//Base pixel shader
 //Calculates texture information
-//Calculates normal map information
 //Calculates directional and point lights
+//Fog
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -14,10 +15,9 @@ struct VertexToPixel
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float4 position		: SV_POSITION; // XYZW position (System Value Position)
+	float4 position		: SV_POSITION;
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
-	float3 tangent		: TANGENT; //Tangent of the surface for normal maps, U direction
 	float3 worldPos		: POSITION; //World position of this vertex
 };
 
@@ -48,7 +48,6 @@ cbuffer externalData : register(b0)
 
 //Texture variables
 Texture2D diffuseTexture : register(t0);
-Texture2D normalMap : register(t1);
 SamplerState basicSampler : register(s0);
 
 //Directional light diffuse calculations
@@ -98,6 +97,18 @@ float4 calculateBlinnPhongPointLight(PointLight light, VertexToPixel input, floa
 	return (light.DiffuseColor * pointLightAmount) + pointLightSpecular; //Return point light with specular reflection (color * amount + specular)
 }
 
+//Calculate how strong the fog should be
+float getFogFactor(float3 pos, float3 cameraPos)
+{
+	float dist = distance(pos, cameraPos); //Get dist from camera
+
+	const float minDist = 5; //Min dist before fog is applied
+	const float maxDist = 20; //Max dist before fog fully obscures object
+
+	//Return how strong the fog should be as a percentage 0-1
+	return saturate(1 - (maxDist - dist) / (maxDist - minDist));
+}
+
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
 // 
@@ -111,27 +122,15 @@ float4 main(VertexToPixel input) : SV_TARGET
 {
 	//Normalize these, they may be larger due to interpolation
 	input.normal = normalize(input.normal);
-	input.tangent = normalize(input.tangent);
 
 	float4 textureColor = diffuseTexture.Sample(basicSampler, input.uv);
 
-	//Sample and unpack the normal
-	float3 normalFromTexture = normalMap.Sample(basicSampler, input.uv).xyz * 2 - 1;
-	
-	//Create the Tangent-BiTangent-Normal (TBN) matrix
-	//Translates from tangent to world space
-	float3 N = input.normal;
-	float3 T = normalize(input.tangent - N * dot(input.tangent, N));
-	float3 B = cross(T, N);
-	float3x3 TBN = float3x3(T, B, N);
-	
-	//Overwrite the existing normal with the one from
-	//the normal map after it's been converted to world space
-	input.normal = normalize(mul(normalFromTexture, TBN));
-
-	return textureColor * 
+	float4 finalColor = textureColor *
 		(ambientLight + //Ambient light in the scene
 			calculateDirectionalLight(dLight1, input.normal) + calculateDirectionalLight(dLight2, input.normal) + //Directional lights
 			calculateBlinnPhongPointLight(pLight1, input, cameraPosition) //Point lights
 			);
+
+	//Lerp final color with fog factor to apply fog
+	return lerp(finalColor, float4(0.2, 0.2, 0.2, 1), getFogFactor(input.worldPos, cameraPosition));
 }

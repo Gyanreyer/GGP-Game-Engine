@@ -2,14 +2,14 @@
 
 Projectile::Projectile(Mesh * mesh, Material * material,
 	XMFLOAT3 startPos, XMFLOAT3 direction, float speed) :
-	GameObject(Transform(startPos,XMFLOAT3(0,0,0),XMFLOAT3(0.02f,0.02f,0.02f)),mesh, material)
+	GameObject(Transform(startPos,XMFLOAT3(0,0,0),XMFLOAT3(0.02f,0.02f,0.02f)),mesh, material, "Projectile")
 {
 	timeAlive = 0;
 	moveSpeed = speed;//Store speed that will move by each frame
 	
 	//Make projectile face same direction as player
 	transform.SetForward(direction);
-	transform.MoveRelative(0.1f,0,0);
+	transform.MoveRelative(0.5f,0,0);
 }
 
 Projectile::~Projectile()
