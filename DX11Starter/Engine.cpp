@@ -257,7 +257,7 @@ void Engine::CreateMaterials()
 	assetManager->CreateMaterial("RockMaterial", "NormalMapVertexShader", "NormalMapPixelShader", "RockTexture", "RockNormal", "BasicSampler");
 
 	//import skybox Texture
-	assetManager->ImportCubeMapTexture("SunnySkybox", L"../../DX11Starter/Assets/Textures/SunnyCubeMap.dds", device);
+	assetManager->ImportCubeMapTexture("NightSkybox", L"../../DX11Starter/Assets/Textures/NightSkybox.dds", device);
 }
 
 // --------------------------------------------------------
@@ -351,7 +351,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 	skyVS->SetShader();
 
 	//copy pixel shader constant data to shader
-	skyPS->SetShaderResourceView("skyboxTexture", assetManager->GetTexture("SunnySkybox"));
+	skyPS->SetShaderResourceView("skyboxTexture", assetManager->GetTexture("NightSkybox"));
 	skyPS->SetSamplerState("skySampler", sampler);
 	skyPS->CopyAllBufferData();
 	skyPS->SetShader();
