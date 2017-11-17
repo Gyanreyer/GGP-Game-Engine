@@ -237,7 +237,7 @@ void Emitter::CopyParticleDataToGPU(ID3D11DeviceContext * context)
 	D3D11_MAPPED_SUBRESOURCE mappedVB = {};
 	context->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedVB);
 	
-	memcpy(&mappedVB, particleVertices, sizeof(ParticleVertex) * 4 * maxParticles);
+	memcpy(mappedVB.pData, particleVertices, sizeof(ParticleVertex) * 4 * maxParticles);
 
 	context->Unmap(vertexBuffer, 0);
 
@@ -284,7 +284,7 @@ void Emitter::Render(ID3D11DeviceContext * context, DirectX::XMFLOAT4X4 view, Di
 	vertexShader->SetShader();
 	vertexShader->CopyAllBufferData();
 
-	pixelShader->SetShaderResourceView("particle", particleTexture);
+	pixelShader->SetShaderResourceView("particleTexture", particleTexture);
 	pixelShader->SetShader();
 	pixelShader->CopyAllBufferData();
 

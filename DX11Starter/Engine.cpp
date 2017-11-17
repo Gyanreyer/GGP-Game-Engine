@@ -57,6 +57,9 @@ Engine::~Engine()
 	skyBoxRasterState->Release();
 	skyboxDepthStencilState->Release();
 
+	particleBlendState->Release();
+	particleDepthState->Release();
+	delete emitter;
 	//Don't forget to delete the renderer
 	delete renderer;
 }
@@ -103,16 +106,16 @@ void Engine::Init()
 	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	device->CreateBlendState(&blend, &particleBlendState);
 
-	emitter = Emitter(
+	emitter = new Emitter(
 		1000,
 		100, 
 		5, 
 		0.1f, 
 		5.0f,
 		XMFLOAT4(1, 0.1f, 0.1f, 0.2f),	// Start color
-		XMFLOAT4(1, 0.6f, 0.1f, 0),		// End color
+		XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
 		XMFLOAT3(-2, 2, 0),				// Start velocity
-		XMFLOAT3(2, 0, 0),				// Start position
+		XMFLOAT3(2, 1, 0),				// Start position
 		XMFLOAT3(0, -1, 0),				// Start acceleration
 		assetManager->GetVShader("ParticleShader"),
 		assetManager->GetPShader("ParticleShader"),
@@ -218,8 +221,26 @@ void Engine::CreateMaterials()
 		printf("Sample State could not be created");
 	}
 
+	//Particle Sampler
+	ID3D11SamplerState* particleSample;
+	 sampleDesc = {}; //Holds options for sampling
+
+	//Describes how to handle addresses outside 0-1 UV range
+	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+	sampleDesc.Filter = D3D11_FILTER_ANISOTROPIC;	//Describes how to handle sampling between pixels
+	sampleDesc.MaxAnisotropy = 16;
+	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX; //Mipmaps (if applicable)
+
+	sampleResult = device->CreateSamplerState(&sampleDesc, &particleSample);
+	if (sampleResult != S_OK) {
+		printf("Sample State could not be created");
+	}
 	//Create the sampler object
 	assetManager->StoreSampler("BasicSampler", sample);
+	assetManager->StoreSampler("ParticleSampler", particleSample);
 
 	//Create Texture
 	assetManager->ImportTexture("HazardTexture", L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", device, context);
@@ -270,7 +291,7 @@ void Engine::Update(float deltaTime, float totalTime)
 		Quit();
 
 	//Temp
-	emitter.Update(deltaTime);
+	emitter->Update(deltaTime);
 
 	//Engine update Loop
 	gameManager->GameUpdate(deltaTime);
@@ -313,8 +334,9 @@ void Engine::Draw(float deltaTime, float totalTime)
 	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
 	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
 
-																	// Draw the emitter
-	emitter.Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
+	// Draw the emitter
+	assetManager->GetPShader("ParticleShader")->SetSamplerState("trilinear", assetManager->GetSampler("ParticleSampler"));
+	emitter->Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
 
 	// Reset to default states for next frame
 	context->OMSetBlendState(0, blend, 0xffffffff);
@@ -351,7 +373,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 	context->OMSetDepthStencilState(skyboxDepthStencilState, 0);
 
 	//render sky box
-	context->DrawIndexed(assetManager->GetMesh("Cube")->GetIndexCount(), 0, 0);
+	//context->DrawIndexed(assetManager->GetMesh("Cube")->GetIndexCount(), 0, 0);
 
 	//reset render state options
 	context->RSSetState(0);

@@ -57,7 +57,7 @@ private:
 	//Particle Stuff
 	ID3D11DepthStencilState* particleDepthState;
 	ID3D11BlendState* particleBlendState;
-	Emitter emitter;
+	Emitter* emitter;
 
 	//Skybox DX Render States 
 	ID3D11RasterizerState* skyBoxRasterState;
