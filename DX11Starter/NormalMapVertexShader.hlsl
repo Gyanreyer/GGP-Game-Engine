@@ -1,3 +1,4 @@
+//Base vertex shader with normal mapping
 //Calculates texture information
 //Calculates normal map information
 //Calculates directional and point lights

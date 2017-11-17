@@ -158,12 +158,20 @@ void Engine::Init()
 void Engine::LoadShaders()
 {
 	//Load default shaders
-	//Textures, normal mapping, and lighting
-	SimpleVertexShader* vertexShader = new SimpleVertexShader(device, context);
-	vertexShader->LoadShaderFile(L"VertexShader.cso");
+	//Textures and lighting
+	SimpleVertexShader* baseVertexShader = new SimpleVertexShader(device, context);
+	baseVertexShader->LoadShaderFile(L"BaseVertexShader.cso");
 
-	SimplePixelShader* pixelShader = new SimplePixelShader(device, context);
-	pixelShader->LoadShaderFile(L"PixelShader.cso");
+	SimplePixelShader* basePixelShader = new SimplePixelShader(device, context);
+	basePixelShader->LoadShaderFile(L"BasePixelShader.cso");
+
+	//Load normal mapping shaders
+	//Textures, normal mapping, and lighting
+	SimpleVertexShader* normalVertexShader = new SimpleVertexShader(device, context);
+	normalVertexShader->LoadShaderFile(L"NormalMapVertexShader.cso");
+
+	SimplePixelShader* normalPixelShader = new SimplePixelShader(device, context);
+	normalPixelShader->LoadShaderFile(L"NormalMapPixelShader.cso");
 
 	//Load Skybox Shaders
 	SimpleVertexShader* skyVShader = new SimpleVertexShader(device, context);
@@ -180,8 +188,10 @@ void Engine::LoadShaders()
 	ppPShader->LoadShaderFile(L"PostProcessPixelShader.cso");
 
 	//Store Vertex and Pixel Shaders into the AssetManager
-	assetManager->StoreVShader("BasicVShader", vertexShader);
-	assetManager->StorePShader("BasicPShader", pixelShader);
+	assetManager->StoreVShader("BaseVertexShader", baseVertexShader);
+	assetManager->StorePShader("BasePixelShader", basePixelShader);
+	assetManager->StoreVShader("NormalMapVertexShader", normalVertexShader);
+	assetManager->StorePShader("NormalMapPixelShader", normalPixelShader);
 	assetManager->StoreVShader("SkyboxShader", skyVShader);
 	assetManager->StorePShader("SkyboxShader", skyPShader);
 	assetManager->StoreVShader("PostProcessVShader", ppVShader);
@@ -233,18 +243,18 @@ void Engine::CreateMaterials()
 
 	//Create Texture
 	assetManager->ImportTexture("HazardTexture", L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", device, context);
-	assetManager->CreateMaterial("HazardCrateMat", "BasicVShader", "BasicPShader", "HazardTexture", "BasicSampler");
+	assetManager->CreateMaterial("HazardCrateMat", "BaseVertexShader", "BasePixelShader", "HazardTexture", "BasicSampler");
 	assetManager->ImportTexture("RustyPete", L"../../DX11Starter/Assets/Models/RustyPete/rusty_pete_body_c.png", device, context);
-	assetManager->CreateMaterial("RustyPeteMaterial", "BasicVShader", "BasicPShader", "RustyPete", "BasicSampler");
+	assetManager->CreateMaterial("RustyPeteMaterial", "BaseVertexShader", "BasePixelShader", "RustyPete", "BasicSampler");
 	assetManager->ImportTexture("Stone", L"../../DX11Starter/Assets/Textures/GreyStoneTexture.jpg", device, context);
-	assetManager->CreateMaterial("StoneMat", "BasicVShader", "BasicPShader", "Stone", "BasicSampler");
+	assetManager->CreateMaterial("StoneMat", "BaseVertexShader", "BasePixelShader", "Stone", "BasicSampler");
 	assetManager->ImportTexture("EnemyTexture", L"../../DX11Starter/Assets/Textures/aaaaaa.png", device, context);
-	assetManager->CreateMaterial("EnemyMaterial", "BasicVShader", "BasicPShader", "EnemyTexture", "BasicSampler");
+	assetManager->CreateMaterial("EnemyMaterial", "BaseVertexShader", "BasePixelShader", "EnemyTexture", "BasicSampler");
 	assetManager->ImportTexture("PurpleGhost", L"../../DX11Starter/Assets/Textures/ghost-dark.png", device, context);
-	assetManager->CreateMaterial("PurpleGhost", "BasicVShader", "BasicPShader", "PurpleGhost", "BasicSampler");
+	assetManager->CreateMaterial("PurpleGhost", "BaseVertexShader", "BasePixelShader", "PurpleGhost", "BasicSampler");
 	assetManager->ImportTexture("RockTexture", L"../../DX11Starter/Assets/Textures/rock.jpg", device, context);
 	assetManager->ImportTexture("RockNormal", L"../../DX11Starter/Assets/Textures/rockNormals.jpg", device, context);
-	assetManager->CreateMaterial("RockMaterial", "BasicVShader", "BasicPShader", "RockTexture", "RockNormal", "BasicSampler");
+	assetManager->CreateMaterial("RockMaterial", "NormalMapVertexShader", "NormalMapPixelShader", "RockTexture", "RockNormal", "BasicSampler");
 
 	//import skybox Texture
 	assetManager->ImportCubeMapTexture("SunnySkybox", L"../../DX11Starter/Assets/Textures/SunnyCubeMap.dds", device);

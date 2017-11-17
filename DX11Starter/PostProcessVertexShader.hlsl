@@ -1,4 +1,5 @@
 //Calculates post processing effects
+//Blur
 //Bloom
 
 //Output from this shader (Vertex shader) to the Pixel shader
