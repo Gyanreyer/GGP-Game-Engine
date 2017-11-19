@@ -60,6 +60,7 @@ Engine::~Engine()
 
 	//Release post processing resources
 	ppRTV->Release();
+	bloomSRV->Release();
 	ppSRV->Release();
 
 	particleBlendState->Release();
