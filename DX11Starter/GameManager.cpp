@@ -128,7 +128,7 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 			//Ignore collision with other projectiles
 			if (strcmp(tag, "Projectile") != 0 && Collision::CheckCollision((*otherIter)->GetCollider(), (*projIter)->GetCollider()))
 			{
-				projectileManager.RemoveProjectile(*projIter);//Destroy projectile
+				projectileManager.RemoveProjectile(*projIter); //Destroy projectile
 
 				//Check tag to determine what else to do
 				if (strcmp(tag, "Player") == 0)
@@ -141,8 +141,11 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 
 					AddScore((*enemyIter)->GetPoints());//Add points to score
 					(*enemyIter)->GetOctNode()->RemoveObject(*enemyIter);//Remove enemy from octree
-					enemies.erase(enemyIter);//Destroy enemy
+					enemies.erase(enemyIter); //Remove enemy from the vector
+					delete *otherIter; //Destroy the enemy
 				}
+
+				break; //Break out of the loop, otherwise errors arise from destroying the projectile
 			}
 		}
 	}

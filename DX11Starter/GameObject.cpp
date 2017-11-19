@@ -25,7 +25,10 @@ GameObject::GameObject(Transform trans, ColliderType colliderType, char * objTag
 	tag = objTag;
 }
 
-GameObject::~GameObject() {}
+GameObject::~GameObject()
+{
+	
+}
 
 //Set given mesh to be this object's mesh and store relevant info for drawing it
 void GameObject::SetMesh(Mesh * mesh)

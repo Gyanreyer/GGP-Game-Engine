@@ -511,7 +511,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 
 	ppPS->SetFloat("pixelWidth", 1.0f / width);
 	ppPS->SetFloat("pixelHeight", 1.0f / height);
-	ppPS->SetInt("blurAmount", 2); //Adjust number for more/less blur/framerate
+	ppPS->SetInt("blurAmount", 1); //Adjust number for more/less blur/framerate
 	ppPS->CopyAllBufferData();
 
 	ppPS->SetShaderResourceView("Render", ppSRV);
