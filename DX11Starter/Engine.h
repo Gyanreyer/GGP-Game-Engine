@@ -30,7 +30,7 @@ public:
 	// Overridden mouse input helper methods
 	void OnMouseDown (WPARAM buttonState, int x, int y);
 	void OnMouseUp (WPARAM buttonState, int x, int y);
-	void OnMouseMove (WPARAM buttonState, int x, int y);
+	void OnMouseMove (int x, int y);
 	void OnMouseWheel (float wheelDelta,   int x, int y);
 
 private:
@@ -63,7 +63,14 @@ private:
 	ID3D11RasterizerState* skyBoxRasterState;
 	ID3D11DepthStencilState* skyboxDepthStencilState;
 
+	//Post processing variables
+	ID3D11RenderTargetView* ppRTV; //Allows us to render a texture
+	ID3D11ShaderResourceView* bloomSRV; //Allows us to sample from that same texture
+	ID3D11ShaderResourceView* ppSRV; //Allows us to sample from that same texture
+
 	//imgui Variables
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+	bool freeMouse;
 };
 

@@ -33,7 +33,8 @@ Engine::Engine(HINSTANCE hInstance)
 	//Hide cursor
 	GetWindowRect(GetDesktopWindow(), &screen); //Get the dimensions of the desktop
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
-	//ShowCursor(false);
+	ShowCursor(false);
+	freeMouse = false;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -57,6 +58,11 @@ Engine::~Engine()
 	skyBoxRasterState->Release();
 	skyboxDepthStencilState->Release();
 
+	//Release post processing resources
+	ppRTV->Release();
+	bloomSRV->Release();
+	ppSRV->Release();
+
 	particleBlendState->Release();
 	particleDepthState->Release();
 	delete emitter;
@@ -74,11 +80,11 @@ void Engine::Init()
 	ImGui_ImplDX11_Init(hWnd, device, context);
 
 	gameManager = &GameManager::getInstance();
-	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device);
+	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device, GameManager::getInstance().GetPlayer());
 
 	//Default prevMousePos to center of screen
-	prevMousePos.x = width / 2;
-	prevMousePos.y = height / 2;
+	/*prevMousePos.x = width / 2;
+	prevMousePos.y = height / 2;*/
 
 	LoadShaders();
 	CreateMaterials();
@@ -138,6 +144,48 @@ void Engine::Init()
 	depthStencil.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	depthStencil.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&depthStencil, &skyboxDepthStencilState);
+	//END SKYBOX
+
+	//Post processing (Bloom) states
+	//Create the post processing texture
+	ID3D11Texture2D* postProcessingTexture;
+
+	//Create a texture description
+	D3D11_TEXTURE2D_DESC textureDescription = {};
+	textureDescription.Width = width; //Texure width (in texels)
+	textureDescription.Height = height; //Texture height (in texels)
+	textureDescription.ArraySize = 1; //Number of textures in the texture array
+	textureDescription.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE; //Binding pipeline stages
+	textureDescription.CPUAccessFlags = 0; //Specifies CPU access (0 is no CPU access required)
+	textureDescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //Texture format
+	textureDescription.MipLevels = 1; //The maximum number of mipmap levels in the texture (1 for multisampled, 0 to generate a full subset of textures)
+	textureDescription.MiscFlags = 0; //Other flags, 0 is none
+	textureDescription.SampleDesc.Count = 1; //Number of multisamples per pixel
+	textureDescription.SampleDesc.Quality = 0; //Image quality level
+	textureDescription.Usage = D3D11_USAGE_DEFAULT; //How to read from and write to the texture
+
+	//Create the Render Target View description
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDescription = {};
+	rtvDescription.Format = textureDescription.Format; //Texture format
+	rtvDescription.Texture2D.MipSlice = 0;
+	rtvDescription.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+	//Create the Shader Resource View description
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDescription = {};
+	srvDescription.Format = textureDescription.Format; //Texture format
+	srvDescription.Texture2D.MipLevels = 1;
+	srvDescription.Texture2D.MostDetailedMip = 0;
+	srvDescription.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+	//Create the resources needed from the descriptions above
+	device->CreateTexture2D(&textureDescription, 0, &postProcessingTexture);
+	device->CreateRenderTargetView(postProcessingTexture, &rtvDescription, &ppRTV);
+	device->CreateShaderResourceView(postProcessingTexture, &srvDescription, &bloomSRV);
+	device->CreateShaderResourceView(postProcessingTexture, &srvDescription, &ppSRV);
+
+	//Release the texture since it's no longer needed
+	postProcessingTexture->Release();
+	//END POST PROCESSING
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -153,11 +201,21 @@ void Engine::Init()
 // --------------------------------------------------------
 void Engine::LoadShaders()
 {
-	SimpleVertexShader* vertexShader = new SimpleVertexShader(device, context);
-	vertexShader->LoadShaderFile(L"VertexShader.cso");
+	//Load default shaders
+	//Textures and lighting
+	SimpleVertexShader* baseVertexShader = new SimpleVertexShader(device, context);
+	baseVertexShader->LoadShaderFile(L"BaseVertexShader.cso");
 
-	SimplePixelShader* pixelShader = new SimplePixelShader(device, context);
-	pixelShader->LoadShaderFile(L"PixelShader.cso");
+	SimplePixelShader* basePixelShader = new SimplePixelShader(device, context);
+	basePixelShader->LoadShaderFile(L"BasePixelShader.cso");
+
+	//Load normal mapping shaders
+	//Textures, normal mapping, and lighting
+	SimpleVertexShader* normalVertexShader = new SimpleVertexShader(device, context);
+	normalVertexShader->LoadShaderFile(L"NormalMapVertexShader.cso");
+
+	SimplePixelShader* normalPixelShader = new SimplePixelShader(device, context);
+	normalPixelShader->LoadShaderFile(L"NormalMapPixelShader.cso");
 
 	//Load Skybox Shaders
 	SimpleVertexShader* skyVShader = new SimpleVertexShader(device, context);
@@ -166,6 +224,19 @@ void Engine::LoadShaders()
 	SimplePixelShader* skyPShader = new SimplePixelShader(device, context);
 	skyPShader->LoadShaderFile(L"SkyPixelShader.cso");
 
+	//Load post processing shaders
+	SimpleVertexShader* ppVShader = new SimpleVertexShader(device, context);
+	ppVShader->LoadShaderFile(L"PostProcessVertexShader.cso");
+
+	SimplePixelShader* brightnessPShader = new SimplePixelShader(device, context);
+	brightnessPShader->LoadShaderFile(L"BrightnessPixelShader.cso");
+
+	SimplePixelShader* blurPShader = new SimplePixelShader(device, context);
+	blurPShader->LoadShaderFile(L"BlurPixelShader.cso");
+
+	SimplePixelShader* bloomPShader = new SimplePixelShader(device, context);
+	bloomPShader->LoadShaderFile(L"BloomPixelShader.cso");
+
 	SimpleVertexShader* particleVShader = new SimpleVertexShader(device, context);
 	particleVShader->LoadShaderFile(L"ParticleVertexShader.cso");
 
@@ -173,10 +244,16 @@ void Engine::LoadShaders()
 	particlePShader->LoadShaderFile(L"ParticlePixelShader.cso");
 
 	//Store Vertex and Pixel Shaders into the AssetManager
-	assetManager->StoreVShader("BasicVShader", vertexShader);
-	assetManager->StorePShader("BasicPShader", pixelShader);
+	assetManager->StoreVShader("BaseVertexShader", baseVertexShader);
+	assetManager->StorePShader("BasePixelShader", basePixelShader);
+	assetManager->StoreVShader("NormalMapVertexShader", normalVertexShader);
+	assetManager->StorePShader("NormalMapPixelShader", normalPixelShader);
 	assetManager->StoreVShader("SkyboxShader", skyVShader);
 	assetManager->StorePShader("SkyboxShader", skyPShader);
+	assetManager->StoreVShader("PostProcessVShader", ppVShader);
+	assetManager->StorePShader("BrightnessPShader", brightnessPShader);
+	assetManager->StorePShader("BlurPShader", blurPShader);
+	assetManager->StorePShader("BloomPShader", bloomPShader);
 	assetManager->StoreVShader("ParticleShader", particleVShader);
 	assetManager->StorePShader("ParticleShader", particlePShader);
 }
@@ -244,23 +321,24 @@ void Engine::CreateMaterials()
 
 	//Create Texture
 	assetManager->ImportTexture("HazardTexture", L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", device, context);
-	assetManager->CreateMaterial("HazardCrateMat", "BasicVShader", "BasicPShader", "HazardTexture", "BasicSampler");
+	assetManager->CreateMaterial("HazardCrateMat", "BaseVertexShader", "BasePixelShader", "HazardTexture", "BasicSampler");
 	assetManager->ImportTexture("RustyPete", L"../../DX11Starter/Assets/Models/RustyPete/rusty_pete_body_c.png", device, context);
-	assetManager->CreateMaterial("RustyPeteMaterial", "BasicVShader", "BasicPShader", "RustyPete", "BasicSampler");
+	assetManager->CreateMaterial("RustyPeteMaterial", "BaseVertexShader", "BasePixelShader", "RustyPete", "BasicSampler");
 	assetManager->ImportTexture("Stone", L"../../DX11Starter/Assets/Textures/GreyStoneTexture.jpg", device, context);
-	assetManager->CreateMaterial("StoneMat", "BasicVShader", "BasicPShader", "Stone", "BasicSampler");
+	assetManager->CreateMaterial("StoneMat", "BaseVertexShader", "BasePixelShader", "Stone", "BasicSampler");
 	assetManager->ImportTexture("EnemyTexture", L"../../DX11Starter/Assets/Textures/aaaaaa.png", device, context);
-	assetManager->CreateMaterial("EnemyMaterial", "BasicVShader", "BasicPShader", "EnemyTexture", "BasicSampler");
+	assetManager->CreateMaterial("EnemyMaterial", "BaseVertexShader", "BasePixelShader", "EnemyTexture", "BasicSampler");
 	assetManager->ImportTexture("PurpleGhost", L"../../DX11Starter/Assets/Textures/ghost-dark.png", device, context);
-	assetManager->CreateMaterial("PurpleGhost", "BasicVShader", "BasicPShader", "PurpleGhost", "BasicSampler");
+	assetManager->CreateMaterial("PurpleGhost", "BaseVertexShader", "BasePixelShader", "PurpleGhost", "BasicSampler");
 	assetManager->ImportTexture("RockTexture", L"../../DX11Starter/Assets/Textures/rock.jpg", device, context);
 	assetManager->ImportTexture("RockNormal", L"../../DX11Starter/Assets/Textures/rockNormals.jpg", device, context);
-	assetManager->CreateMaterial("RockMaterial", "BasicVShader", "BasicPShader", "RockTexture", "RockNormal", "BasicSampler");
-	
+	assetManager->CreateMaterial("RockMaterial", "NormalMapVertexShader", "NormalMapPixelShader", "RockTexture", "RockNormal", "BasicSampler");
+
 	//import particle texture
 	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
+
 	//import skybox Texture
-	assetManager->ImportCubeMapTexture("SunnySkybox", L"../../DX11Starter/Assets/Textures/SunnyCubeMap.dds", device);
+	assetManager->ImportCubeMapTexture("NightSkybox", L"../../DX11Starter/Assets/Textures/NightSkybox.dds", device);
 }
 
 // --------------------------------------------------------
@@ -305,42 +383,21 @@ void Engine::Draw(float deltaTime, float totalTime)
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w };
 
+	//Swap to the post process Render Target View
+	context->OMSetRenderTargets(1, &ppRTV, depthStencilView);
+
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
 	//  - At the beginning of Draw (before drawing *anything*)
-	context->ClearRenderTargetView(backBufferRTV, color);
+	context->ClearRenderTargetView(ppRTV, color); //Changed backBufferRTV to ppRTV for post processing
 	context->ClearDepthStencilView(
 		depthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
 
-	// 1. Show a simple window
-	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-	{
-		static float f = 0.0f;
-		static char testText = char();
-		ImGui::Text("Hello, world!");
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-		ImGui::ColorEdit3("clear color", (float*)&clear_color);
-		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	}
-
-	gameManager->GameDraw(renderer);
-
-	// Particle states
-	float blend[4] = { 1,1,1,1 };
-	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
-	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
-
-	// Draw the emitter
-	assetManager->GetPShader("ParticleShader")->SetSamplerState("trilinear", assetManager->GetSampler("ParticleSampler"));
-	emitter->Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
-
-	// Reset to default states for next frame
-	context->OMSetBlendState(0, blend, 0xffffffff);
-	context->OMSetDepthStencilState(0, 0);
+	//Sampler has to be passed into other shaders, so get it here once
+	ID3D11SamplerState* sampler = assetManager->GetSampler("BasicSampler");
 
 	//Draw Skybox Last
 	//only keeps pixels that haven't been drawn to yet (ones that have a depth of 1.0)
@@ -363,8 +420,8 @@ void Engine::Draw(float deltaTime, float totalTime)
 	skyVS->SetShader();
 
 	//copy pixel shader constant data to shader
-	skyPS->SetShaderResourceView("skyboxTexture", assetManager->GetTexture("SunnySkybox"));
-	skyPS->SetSamplerState("skySampler", assetManager->GetSampler("BasicSampler"));
+	skyPS->SetShaderResourceView("skyboxTexture", assetManager->GetTexture("NightSkybox"));
+	skyPS->SetSamplerState("skySampler", sampler);
 	skyPS->CopyAllBufferData();
 	skyPS->SetShader();
 
@@ -373,12 +430,107 @@ void Engine::Draw(float deltaTime, float totalTime)
 	context->OMSetDepthStencilState(skyboxDepthStencilState, 0);
 
 	//render sky box
-	//context->DrawIndexed(assetManager->GetMesh("Cube")->GetIndexCount(), 0, 0);
+	context->DrawIndexed(assetManager->GetMesh("Cube")->GetIndexCount(), 0, 0);
 
 	//reset render state options
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
+	//END SKYBOX
 
+	// 1. Show a simple window
+	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+	{
+		static float f = 0.0f;
+		static char testText = char();
+		ImGui::Text("Hello, world!");
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("clear color", (float*)&clear_color);
+		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
+
+	gameManager->GameDraw(renderer);
+	//END GAME DRAWING
+
+	// Particle states
+	float blend[4] = { 1,1,1,1 };
+	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
+	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
+
+	// Draw the emitter
+	assetManager->GetPShader("ParticleShader")->SetSamplerState("trilinear", assetManager->GetSampler("ParticleSampler"));
+	emitter->Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
+
+	// Reset to default states for next frame
+	context->OMSetBlendState(0, blend, 0xffffffff);
+	context->OMSetDepthStencilState(0, 0);
+
+	//Begin post processing
+	//Start by calculating brightness, then blur and bloom
+	context->OMSetRenderTargets(1, &backBufferRTV, 0); //Set the back buffer as the render target
+	context->ClearRenderTargetView(backBufferRTV, color);
+
+	//Get the shaders
+	SimpleVertexShader* ppVS = assetManager->GetVShader("PostProcessVShader");
+	SimplePixelShader* ppPS = assetManager->GetPShader("BrightnessPShader");
+
+	//Set the shaders
+	//Begin brightness
+	ppVS->SetShader();
+	ppPS->SetShader();
+
+	//ppPS->CopyAllBufferData();
+
+	ppPS->SetShaderResourceView("Pixels", bloomSRV); //Pass in a copy of the rendered texture to pick bright pixels from for bloom calculations
+	ppPS->SetSamplerState("Sampler", sampler);
+	//END BRIGHTNESS
+
+	//Begin blur
+	//ppPS = assetManager->GetPShader("BlurPShader");
+	//
+	////Set the shaders
+	//ppPS->SetShader();
+
+	//Send some extra data to the pixel shader
+	//ppPS->SetFloat("pixelWidth", 1.0f / width);
+	//ppPS->SetFloat("pixelHeight", 1.0f / height);
+	//ppPS->SetInt("blurAmount", 50); //Adjust number for more/less blur/framerate
+	//ppPS->CopyAllBufferData();
+	//END BLUR
+
+	//Begin bloom
+	//Includes blur
+	ppPS = assetManager->GetPShader("BloomPShader");
+
+	//Set the shaders
+	ppPS->SetShader();
+
+	//Send some extra data to the pixel shader
+	//ppPS->CopyAllBufferData();
+
+	ppPS->SetFloat("pixelWidth", 1.0f / width);
+	ppPS->SetFloat("pixelHeight", 1.0f / height);
+	ppPS->SetInt("blurAmount", 2); //Adjust number for more/less blur/framerate
+	ppPS->CopyAllBufferData();
+
+	ppPS->SetShaderResourceView("Render", ppSRV);
+	//END BLOOM
+
+	//Turn off vertex and index buffers because 
+	//the post processing vertex shader doesn't need them
+	ID3D11Buffer* noBuffer = 0;
+	context->IASetVertexBuffers(0, 1, &noBuffer, &stride, &offset);
+	context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+
+	//Draw exactly three vertices to cover the render area
+	//One big-ass triangle to rule them all
+	context->Draw(3, 0);
+
+	//Turn off all SRVs to avoid any potential resource 
+	//input/output issues
+	ID3D11ShaderResourceView* nullSRVs[16] = {};
+	context->PSSetShaderResources(0, 16, nullSRVs);
+	//END POST PROCESSING
 
 	if (ImGui::BeginPopup("EndGame")) {
 		ImGui::TextColored(ImVec4(1, 0, 0, 1), "Game is over");
@@ -411,25 +563,17 @@ void Engine::Draw(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-	// Save the previous mouse position, so we have it for the future
-	prevMousePos.x = x;
-	prevMousePos.y = y;
-
-	// Capture the mouse so we keep getting mouse move
-	// events even if the mouse leaves the window.  we'll be
-	// releasing the capture once a mouse button is released
-	SetCapture(hWnd);
-
-	//When the left mouse button is pressed
-	//Duh, it's a bitwise &
-	if (buttonState & MK_LBUTTON)
+	if (buttonState & MK_RBUTTON)
 	{
-		//Make Player function to shoot
-		Transform* pt = gameManager->GetPlayer()->GetTransform();
-
-		//Make player shoot
-		gameManager->GetProjectileManager()->SpawnPlayerProjectile(pt->GetPosition(), pt->GetForward());
+		freeMouse = !freeMouse;
+		ShowCursor(freeMouse);
 	}
+
+	if (!freeMouse && buttonState & MK_LBUTTON)
+	{
+		gameManager->OnLeftClick();
+	}
+	
 }
 
 // --------------------------------------------------------
@@ -437,11 +581,6 @@ void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Engine::OnMouseUp(WPARAM buttonState, int x, int y)
 {
-	// Add any custom code here...
-
-	// We don't care about the tracking the cursor outside
-	// the window anymore (we're not dragging if the mouse is up)
-	ReleaseCapture();
 }
 
 // --------------------------------------------------------
@@ -449,24 +588,14 @@ void Engine::OnMouseUp(WPARAM buttonState, int x, int y)
 // if the mouse is currently over the window, or if we're 
 // currently capturing the mouse.
 // --------------------------------------------------------
-void Engine::OnMouseMove(WPARAM buttonState, int x, int y)
+void Engine::OnMouseMove(int x, int y)
 {
-	//When the right mouse button is pressed
-	//Duh, it's a bitwise &
-	if (buttonState & MK_RBUTTON)
-	{
-		//Distance the mouse moves in one frame
-		float deltaX = x - (float)prevMousePos.x;
-		float deltaY = y - (float)prevMousePos.y;
+	if (freeMouse) return;
 
-		//Rotate player
-		gameManager->GetPlayer()->UpdateMouseInput(deltaX, deltaY);
+	//Rotate player
+	gameManager->GetPlayer()->UpdateMouseInput(x, y);
 
-		//Update previous mose position
-		prevMousePos.x = x;
-		prevMousePos.y = y;
-
-	}
+	SetCursorPos(screen.right / 2, screen.bottom / 2);
 }
 
 // --------------------------------------------------------

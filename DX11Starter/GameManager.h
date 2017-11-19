@@ -30,12 +30,11 @@ public:
 	void ResetGame();
 
 	//Engine Get Methods
-	Player* GetPlayer();
-	ProjectileManager* GetProjectileManager();
-	vector<GameObject>* GetGameObjectVector();
-	vector<Enemy>* GetEnemyVector();
+	Player* GetPlayer();//We shouldn't need this, at some point need to do some housekeeping on Engine.cpp
 	double getTimeLeft();
 	int GetGameScore();
+
+	void OnLeftClick();
 
 private:
 	GameManager();
@@ -52,15 +51,18 @@ private:
 
 	//Array of GameObjects so we can draw them in an easy loop
 	//Not pointers, just do these directly
-	vector<GameObject> gameObjects;
+	vector<GameObject *> gameObjects;
 
 	//Array of Enemies so we can draw them in an easy loop
 	//Not pointers, just do these directly
-	vector<Enemy> enemies;
+	vector<Enemy *> enemies;
 	Player player;
 
 	OctreeNode spacePartitionHead;
 
 	void InitSpatialPartition();
+	void CheckObjectCollisions(float deltaTime);
+
+	void ClearObjects();
 };
 
