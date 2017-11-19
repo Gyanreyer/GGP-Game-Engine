@@ -20,7 +20,7 @@ ProjectileManager::ProjectileManager(Mesh * projMesh, Material * playerProjMat, 
 
 ProjectileManager::~ProjectileManager()
 {
-	for (int i = 0; i < projectiles.size(); i++)
+ 	for (int i = 0; i < projectiles.size(); i++)
 	{
 		delete projectiles[i];
 	}
@@ -97,7 +97,9 @@ vector<Projectile *>::iterator ProjectileManager::RemoveProjectile(vector<Projec
 
 void ProjectileManager::RemoveProjectile(Projectile * proj)
 {
+	proj->GetOctNode()->RemoveObject(proj); //Stop tracking object in octree
 	projectiles.erase(std::find(projectiles.begin(), projectiles.end(), proj));
+	delete proj; //Delete projectile to avoid leaking memory
 }
 
 vector<Projectile *> ProjectileManager::GetProjectiles()

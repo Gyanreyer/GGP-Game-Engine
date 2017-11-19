@@ -43,6 +43,4 @@ float4 main(VertexToPixel input) : SV_TARGET
 	}
 
 	return saturate(Render.Sample(Sampler, input.uv) + (totalColor / numSamples)); //Add the render frame to the blurred bright frame
-
-	//return Render.Sample(Sampler, input.uv) + Pixels.Sample(Sampler, input.uv);
 }
