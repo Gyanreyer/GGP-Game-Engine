@@ -83,8 +83,8 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	gameObjects.clear(); //Clear this out for new game instances
 
 	//Store references to all GOs in vector
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(0,0,0),XMFLOAT3(0,0,0),XMFLOAT3(20, 0.001f, 20)),
-		asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial"),"Floor"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(0,0,0),XMFLOAT3(0,0,0),XMFLOAT3(40, 0.001f, 40)),
+		asset->GetMesh("Plane"), asset->GetMaterial("GroundMat"),"Floor"));
 	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4,0.5f,-2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
 		asset->GetMesh("Cube"), asset->GetMaterial("RockMaterial"),"Obstacle"));
 	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(2, 1, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2)),

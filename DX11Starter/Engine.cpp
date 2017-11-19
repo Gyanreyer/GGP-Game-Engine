@@ -333,7 +333,8 @@ void Engine::CreateMaterials()
 	assetManager->ImportTexture("RockTexture", L"../../DX11Starter/Assets/Textures/rock.jpg", device, context);
 	assetManager->ImportTexture("RockNormal", L"../../DX11Starter/Assets/Textures/rockNormals.jpg", device, context);
 	assetManager->CreateMaterial("RockMaterial", "NormalMapVertexShader", "NormalMapPixelShader", "RockTexture", "RockNormal", "BasicSampler");
-
+	assetManager->ImportTexture("Ground", L"../../DX11Starter/Assets/Textures/ground.jpg", device, context);
+	assetManager->CreateMaterial("GroundMat", "BaseVertexShader", "BasePixelShader", "Ground", "BasicSampler");
 	//import particle texture
 	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
 
