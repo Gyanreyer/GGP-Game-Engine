@@ -59,6 +59,7 @@ private:
 
 	//Post processing variables
 	ID3D11RenderTargetView* ppRTV; //Allows us to render a texture
+	ID3D11ShaderResourceView* bloomSRV; //Allows us to sample from that same texture
 	ID3D11ShaderResourceView* ppSRV; //Allows us to sample from that same texture
 
 	//imgui Variables

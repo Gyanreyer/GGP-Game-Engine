@@ -137,6 +137,7 @@ void Engine::Init()
 	//Create the resources needed from the descriptions above
 	device->CreateTexture2D(&textureDescription, 0, &postProcessingTexture);
 	device->CreateRenderTargetView(postProcessingTexture, &rtvDescription, &ppRTV);
+	device->CreateShaderResourceView(postProcessingTexture, &srvDescription, &bloomSRV);
 	device->CreateShaderResourceView(postProcessingTexture, &srvDescription, &ppSRV);
 
 	//Release the texture since it's no longer needed
@@ -184,8 +185,14 @@ void Engine::LoadShaders()
 	SimpleVertexShader* ppVShader = new SimpleVertexShader(device, context);
 	ppVShader->LoadShaderFile(L"PostProcessVertexShader.cso");
 
-	SimplePixelShader* ppPShader = new SimplePixelShader(device, context);
-	ppPShader->LoadShaderFile(L"PostProcessPixelShader.cso");
+	SimplePixelShader* brightnessPShader = new SimplePixelShader(device, context);
+	brightnessPShader->LoadShaderFile(L"BrightnessPixelShader.cso");
+
+	SimplePixelShader* blurPShader = new SimplePixelShader(device, context);
+	blurPShader->LoadShaderFile(L"BlurPixelShader.cso");
+
+	SimplePixelShader* bloomPShader = new SimplePixelShader(device, context);
+	bloomPShader->LoadShaderFile(L"BloomPixelShader.cso");
 
 	//Store Vertex and Pixel Shaders into the AssetManager
 	assetManager->StoreVShader("BaseVertexShader", baseVertexShader);
@@ -195,7 +202,9 @@ void Engine::LoadShaders()
 	assetManager->StoreVShader("SkyboxShader", skyVShader);
 	assetManager->StorePShader("SkyboxShader", skyPShader);
 	assetManager->StoreVShader("PostProcessVShader", ppVShader);
-	assetManager->StorePShader("PostProcessPShader", ppPShader);
+	assetManager->StorePShader("BrightnessPShader", brightnessPShader);
+	assetManager->StorePShader("BlurPShader", blurPShader);
+	assetManager->StorePShader("BloomPShader", bloomPShader);
 }
 
 // ---------------------------------------------------------
@@ -369,25 +378,55 @@ void Engine::Draw(float deltaTime, float totalTime)
 	//END SKYBOX
 
 	//Begin post processing
+	//Start by calculating brightness, then blur, then bloom
 	context->OMSetRenderTargets(1, &backBufferRTV, 0); //Set the back buffer as the render target
 	context->ClearRenderTargetView(backBufferRTV, color);
 
 	//Get the shaders
 	SimpleVertexShader* ppVS = assetManager->GetVShader("PostProcessVShader");
-	SimplePixelShader* ppPS = assetManager->GetPShader("PostProcessPShader");
+	SimplePixelShader* ppPS = assetManager->GetPShader("BrightnessPShader");
 
 	//Set the shaders
+	//Begin brightness
 	ppVS->SetShader();
 	ppPS->SetShader();
 
+	//ppPS->CopyAllBufferData();
+
+	ppPS->SetShaderResourceView("Pixels", bloomSRV); //Pass in a copy of the rendered texture to pick bright pixels from for bloom calculations
+	ppPS->SetSamplerState("Sampler", sampler);
+	//END BRIGHTNESS
+
+	//Begin blur
+	//ppPS = assetManager->GetPShader("BlurPShader");
+	//
+	////Set the shaders
+	//ppPS->SetShader();
+
 	//Send some extra data to the pixel shader
+	//ppPS->SetFloat("pixelWidth", 1.0f / width);
+	//ppPS->SetFloat("pixelHeight", 1.0f / height);
+	//ppPS->SetInt("blurAmount", 50); //Adjust number for more/less blur/framerate
+	//ppPS->CopyAllBufferData();
+	//END BLUR
+
+	//Begin bloom
+	//Includes blur
+	ppPS = assetManager->GetPShader("BloomPShader");
+
+	//Set the shaders
+	ppPS->SetShader();
+
+	//Send some extra data to the pixel shader
+	//ppPS->CopyAllBufferData();
+
 	ppPS->SetFloat("pixelWidth", 1.0f / width);
 	ppPS->SetFloat("pixelHeight", 1.0f / height);
-	ppPS->SetInt("blurAmount", 0); //Adjust number for more/less blur/framerate
+	ppPS->SetInt("blurAmount", 1); //Adjust number for more/less blur/framerate
 	ppPS->CopyAllBufferData();
 
-	ppPS->SetShaderResourceView("Pixels", ppSRV);
-	ppPS->SetSamplerState("Sampler", sampler);
+	ppPS->SetShaderResourceView("Render", ppSRV);
+	//END BLOOM
 
 	//Turn off vertex and index buffers because 
 	//the post processing vertex shader doesn't need them

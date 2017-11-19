@@ -1,6 +1,4 @@
-//Calculates post processing effects
-//Blur
-//Bloom
+//Calculates blur
 
 //Output from the Vertex shader to this shader (Pixel shader)
 struct VertexToPixel

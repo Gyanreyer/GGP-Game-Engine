@@ -1,4 +1,5 @@
 //Calculates post processing effects
+//Works with the blur and bloom pixel shaders
 //Blur
 //Bloom
 
