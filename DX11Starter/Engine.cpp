@@ -33,7 +33,8 @@ Engine::Engine(HINSTANCE hInstance)
 	//Hide cursor
 	GetWindowRect(GetDesktopWindow(), &screen); //Get the dimensions of the desktop
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
-	//ShowCursor(false);
+	ShowCursor(false);
+	freeMouse = false;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -61,6 +62,9 @@ Engine::~Engine()
 	ppRTV->Release();
 	ppSRV->Release();
 
+	particleBlendState->Release();
+	particleDepthState->Release();
+	delete emitter;
 	//Don't forget to delete the renderer
 	delete renderer;
 }
@@ -78,12 +82,50 @@ void Engine::Init()
 	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device, GameManager::getInstance().GetPlayer());
 
 	//Default prevMousePos to center of screen
-	prevMousePos.x = width / 2;
-	prevMousePos.y = height / 2;
+	/*prevMousePos.x = width / 2;
+	prevMousePos.y = height / 2;*/
 
 	LoadShaders();
 	CreateMaterials();
 	CreateMeshes();
+
+	// A depth state for the particles
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+
+
+	// Blend for particles (additive)
+	D3D11_BLEND_DESC blend = {};
+	blend.AlphaToCoverageEnable = false;
+	blend.IndependentBlendEnable = false;
+	blend.RenderTarget[0].BlendEnable = true;
+	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blend, &particleBlendState);
+
+	emitter = new Emitter(
+		1000,
+		100, 
+		5, 
+		0.1f, 
+		5.0f,
+		XMFLOAT4(1, 0.1f, 0.1f, 0.2f),	// Start color
+		XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
+		XMFLOAT3(-2, 2, 0),				// Start velocity
+		XMFLOAT3(2, 1, 0),				// Start position
+		XMFLOAT3(0, -1, 0),				// Start acceleration
+		assetManager->GetVShader("ParticleShader"),
+		assetManager->GetPShader("ParticleShader"),
+		assetManager->GetTexture("ParticleTexture"),
+		device);
 
 	gameManager->StartGame(assetManager, (float)width, (float)height, context); //starts the game
 	
@@ -194,6 +236,12 @@ void Engine::LoadShaders()
 	SimplePixelShader* bloomPShader = new SimplePixelShader(device, context);
 	bloomPShader->LoadShaderFile(L"BloomPixelShader.cso");
 
+	SimpleVertexShader* particleVShader = new SimpleVertexShader(device, context);
+	particleVShader->LoadShaderFile(L"ParticleVertexShader.cso");
+
+	SimplePixelShader* particlePShader = new SimplePixelShader(device, context);
+	particlePShader->LoadShaderFile(L"ParticlePixelShader.cso");
+
 	//Store Vertex and Pixel Shaders into the AssetManager
 	assetManager->StoreVShader("BaseVertexShader", baseVertexShader);
 	assetManager->StorePShader("BasePixelShader", basePixelShader);
@@ -205,6 +253,8 @@ void Engine::LoadShaders()
 	assetManager->StorePShader("BrightnessPShader", brightnessPShader);
 	assetManager->StorePShader("BlurPShader", blurPShader);
 	assetManager->StorePShader("BloomPShader", bloomPShader);
+	assetManager->StoreVShader("ParticleShader", particleVShader);
+	assetManager->StorePShader("ParticleShader", particlePShader);
 }
 
 // ---------------------------------------------------------
@@ -247,8 +297,26 @@ void Engine::CreateMaterials()
 		printf("Sample State could not be created");
 	}
 
+	//Particle Sampler
+	ID3D11SamplerState* particleSample;
+	 sampleDesc = {}; //Holds options for sampling
+
+	//Describes how to handle addresses outside 0-1 UV range
+	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+	sampleDesc.Filter = D3D11_FILTER_ANISOTROPIC;	//Describes how to handle sampling between pixels
+	sampleDesc.MaxAnisotropy = 16;
+	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX; //Mipmaps (if applicable)
+
+	sampleResult = device->CreateSamplerState(&sampleDesc, &particleSample);
+	if (sampleResult != S_OK) {
+		printf("Sample State could not be created");
+	}
 	//Create the sampler object
 	assetManager->StoreSampler("BasicSampler", sample);
+	assetManager->StoreSampler("ParticleSampler", particleSample);
 
 	//Create Texture
 	assetManager->ImportTexture("HazardTexture", L"../../DX11Starter/Assets/Textures/HazardCrateTexture.jpg", device, context);
@@ -265,8 +333,11 @@ void Engine::CreateMaterials()
 	assetManager->ImportTexture("RockNormal", L"../../DX11Starter/Assets/Textures/rockNormals.jpg", device, context);
 	assetManager->CreateMaterial("RockMaterial", "NormalMapVertexShader", "NormalMapPixelShader", "RockTexture", "RockNormal", "BasicSampler");
 
+	//import particle texture
+	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
+
 	//import skybox Texture
-	assetManager->ImportCubeMapTexture("SunnySkybox", L"../../DX11Starter/Assets/Textures/SunnyCubeMap.dds", device);
+	assetManager->ImportCubeMapTexture("NightSkybox", L"../../DX11Starter/Assets/Textures/NightSkybox.dds", device);
 }
 
 // --------------------------------------------------------
@@ -296,6 +367,9 @@ void Engine::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
+	//Temp
+	emitter->Update(deltaTime);
+
 	//Engine update Loop
 	gameManager->GameUpdate(deltaTime);
 }
@@ -321,21 +395,6 @@ void Engine::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
-	// 1. Show a simple window
-	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-	{
-		static float f = 0.0f;
-		static char testText = char();
-		ImGui::Text("Hello, world!");
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-		ImGui::ColorEdit3("clear color", (float*)&clear_color);
-		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	}
-
-	gameManager->GameDraw(renderer);
-	//END GAME DRAWING
-
 	//Sampler has to be passed into other shaders, so get it here once
 	ID3D11SamplerState* sampler = assetManager->GetSampler("BasicSampler");
 
@@ -360,7 +419,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 	skyVS->SetShader();
 
 	//copy pixel shader constant data to shader
-	skyPS->SetShaderResourceView("skyboxTexture", assetManager->GetTexture("SunnySkybox"));
+	skyPS->SetShaderResourceView("skyboxTexture", assetManager->GetTexture("NightSkybox"));
 	skyPS->SetSamplerState("skySampler", sampler);
 	skyPS->CopyAllBufferData();
 	skyPS->SetShader();
@@ -377,8 +436,36 @@ void Engine::Draw(float deltaTime, float totalTime)
 	context->OMSetDepthStencilState(0, 0);
 	//END SKYBOX
 
+	// 1. Show a simple window
+	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+	{
+		static float f = 0.0f;
+		static char testText = char();
+		ImGui::Text("Hello, world!");
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("clear color", (float*)&clear_color);
+		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
+
+	gameManager->GameDraw(renderer);
+	//END GAME DRAWING
+
+	// Particle states
+	float blend[4] = { 1,1,1,1 };
+	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
+	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
+
+	// Draw the emitter
+	assetManager->GetPShader("ParticleShader")->SetSamplerState("trilinear", assetManager->GetSampler("ParticleSampler"));
+	emitter->Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
+
+	// Reset to default states for next frame
+	context->OMSetBlendState(0, blend, 0xffffffff);
+	context->OMSetDepthStencilState(0, 0);
+
 	//Begin post processing
-	//Start by calculating brightness, then blur, then bloom
+	//Start by calculating brightness, then blur and bloom
 	context->OMSetRenderTargets(1, &backBufferRTV, 0); //Set the back buffer as the render target
 	context->ClearRenderTargetView(backBufferRTV, color);
 
@@ -422,7 +509,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 
 	ppPS->SetFloat("pixelWidth", 1.0f / width);
 	ppPS->SetFloat("pixelHeight", 1.0f / height);
-	ppPS->SetInt("blurAmount", 1); //Adjust number for more/less blur/framerate
+	ppPS->SetInt("blurAmount", 2); //Adjust number for more/less blur/framerate
 	ppPS->CopyAllBufferData();
 
 	ppPS->SetShaderResourceView("Render", ppSRV);
@@ -475,21 +562,17 @@ void Engine::Draw(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-	// Save the previous mouse position, so we have it for the future
-	prevMousePos.x = x;
-	prevMousePos.y = y;
+	if (buttonState & MK_RBUTTON)
+	{
+		freeMouse = !freeMouse;
+		ShowCursor(freeMouse);
+	}
 
-	// Capture the mouse so we keep getting mouse move
-	// events even if the mouse leaves the window.  we'll be
-	// releasing the capture once a mouse button is released
-	SetCapture(hWnd);
-
-	//When the left mouse button is pressed
-	//Duh, it's a bitwise &
-	if (buttonState & MK_LBUTTON)
+	if (!freeMouse && buttonState & MK_LBUTTON)
 	{
 		gameManager->OnLeftClick();
 	}
+	
 }
 
 // --------------------------------------------------------
@@ -497,11 +580,6 @@ void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 // --------------------------------------------------------
 void Engine::OnMouseUp(WPARAM buttonState, int x, int y)
 {
-	// Add any custom code here...
-
-	// We don't care about the tracking the cursor outside
-	// the window anymore (we're not dragging if the mouse is up)
-	ReleaseCapture();
 }
 
 // --------------------------------------------------------
@@ -509,24 +587,14 @@ void Engine::OnMouseUp(WPARAM buttonState, int x, int y)
 // if the mouse is currently over the window, or if we're 
 // currently capturing the mouse.
 // --------------------------------------------------------
-void Engine::OnMouseMove(WPARAM buttonState, int x, int y)
+void Engine::OnMouseMove(int x, int y)
 {
-	//When the right mouse button is pressed
-	//Duh, it's a bitwise &
-	if (buttonState & MK_RBUTTON)
-	{
-		//Distance the mouse moves in one frame
-		float deltaX = x - (float)prevMousePos.x;
-		float deltaY = y - (float)prevMousePos.y;
+	if (freeMouse) return;
 
-		//Rotate player
-		gameManager->GetPlayer()->UpdateMouseInput(deltaX, deltaY);
+	//Rotate player
+	gameManager->GetPlayer()->UpdateMouseInput(x, y);
 
-		//Update previous mose position
-		prevMousePos.x = x;
-		prevMousePos.y = y;
-
-	}
+	SetCursorPos(screen.right / 2, screen.bottom / 2);
 }
 
 // --------------------------------------------------------

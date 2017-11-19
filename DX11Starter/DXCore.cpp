@@ -268,6 +268,20 @@ HRESULT DXCore::InitDirectX()
 	return S_OK;
 }
 
+HRESULT DXCore::InitInputDevices()
+{
+	RAWINPUTDEVICE Rid[1];
+	Rid[0].usUsagePage = ((USHORT)0x01);//HID generic page
+	Rid[0].usUsage = ((USHORT)0x02);//HID generic mouse
+	Rid[0].dwFlags = RIDEV_INPUTSINK;
+	Rid[0].hwndTarget = hWnd;
+
+	if (RegisterRawInputDevices(Rid, 1, sizeof(Rid[0])))//Register mouse as raw input device
+		return S_OK;
+	else
+		return GetLastError();
+}
+
 // --------------------------------------------------------
 // When the window is resized, the underlying 
 // buffers (textures) must also be resized to match.
@@ -503,10 +517,6 @@ void DXCore::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowL
 	EnableMenuItem(hmenu, SC_CLOSE, MF_GRAYED);
 }
 
-
-
-
-
 // --------------------------------------------------------
 // Handles messages that are sent to our window by the
 // operating system.  Ignoring these messages would cause
@@ -551,6 +561,33 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 		return 0;
 
+	case WM_INPUT:
+	{
+		UINT dwSize = 40;
+
+		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize,
+			sizeof(RAWINPUTHEADER));
+
+		static BYTE lpb[40];
+
+		GetRawInputData((HRAWINPUT)lParam, RID_INPUT,
+			lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+		//GetRawInputDeviceList();
+
+		RAWINPUT* raw = (RAWINPUT*)lpb;
+
+		if (raw->header.dwType == RIM_TYPEMOUSE)
+		{
+			int xPosRelative = raw->data.mouse.lLastX;
+			int yPosRelative = raw->data.mouse.lLastY;
+
+			OnMouseMove(xPosRelative, yPosRelative);
+		}
+
+		return 0;
+	}
+
 		// Mouse button being pressed (while the cursor is currently over our window)
 	case WM_LBUTTONDOWN:
 		io.MouseDown[0] = true;
@@ -580,12 +617,6 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	case WM_RBUTTONUP:
 		io.MouseDown[1] = false;
 		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-		return 0;
-
-		// Cursor moves over the window (or outside, while we're currently capturing it)
-	case WM_MOUSEMOVE:
-		io.MousePos = ImVec2(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-		OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 		// Mouse wheel is scrolled
