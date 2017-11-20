@@ -275,6 +275,7 @@ void Engine::CreateMeshes()
 	assetManager->ImportMesh("PurpleGhost", "../../DX11Starter/Assets/Models/ghost.obj", device, BOX, false);
 	assetManager->ImportMesh("Plane", "../../DX11Starter/Assets/Models/Quad.obj", device, BOX, false);
 	assetManager->ImportMesh("SphereHP", "../../DX11Starter/Assets/Models/sphereHP.obj", device, SPHERE, false);
+	assetManager->ImportMesh("Skeleton", "../../DX11Starter/Assets/Models/skeleton.obj", device, BOX, false);
 }
 
 ///Loads in textures and makes them into materials
@@ -326,8 +327,6 @@ void Engine::CreateMaterials()
 	assetManager->CreateMaterial("RustyPeteMaterial", "BaseVertexShader", "BasePixelShader", "RustyPete", "BasicSampler");
 	assetManager->ImportTexture("Stone", L"../../DX11Starter/Assets/Textures/GreyStoneTexture.jpg", device, context);
 	assetManager->CreateMaterial("StoneMat", "BaseVertexShader", "BasePixelShader", "Stone", "BasicSampler");
-	assetManager->ImportTexture("EnemyTexture", L"../../DX11Starter/Assets/Textures/aaaaaa.png", device, context);
-	assetManager->CreateMaterial("EnemyMaterial", "BaseVertexShader", "BasePixelShader", "EnemyTexture", "BasicSampler");
 	assetManager->ImportTexture("PurpleGhost", L"../../DX11Starter/Assets/Textures/ghost-dark.png", device, context);
 	assetManager->CreateMaterial("PurpleGhost", "BaseVertexShader", "BasePixelShader", "PurpleGhost", "BasicSampler");
 	assetManager->ImportTexture("RockTexture", L"../../DX11Starter/Assets/Textures/rock.jpg", device, context);
@@ -335,6 +334,10 @@ void Engine::CreateMaterials()
 	assetManager->CreateMaterial("RockMaterial", "NormalMapVertexShader", "NormalMapPixelShader", "RockTexture", "RockNormal", "BasicSampler");
 	assetManager->ImportTexture("Ground", L"../../DX11Starter/Assets/Textures/ground.jpg", device, context);
 	assetManager->CreateMaterial("GroundMat", "BaseVertexShader", "BasePixelShader", "Ground", "BasicSampler");
+	assetManager->ImportTexture("Skeleton", L"../../DX11Starter/Assets/Textures/skeleton.png", device, context);
+	assetManager->ImportTexture("SkeletonNorm", L"../../DX11Starter/Assets/Textures/skeletonNorm.png", device, context);
+	assetManager->CreateMaterial("SkeletonMat", "NormalMapVertexShader", "NormalMapPixelShader", "Skeleton", "SkeletonNorm", "BasicSampler");
+
 	//import particle texture
 	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
 
