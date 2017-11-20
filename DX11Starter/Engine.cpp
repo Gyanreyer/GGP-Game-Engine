@@ -275,10 +275,11 @@ void Engine::CreateMeshes()
 	assetManager->ImportMesh("PurpleGhost", "../../DX11Starter/Assets/Models/ghost.obj", device, BOX, false);
 	assetManager->ImportMesh("Plane", "../../DX11Starter/Assets/Models/Quad.obj", device, BOX, false);
 	assetManager->ImportMesh("SphereHP", "../../DX11Starter/Assets/Models/sphereHP.obj", device, SPHERE, false);
-	assetManager->ImportMesh("Skeleton", "../../DX11Starter/Assets/Models/skeleton.obj", device, BOX, false);
+	assetManager->ImportMesh("Skeleton", "../../DX11Starter/Assets/Models/skeleton.obj", device, BOX, true);
 	assetManager->ImportMesh("PineTree", "../../DX11Starter/Assets/Models/pineTree.obj", device, BOX, false);
 	assetManager->ImportMesh("Sign", "../../DX11Starter/Assets/Models/sign.obj", device, BOX, false);
 	assetManager->ImportMesh("Lamp", "../../DX11Starter/Assets/Models/lamp.obj", device, BOX, false);
+	assetManager->ImportMesh("Barrel", "../../DX11Starter/Assets/Models/barrel.obj", device, SPHERE, false);
 }
 
 ///Loads in textures and makes them into materials
@@ -346,6 +347,8 @@ void Engine::CreateMaterials()
 	assetManager->CreateMaterial("BrownMat", "BaseVertexShader", "BasePixelShader", "brown", "BasicSampler");
 	assetManager->ImportTexture("Lamp", L"../../DX11Starter/Assets/Textures/lamp.png", device, context);
 	assetManager->CreateMaterial("LampMat", "BaseVertexShader", "BasePixelShader", "Lamp", "BasicSampler");
+	assetManager->ImportTexture("BarrelTexture", L"../../DX11Starter/Assets/Textures/barrel.png", device, context);
+	assetManager->CreateMaterial("BarrelMaterial", "BaseVertexShader", "BasePixelShader", "BarrelTexture", "BasicSampler");
 
 	//import particle texture
 	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
@@ -606,7 +609,7 @@ void Engine::OnMouseMove(int x, int y)
 	if (freeMouse) return;
 
 	//Rotate player
-	gameManager->GetPlayer()->UpdateMouseInput(x, y);
+	gameManager->GetPlayer()->UpdateMouseInput((float)x, (float)y);
 
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
 }

@@ -76,7 +76,7 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), EnemyType::moveY, 30, &projectileManager));
 	enemyTransform.SetPosition(0, 0, -2);
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::noMove, 10, &projectileManager));
-	enemyTransform.SetPosition(0, 0, 5);
+	enemyTransform.SetPosition(0, 0, -5);
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::noMove, 10, &projectileManager));
 	enemyTransform.SetPosition(0, 1, 0);
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("SphereHP"), asset->GetMaterial("RockMaterial"), EnemyType::moveX, 20, &projectileManager)); //DIRTY BUBBLE!
@@ -94,6 +94,8 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 		asset->GetMesh("Sign"), asset->GetMaterial("BrownMat"), "Obstacle"));
 	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-7, 0.0f, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
 		asset->GetMesh("Lamp"), asset->GetMaterial("LampMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4, 0, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
 }
 
 void GameManager::InitSpatialPartition()
@@ -243,10 +245,26 @@ void GameManager::GameUpdate(float deltaTime)
 		//Update all projectiles
 		projectileManager.UpdateProjectiles(deltaTime);
 
+		//Get the player position now
+		XMFLOAT3 playerPos = player.GetTransform()->GetPosition();
+
 		//Get and update enemies
 		for (int i = 0; i < enemies.size(); i++)
 		{
-			enemies[i]->Update(deltaTime);
+			enemies[i]->Update(deltaTime); //Update enemies
+
+			//Enemy shooting
+			XMFLOAT3 enemyPos = enemies[i]->GetTransform()->GetPosition(); //Get the enemy position
+
+			float distance = sqrt(pow((playerPos.x - enemyPos.x), 2) + pow((playerPos.y - enemyPos.y), 2) + pow((playerPos.z - enemyPos.z), 2)); //Distance from the player to the enemy
+
+			time(enemies[i]->GetNowTime()); //get current time in game
+			double seconds = difftime(*enemies[i]->GetNowTime(), mktime(enemies[i]->GetLastShotTime()));
+
+			if (seconds >= 4 && distance < 5) //If the enemy should shoot and the player is in range
+			{
+				enemies[i]->Shoot();
+			}
 		}
 
 		//Update what nodes objects are stored in, delete unnecessary ones
@@ -308,7 +326,7 @@ Player * GameManager::GetPlayer()
 double GameManager::getTimeLeft()
 {
 	time(&nowTime);
-
+	
 	double seconds = difftime(nowTime, mktime(&gameStartTime));
 	return timeInMatch - seconds;
 }
