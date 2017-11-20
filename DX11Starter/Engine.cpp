@@ -562,6 +562,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 		ImGui::Text(finalScore.c_str());
 		if (ImGui::Button("Restart Game"))
 		{
+			gameManager->ResetGame(); //Clean up memory
 			gameManager->StartGame(assetManager, (float)(width), (float)(height), context);
 			ImGui::CloseCurrentPopup();
 		}

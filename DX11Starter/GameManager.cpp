@@ -399,17 +399,26 @@ int GameManager::GetGameScore()
 
 void GameManager::ClearObjects()
 {
-	for (int i = 0; i < enemies.size(); i++)
+	for (byte i = 0; i < enemies.size(); i++)
 	{
 		delete enemies[i];
 	}
 
 	enemies.clear();
 
-	for (int i = 0; i < gameObjects.size(); i++)
+	for (byte i = 0; i < gameObjects.size(); i++)
 	{
 		delete gameObjects[i];
 	}
 
 	gameObjects.clear();
+
+	projectileManager.~ProjectileManager();
+	
+	/*for (byte i = 0; i < spacePartitionHead.GetChildren().size(); i++)
+	{
+		spacePartitionHead.GetChildren()[i]->~OctreeNode();
+	}*/
+
+	spacePartitionHead.~OctreeNode();
 }
