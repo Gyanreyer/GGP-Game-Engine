@@ -33,8 +33,11 @@ Engine::Engine(HINSTANCE hInstance)
 	//Hide cursor
 	GetWindowRect(GetDesktopWindow(), &screen); //Get the dimensions of the desktop
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
-	ShowCursor(false);
-	freeMouse = false;
+	//ShowCursor(false);
+	//freeMouse = false;
+
+	ShowCursor(true);
+	freeMouse = true;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -456,15 +459,19 @@ void Engine::Draw(float deltaTime, float totalTime)
 	// 1. Show a simple window
 	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
 	{
-		static float f = 0.0f;
+		static float f[3];
+		static int arrayPos = 0;
 		static char testText = char();
+		ImGui::InputInt("ArrayPos", &arrayPos);
 		ImGui::Text("Hello, world!");
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		ImGui::InputFloat3("gameobj Pos", f);
+		gameManager->gameObjects[arrayPos]->GetTransform()->SetPosition(XMFLOAT3(f[0], f[1], f[2]));
 		ImGui::ColorEdit3("clear color", (float*)&clear_color);
 		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	}
 
+	
 	gameManager->GameDraw(renderer);
 	//END GAME DRAWING
 
@@ -611,7 +618,7 @@ void Engine::OnMouseMove(int x, int y)
 	//Rotate player
 	gameManager->GetPlayer()->UpdateMouseInput((float)x, (float)y);
 
-	SetCursorPos(screen.right / 2, screen.bottom / 2);
+	//SetCursorPos(screen.right / 2, screen.bottom / 2);
 }
 
 // --------------------------------------------------------
