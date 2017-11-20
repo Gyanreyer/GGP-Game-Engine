@@ -593,7 +593,7 @@ void Engine::OnMouseMove(int x, int y)
 	if (freeMouse) return;
 
 	//Rotate player
-	gameManager->GetPlayer()->UpdateMouseInput(x, y);
+	gameManager->GetPlayer()->UpdateMouseInput((float)x, (float)y);
 
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
 }

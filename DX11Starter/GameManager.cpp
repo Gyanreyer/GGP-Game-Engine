@@ -242,10 +242,26 @@ void GameManager::GameUpdate(float deltaTime)
 		//Update all projectiles
 		projectileManager.UpdateProjectiles(deltaTime);
 
+		//Get the player position now
+		XMFLOAT3 playerPos = player.GetTransform()->GetPosition();
+
 		//Get and update enemies
 		for (int i = 0; i < enemies.size(); i++)
 		{
-			enemies[i]->Update(deltaTime);
+			enemies[i]->Update(deltaTime); //Update enemies
+
+			//Enemy shooting
+			XMFLOAT3 enemyPos = enemies[i]->GetTransform()->GetPosition(); //Get the enemy position
+
+			float distance = sqrt(pow((playerPos.x - enemyPos.x), 2) + pow((playerPos.y - enemyPos.y), 2) + pow((playerPos.z - enemyPos.z), 2)); //Distance from the player to the enemy
+
+			time(enemies[i]->GetNowTime()); //get current time in game
+			double seconds = difftime(*enemies[i]->GetNowTime(), mktime(enemies[i]->GetLastShotTime()));
+
+			if (seconds >= 4 && distance < 5) //If the enemy should shoot and the player is in range
+			{
+				enemies[i]->Shoot();
+			}
 		}
 
 		//Update what nodes objects are stored in, delete unnecessary ones
@@ -307,7 +323,7 @@ Player * GameManager::GetPlayer()
 double GameManager::getTimeLeft()
 {
 	time(&nowTime);
-
+	
 	double seconds = difftime(nowTime, mktime(&gameStartTime));
 	return timeInMatch - seconds;
 }
