@@ -72,6 +72,8 @@ void Enemy::ShootDirection(XMFLOAT3 dir)
 
 	//shootPos.z += (collider.dimensions.z / 2); //Adjust the Z position so enemies don't merk themselves
 
+	XMStoreFloat3(&shootPos, XMLoadFloat3(&shootPos) + XMLoadFloat3(&transform.GetForward()));
+
 	projManager->SpawnEnemyProjectile(shootPos, dir);
 
 	//This is theoretically pointless if we're using a timer to determine when shots should be fired - we already got the time

@@ -271,7 +271,8 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 
 void GameManager::OnLeftClick()
 {
-	player.Shoot();
+	if(!isGameOver())
+		player.Shoot();
 }
 
 void GameManager::GameUpdate(float deltaTime)
@@ -361,9 +362,7 @@ void GameManager::GameDraw(Renderer* renderer)
 
 bool GameManager::isGameOver()
 {
-	if (getTimeLeft() <= 0 || player.GetHealth() == 0)
-		return true;
-	return false;
+	return getTimeLeft() <= 0 || player.GetHealth() == 0 || enemies.size() == 0;
 }
 
 Player * GameManager::GetPlayer()

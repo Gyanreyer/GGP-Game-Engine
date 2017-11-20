@@ -9,7 +9,7 @@ Projectile::Projectile(Mesh * mesh, Material * material,
 	
 	//Make projectile face same direction as player
 	transform.SetForward(direction);
-	transform.MoveRelative(1.0f,0,0);
+	transform.MoveRelative(0.5f,0,0);
 }
 
 Projectile::~Projectile()
