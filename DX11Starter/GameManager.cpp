@@ -80,7 +80,6 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::noMove, 10, &projectileManager));
 	enemyTransform.SetPosition(0, 1, 0);
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("SphereHP"), asset->GetMaterial("RockMaterial"), EnemyType::moveX, 20, &projectileManager)); //DIRTY BUBBLE!
-
 	///OTHER GAMEOBJECTS
 	gameObjects.clear(); //Clear this out for new game instances
 
@@ -89,7 +88,12 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 		asset->GetMesh("Plane"), asset->GetMaterial("GroundMat"),"Floor"));
 	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4,0.5f,-2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
 		asset->GetMesh("Cube"), asset->GetMaterial("RockMaterial"),"Obstacle"));
-
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(6, 0.5f, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-3,1.0f, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Sign"), asset->GetMaterial("BrownMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-7, 0.0f, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Lamp"), asset->GetMaterial("LampMat"), "Obstacle"));
 }
 
 void GameManager::InitSpatialPartition()

@@ -276,6 +276,9 @@ void Engine::CreateMeshes()
 	assetManager->ImportMesh("Plane", "../../DX11Starter/Assets/Models/Quad.obj", device, BOX, false);
 	assetManager->ImportMesh("SphereHP", "../../DX11Starter/Assets/Models/sphereHP.obj", device, SPHERE, false);
 	assetManager->ImportMesh("Skeleton", "../../DX11Starter/Assets/Models/skeleton.obj", device, BOX, false);
+	assetManager->ImportMesh("PineTree", "../../DX11Starter/Assets/Models/pineTree.obj", device, BOX, false);
+	assetManager->ImportMesh("Sign", "../../DX11Starter/Assets/Models/sign.obj", device, BOX, false);
+	assetManager->ImportMesh("Lamp", "../../DX11Starter/Assets/Models/lamp.obj", device, BOX, false);
 }
 
 ///Loads in textures and makes them into materials
@@ -337,6 +340,12 @@ void Engine::CreateMaterials()
 	assetManager->ImportTexture("Skeleton", L"../../DX11Starter/Assets/Textures/skeleton.png", device, context);
 	assetManager->ImportTexture("SkeletonNorm", L"../../DX11Starter/Assets/Textures/skeletonNorm.png", device, context);
 	assetManager->CreateMaterial("SkeletonMat", "NormalMapVertexShader", "NormalMapPixelShader", "Skeleton", "SkeletonNorm", "BasicSampler");
+	assetManager->ImportTexture("pineTree", L"../../DX11Starter/Assets/Textures/pineTree.png", device, context);
+	assetManager->CreateMaterial("pineTreeMat", "BaseVertexShader", "BasePixelShader", "pineTree", "BasicSampler");
+	assetManager->ImportTexture("brown", L"../../DX11Starter/Assets/Textures/brown.png", device, context);
+	assetManager->CreateMaterial("BrownMat", "BaseVertexShader", "BasePixelShader", "brown", "BasicSampler");
+	assetManager->ImportTexture("Lamp", L"../../DX11Starter/Assets/Textures/lamp.png", device, context);
+	assetManager->CreateMaterial("LampMat", "BaseVertexShader", "BasePixelShader", "Lamp", "BasicSampler");
 
 	//import particle texture
 	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
