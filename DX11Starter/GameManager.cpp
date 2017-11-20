@@ -212,17 +212,30 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 			else
 			{
 				//This doesn't work properly yet, still trying to figure out why
-
+				/*
 				//Get a projection of the opposite of the player's velocity onto the normal from the object
 				XMFLOAT3 accel;
 				XMStoreFloat3(&accel,
-					XMLoadFloat3(&vecToPlayer) * XMVector3Dot(-XMLoadFloat3(&playerVelocity), XMLoadFloat3(&vecToPlayer)));//Projection
+					2*XMLoadFloat3(&vecToPlayer) * XMVector3Dot(-XMLoadFloat3(&playerVelocity), XMLoadFloat3(&vecToPlayer)));//Projection
 
 				XMFLOAT3 newVel;
 				XMStoreFloat3(&newVel, XMLoadFloat3(&playerVelocity) + XMLoadFloat3(&accel));
 				
 				player.SetVelocity(newVel);
-				
+
+				//printf("Collision\n");*/
+
+				/*
+				XMFLOAT3 nearestPt = Collision::GetNearestPointOnBox(player.GetCollider(), otherColl->center);
+
+				XMFLOAT3 moveVec;
+
+				XMStoreFloat3(&moveVec, XMLoadFloat3(&nearestPt) - XMLoadFloat3(&otherColl->center));
+
+				XMFLOAT3 accel;
+				XMStoreFloat3(&accel, XMLoadFloat3(&moveVec) * XMVector3Dot(-XMLoadFloat3(&playerVelocity), XMLoadFloat3(&moveVec)));
+
+				player.Accelerate(accel);*/
 			}
 		}	
 	}

@@ -18,6 +18,7 @@ public:
 	XMFLOAT3 GetVelocity();
 	void SetVelocity(XMFLOAT3 vel);
 	void Accelerate(float fwdMagnitude, float sideMagnitude, float vertMagnitude);
+	void Accelerate(XMFLOAT3 accelVec);
 	void UpdatePhysics(float deltaTime);
 
 	void Jump(); //Jump w/ some sort of physics

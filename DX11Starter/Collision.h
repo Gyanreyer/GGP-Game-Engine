@@ -9,4 +9,5 @@ public:
 	static bool CheckCollisionBoxBox(Collider* box1, Collider* box2);
 	static bool CheckCollisionSphereSphere(Collider* sphere1, Collider* sphere2);
 	static bool CheckCollisionSphereBox(Collider* sphere, Collider* box);
+	static XMFLOAT3 GetNearestPointOnBox(Collider* box, XMFLOAT3 pt);
 };
