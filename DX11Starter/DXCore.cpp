@@ -619,7 +619,12 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
-		// Mouse wheel is scrolled
+	//ImGui mouse movement
+	case WM_MOUSEMOVE:
+		io.MousePos = ImVec2((float)GET_X_LPARAM(lParam), (float)GET_Y_LPARAM(lParam));
+		return 0;
+
+	// Mouse wheel is scrolled
 	case WM_MOUSEWHEEL:
 		OnMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;

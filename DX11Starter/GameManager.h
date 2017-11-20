@@ -36,6 +36,8 @@ public:
 
 	void OnLeftClick();
 
+	vector<GameObject *> gameObjects;
+
 private:
 	GameManager();
 	//Stops compiler from generating methods to copy the object
@@ -51,7 +53,7 @@ private:
 
 	//Array of GameObjects so we can draw them in an easy loop
 	//Not pointers, just do these directly
-	vector<GameObject *> gameObjects;
+	//vector<GameObject *> gameObjects;
 
 	//Array of Enemies so we can draw them in an easy loop
 	//Not pointers, just do these directly

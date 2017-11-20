@@ -24,16 +24,16 @@ void Renderer::CreateLights()
 	//Create directional lights
 	//Diffuse
 	//Direction
-	DirectionalLight dLight1 = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, -1.0f, 0.5f) };
-	DirectionalLight dLight2 = { XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.5f, -0.5f, 0.25f) };
+	DirectionalLight dLight1 = { XMFLOAT4(.4f, .4f, .4f, 1.0f), XMFLOAT3(-10.0f, -10.0f, -4.0f) };
 	directionalLights.push_back(dLight1);
-	directionalLights.push_back(dLight2);
 
 	//Point lights
 	//Diffuse
 	//Position
-	PointLight pLight1 = { XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(0, 2, 0) };
+	PointLight pLight1 = { XMFLOAT4(.6f, .6f, 0.0f, 1.0f), XMFLOAT3(3.225f, 1.65f, 0) };
+	PointLight pLight2 = { XMFLOAT4(.6f, .6f, 0.0f, 1.0f), XMFLOAT3(-4.725f, 1.65f, -3.5f) };
 	pointLights.push_back(pLight1);
+	pointLights.push_back(pLight2);
 }
 
 void Renderer::SetViewProjMatrix(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat)
@@ -71,15 +71,14 @@ void Renderer::Render(GameObject * gameObject)
 		"dLight1",
 		&directionalLights[0],
 		sizeof(DirectionalLight));
-	
-	pixelShader->SetData(
-		"dLight2",
-		&directionalLights[1],
-		sizeof(DirectionalLight));
 
 	pixelShader->SetData(
 		"pLight1",
 		&pointLights[0],
+		sizeof(PointLight));
+	pixelShader->SetData(
+		"pLight2",
+		&pointLights[1],
 		sizeof(PointLight));
 
 	pixelShader->SetFloat4("ambientLight", XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f));
