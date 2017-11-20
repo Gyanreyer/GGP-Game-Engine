@@ -275,6 +275,7 @@ void Engine::CreateMeshes()
 	assetManager->ImportMesh("PurpleGhost", "../../DX11Starter/Assets/Models/ghost.obj", device, BOX, false);
 	assetManager->ImportMesh("Plane", "../../DX11Starter/Assets/Models/Quad.obj", device, BOX, false);
 	assetManager->ImportMesh("SphereHP", "../../DX11Starter/Assets/Models/sphereHP.obj", device, SPHERE, false);
+	assetManager->ImportMesh("Barrel", "../../DX11Starter/Assets/Models/barrel.obj", device, SPHERE, false);
 }
 
 ///Loads in textures and makes them into materials
@@ -333,6 +334,8 @@ void Engine::CreateMaterials()
 	assetManager->ImportTexture("RockTexture", L"../../DX11Starter/Assets/Textures/rock.jpg", device, context);
 	assetManager->ImportTexture("RockNormal", L"../../DX11Starter/Assets/Textures/rockNormals.jpg", device, context);
 	assetManager->CreateMaterial("RockMaterial", "NormalMapVertexShader", "NormalMapPixelShader", "RockTexture", "RockNormal", "BasicSampler");
+	assetManager->ImportTexture("BarrelTexture", L"../../DX11Starter/Assets/Textures/barrel.png", device, context);
+	assetManager->CreateMaterial("BarrelMaterial", "BaseVertexShader", "BasePixelShader", "BarrelTexture", "BasicSampler");
 
 	//import particle texture
 	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);

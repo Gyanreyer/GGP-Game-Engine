@@ -85,8 +85,10 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	//Store references to all GOs in vector
 	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(0,0,0),XMFLOAT3(0,0,0),XMFLOAT3(20, 0.001f, 20)),
 		asset->GetMesh("Plane"), asset->GetMaterial("RustyPeteMaterial"),"Floor"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4,0.5f,-2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
-		asset->GetMesh("Cube"), asset->GetMaterial("RockMaterial"),"Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4 ,0.5f, -2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
+		asset->GetMesh("Cube"), asset->GetMaterial("RockMaterial"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4, 0, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
 	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(2, 1, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2)),
 	//	asset->GetMesh("Cube"), asset->GetMaterial("StoneMat")));
 	//gameObjects.push_back(GameObject(Transform(XMFLOAT3(2,0.25f,-2),XMFLOAT3(0,0,0),XMFLOAT3(0.5f,0.5f,0.5f)),
