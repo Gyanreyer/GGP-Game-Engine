@@ -211,31 +211,7 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 			}
 			else
 			{
-				//This doesn't work properly yet, still trying to figure out why
-				/*
-				//Get a projection of the opposite of the player's velocity onto the normal from the object
-				XMFLOAT3 accel;
-				XMStoreFloat3(&accel,
-					2*XMLoadFloat3(&vecToPlayer) * XMVector3Dot(-XMLoadFloat3(&playerVelocity), XMLoadFloat3(&vecToPlayer)));//Projection
-
-				XMFLOAT3 newVel;
-				XMStoreFloat3(&newVel, XMLoadFloat3(&playerVelocity) + XMLoadFloat3(&accel));
-				
-				player.SetVelocity(newVel);
-
-				//printf("Collision\n");*/
-
-				/*
-				XMFLOAT3 nearestPt = Collision::GetNearestPointOnBox(player.GetCollider(), otherColl->center);
-
-				XMFLOAT3 moveVec;
-
-				XMStoreFloat3(&moveVec, XMLoadFloat3(&nearestPt) - XMLoadFloat3(&otherColl->center));
-
-				XMFLOAT3 accel;
-				XMStoreFloat3(&accel, XMLoadFloat3(&moveVec) * XMVector3Dot(-XMLoadFloat3(&playerVelocity), XMLoadFloat3(&moveVec)));
-
-				player.Accelerate(accel);*/
+				//This doesn't work properly yet will figure out later
 			}
 		}	
 	}
@@ -274,9 +250,16 @@ void GameManager::GameUpdate(float deltaTime)
 			time(enemies[i]->GetNowTime()); //get current time in game
 			double seconds = difftime(*enemies[i]->GetNowTime(), mktime(enemies[i]->GetLastShotTime()));
 
-			if (seconds >= 4 && distance < 5) //If the enemy should shoot and the player is in range
+			if (distance < 10) //If the enemy should shoot and the player is in range
 			{
-				enemies[i]->Shoot();
+				XMFLOAT3 vecToPlayer;
+
+				XMStoreFloat3(&vecToPlayer, XMVector3Normalize(XMLoadFloat3(&player.GetCollider()->center) - XMLoadFloat3(&enemies[i]->GetCollider()->center)));
+
+				enemies[i]->GetTransform()->SetForward(vecToPlayer);
+
+				if(seconds >= 4)
+					enemies[i]->Shoot();
 			}
 		}
 
@@ -326,7 +309,7 @@ void GameManager::GameDraw(Renderer* renderer)
 
 bool GameManager::isGameOver()
 {
-	if (getTimeLeft() <= 0)
+	if (getTimeLeft() <= 0 || player.GetHealth() == 0)
 		return true;
 	return false;
 }

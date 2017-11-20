@@ -219,7 +219,8 @@ byte Player::GetHealth()
 //Decrement the player's health when they are hit
 void Player::DecrementHealth()
 {
-	health--;
+	if(health > 0)
+		health--;
 }
 
 bool Player::CheckProjectileCollisions(GameObject other)

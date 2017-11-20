@@ -71,21 +71,15 @@ bool Collision::CheckCollisionSphereBox(Collider * sphere, Collider * box)
 	//This is a much better option than all the if statements used in the previous solution
 	//https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection#Sphere_versus_AABB
 	//Get the closest point from the box to the sphere by clamping
-/*	float x = fmaxf(box->center.x - box->dimensions.x, fminf(sphere->center.x, box->center.x + box->dimensions.x));
+	float x = fmaxf(box->center.x - box->dimensions.x, fminf(sphere->center.x, box->center.x + box->dimensions.x));
 	float y = fmaxf(box->center.y - box->dimensions.y, fminf(sphere->center.y, box->center.y + box->dimensions.y));
 	float z = fmaxf(box->center.z - box->dimensions.z, fminf(sphere->center.z, box->center.z + box->dimensions.z));
-*/
 
-	XMFLOAT3 sqDistToNearest;
-	
-	XMStoreFloat3(&sqDistToNearest, XMVector3LengthSq(XMLoadFloat3(&GetNearestPointOnBox(box, sphere->center)) - XMLoadFloat3(&sphere->center)));
 
 	//We don't sqrt here, since using pow later is more efficient
 	//If the distance squared is greater than the sphere's radius squared, there is no collision
-	return  sqDistToNearest.x < pow(sphere->dimensions.x, 2);
-		
-		/*(float)pow(nearestPt.x - sphere->center.x, 2) + (float)pow(nearestPt.y - sphere->center.y, 2) + (float)pow(nearestPt.z - sphere->center.z, 2) <
-		pow(sphereRadius, 2);*/
+	return (float)pow(x - sphere->center.x, 2) + (float)pow(y - sphere->center.y, 2) + (float)pow(z - sphere->center.z, 2) <
+		pow(sphereRadius, 2);
 }
 
 XMFLOAT3 Collision::GetNearestPointOnBox(Collider * box, XMFLOAT3 pt)

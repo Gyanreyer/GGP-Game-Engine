@@ -70,7 +70,7 @@ void Enemy::ShootDirection(XMFLOAT3 dir)
 	if (collider.isOffset)
 		shootPos.y += halfHeight;
 
-	shootPos.z += (collider.dimensions.z / 2); //Adjust the Z position so enemies don't merk themselves
+	//shootPos.z += (collider.dimensions.z / 2); //Adjust the Z position so enemies don't merk themselves
 
 	projManager->SpawnEnemyProjectile(shootPos, dir);
 
