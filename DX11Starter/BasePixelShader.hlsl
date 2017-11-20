@@ -128,7 +128,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 finalColor = textureColor *
 		(ambientLight + //Ambient light in the scene
 			calculateDirectionalLight(dLight1, input.normal) + calculateDirectionalLight(dLight2, input.normal) + //Directional lights
-			calculateBlinnPhongPointLight(pLight1, input, cameraPosition) //Point lights
+			calculateLambertPointLight(pLight1, input) //Point lights
 			);
 
 	//Lerp final color with fog factor to apply fog
