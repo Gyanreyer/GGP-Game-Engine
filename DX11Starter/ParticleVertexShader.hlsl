@@ -1,3 +1,5 @@
+//Particle effects
+
 //Constant buffer for view and projection
 cbuffer externalData : register(b0)
 {

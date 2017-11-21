@@ -76,7 +76,7 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), EnemyType::moveY, 30, projectileManager));
 	enemyTransform.SetPosition(0, 0, -2);
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::noMove, 10, projectileManager));
-	enemyTransform.SetPosition(0, 0, -5);
+	enemyTransform.SetPosition(1, 0, 5);
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::noMove, 10, projectileManager));
 
 	///OTHER GAMEOBJECTS

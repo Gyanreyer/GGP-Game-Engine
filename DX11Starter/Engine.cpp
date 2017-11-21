@@ -502,24 +502,11 @@ void Engine::Draw(float deltaTime, float totalTime)
 	ppVS->SetShader();
 	ppPS->SetShader();
 
-	//ppPS->CopyAllBufferData();
+	//ppPS->CopyAllBufferData(); //Don't need to do this, since no data has been added
 
 	ppPS->SetShaderResourceView("Pixels", bloomSRV); //Pass in a copy of the rendered texture to pick bright pixels from for bloom calculations
 	ppPS->SetSamplerState("Sampler", sampler);
 	//END BRIGHTNESS
-
-	//Begin blur
-	//ppPS = assetManager->GetPShader("BlurPShader");
-	//
-	////Set the shaders
-	//ppPS->SetShader();
-
-	//Send some extra data to the pixel shader
-	//ppPS->SetFloat("pixelWidth", 1.0f / width);
-	//ppPS->SetFloat("pixelHeight", 1.0f / height);
-	//ppPS->SetInt("blurAmount", 50); //Adjust number for more/less blur/framerate
-	//ppPS->CopyAllBufferData();
-	//END BLUR
 
 	//Begin bloom
 	//Includes blur
@@ -529,8 +516,6 @@ void Engine::Draw(float deltaTime, float totalTime)
 	ppPS->SetShader();
 
 	//Send some extra data to the pixel shader
-	//ppPS->CopyAllBufferData();
-
 	ppPS->SetFloat("pixelWidth", 1.0f / width);
 	ppPS->SetFloat("pixelHeight", 1.0f / height);
 	ppPS->SetInt("blurAmount", 1); //Adjust number for more/less blur/framerate
