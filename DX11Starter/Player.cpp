@@ -14,7 +14,7 @@ Player::Player(Transform trans, unsigned int projectionWidth, unsigned int proje
 	movementSpeed = 2; //The camera's movement speed
 	mouseSensitivity = 400; //Mouse sensitivity, determines the camera's rotation speed
 
-	health = 99999;
+	health = 3;
 
 	UpdateProjectionMatrix(projectionWidth,projectionHeight);
 

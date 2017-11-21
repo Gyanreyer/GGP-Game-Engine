@@ -33,11 +33,12 @@ Engine::Engine(HINSTANCE hInstance)
 	//Hide cursor
 	GetWindowRect(GetDesktopWindow(), &screen); //Get the dimensions of the desktop
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
-	//ShowCursor(false);
-	//freeMouse = false;
+	ShowCursor(false);
+	freeMouse = false;
 
+	/*
 	ShowCursor(true);
-	freeMouse = true;
+	freeMouse = true;*/
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -524,6 +525,10 @@ void Engine::Draw(float deltaTime, float totalTime)
 		ImGui::EndPopup();
 	}
 
+	ImGui::Begin("UI Instructions", (bool*)1);
+	ImGui::Text("Right click to free the mouse for interacting with UI");
+	ImGui::End();
+
 	ImGui::Render();
 
 	// Present the back buffer to the user
@@ -574,7 +579,7 @@ void Engine::OnMouseMove(int x, int y)
 	//Rotate player
 	gameManager->GetPlayer()->UpdateMouseInput((float)x, (float)y);
 
-	//SetCursorPos(screen.right / 2, screen.bottom / 2);
+	SetCursorPos(screen.right / 2, screen.bottom / 2);
 }
 
 // --------------------------------------------------------

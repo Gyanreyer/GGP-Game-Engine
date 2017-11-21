@@ -31,7 +31,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 {
 	time(&nowTime); //gets current time when game is launched
 	gameStartTime = *localtime(&nowTime); //assigns that time to gameStartTime to keep track of the time when game first started
-	timeInMatch = 9999; //intializes how much time is in a game
+	timeInMatch = 20; //intializes how much time is in a game
 	score = 0; //sets score to 0
 
 	spacePartitionHead = new OctreeNode(XMFLOAT3(0, -20, 0), 500, nullptr);//Will have to discuss size of play area, for now 1000x1000
