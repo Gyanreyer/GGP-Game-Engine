@@ -32,15 +32,15 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 	timeInMatch = 99999; //intializes how much time is in a game
 	score = 0; //sets score to 0
 
-	spacePartitionHead = OctreeNode(XMFLOAT3(0, -20, 0), 500, nullptr);//Will have to discuss size of play area, for now 1000x1000
+	spacePartitionHead = new OctreeNode(XMFLOAT3(0, -20, 0), 500, nullptr);//Will have to discuss size of play area, for now 1000x1000
 	//Experimenting but I set y to -20 so that stuff on the ground won't be interpreted as on an edge
 	
 	//PROJECTILE MANAGER
-	projectileManager = ProjectileManager(asset->GetMesh("Sphere"),
+	projectileManager = new ProjectileManager(asset->GetMesh("Sphere"),
 		asset->GetMaterial("HazardCrateMat"), //Placeholder until make new mats for bullets
 		asset->GetMaterial("PurpleGhost"),
 		context,
-		&spacePartitionHead);
+		spacePartitionHead);
 
 	//PLAYER
 	player = Player(
@@ -48,7 +48,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 			XMFLOAT3(0, 0, 0),//Init rot
 			XMFLOAT3(0.5f, 1, 0.5f)),//Init scale
 		(unsigned int)screenWidth, (unsigned int)screenHeight,//Screen dimensions for projection matrix
-		&projectileManager);//Reference to proj manager for shooting
+		projectileManager);//Reference to proj manager for shooting
 
 	CreateGameObjects(asset, context);
 	InitSpatialPartition();
@@ -71,13 +71,13 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	);
 
 	//Create enemies
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::moveX, 20, &projectileManager));
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::moveX, 20, projectileManager));
 	enemyTransform.SetPosition(-2, 2, 0);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), EnemyType::moveY, 30, &projectileManager));
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), EnemyType::moveY, 30, projectileManager));
 	enemyTransform.SetPosition(0, 0, -2);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::noMove, 10, &projectileManager));
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::noMove, 10, projectileManager));
 	enemyTransform.SetPosition(0, 0, -5);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::noMove, 10, &projectileManager));
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::noMove, 10, projectileManager));
 
 	///OTHER GAMEOBJECTS
 	gameObjects.clear(); //Clear this out for new game instances
@@ -154,21 +154,21 @@ void GameManager::InitSpatialPartition()
 {
 	for (int i = 0; i < gameObjects.size(); i++)
 	{
-		spacePartitionHead.AddObject(gameObjects[i]);
+		spacePartitionHead->AddObject(gameObjects[i]);
 	}
 
 	for (int i = 0; i < enemies.size(); i++)
 	{
-		spacePartitionHead.AddObject(enemies[i]);
+		spacePartitionHead->AddObject(enemies[i]);
 	}
 
-	spacePartitionHead.AddObject(&player);
+	spacePartitionHead->AddObject(&player);
 }
 
 void GameManager::CheckObjectCollisions(float deltaTime)
 {
 	//Check collisions for projectiles with everything
-	vector<Projectile *> projs = projectileManager.GetProjectiles();
+	vector<Projectile *> projs = projectileManager->GetProjectiles();
 
 	for (vector<Projectile *>::iterator projIter = projs.begin(); projIter != projs.end(); ++projIter)
 	{
@@ -183,7 +183,7 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 			//Ignore collision with other projectiles
 			if (strcmp(tag, "Projectile") != 0 && Collision::CheckCollision((*otherIter)->GetCollider(), (*projIter)->GetCollider()))
 			{
-				projectileManager.RemoveProjectile(*projIter); //Destroy projectile
+				projectileManager->RemoveProjectile(*projIter); //Destroy projectile
 
 				//Check tag to determine what else to do
 				if (strcmp(tag, "Player") == 0)
@@ -285,7 +285,7 @@ void GameManager::GameUpdate(float deltaTime)
 		player.Update(deltaTime);
 
 		//Update all projectiles
-		projectileManager.UpdateProjectiles(deltaTime);
+		projectileManager->UpdateProjectiles(deltaTime);
 
 		//Get the player position now
 		XMFLOAT3 playerPos = player.GetTransform()->GetPosition();
@@ -317,7 +317,7 @@ void GameManager::GameUpdate(float deltaTime)
 		}
 
 		//Update what nodes objects are stored in, delete unnecessary ones
-		spacePartitionHead.UpdateAll();
+		spacePartitionHead->UpdateAll();
 
 		CheckObjectCollisions(deltaTime);//Check all collisions		
 	}
@@ -344,7 +344,7 @@ void GameManager::GameDraw(Renderer* renderer)
 	}
 
 	//Draw all projectiles
-	projectileManager.DrawProjectiles(renderer);
+	projectileManager->DrawProjectiles(renderer);
 
 	//Display game stats
 	std::string score = "Score: ";
@@ -413,12 +413,13 @@ void GameManager::ClearObjects()
 
 	gameObjects.clear();
 
-	projectileManager.~ProjectileManager();
+	delete projectileManager;
+	delete spacePartitionHead;
 	
 	/*for (byte i = 0; i < spacePartitionHead.GetChildren().size(); i++)
 	{
 		spacePartitionHead.GetChildren()[i]->~OctreeNode();
 	}*/
 
-	spacePartitionHead.~OctreeNode();
+	//spacePartitionHead.~OctreeNode();
 }

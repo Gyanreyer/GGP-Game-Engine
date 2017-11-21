@@ -45,7 +45,7 @@ private:
 	GameManager& operator=(GameManager const& copy);
 	////////////////////////////////////////////////////////
 
-	ProjectileManager projectileManager;
+	ProjectileManager* projectileManager;
 
 	time_t nowTime;
 	tm gameStartTime;
@@ -60,7 +60,7 @@ private:
 	vector<Enemy *> enemies;
 	Player player;
 
-	OctreeNode spacePartitionHead;
+	OctreeNode* spacePartitionHead;
 
 	void InitSpatialPartition();
 	void CheckObjectCollisions(float deltaTime);
