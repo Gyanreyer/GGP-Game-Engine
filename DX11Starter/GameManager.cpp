@@ -23,13 +23,15 @@ GameManager & GameManager::getInstance()
 GameManager::~GameManager()
 {
 	ClearObjects();
+	delete campfireEmitter;
+
 }
 
-void GameManager::StartGame(AssetManager * asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context)
+void GameManager::StartGame(AssetManager * asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context, ID3D11Device* device)
 {
 	time(&nowTime); //gets current time when game is launched
 	gameStartTime = *localtime(&nowTime); //assigns that time to gameStartTime to keep track of the time when game first started
-	timeInMatch = 99999; //intializes how much time is in a game
+	timeInMatch = 9999; //intializes how much time is in a game
 	score = 0; //sets score to 0
 
 	spacePartitionHead = new OctreeNode(XMFLOAT3(0, -20, 0), 500, nullptr);//Will have to discuss size of play area, for now 1000x1000
@@ -50,7 +52,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 		(unsigned int)screenWidth, (unsigned int)screenHeight,//Screen dimensions for projection matrix
 		projectileManager);//Reference to proj manager for shooting
 
-	CreateGameObjects(asset, context);
+	CreateGameObjects(asset, context, device);
 	InitSpatialPartition();
 }
 
@@ -58,7 +60,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 // Creates the GameObjects we will draw in the scene and
 // stores references to them in an array
 // --------------------------------------------------------
-void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context)
+void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context, ID3D11Device* device)
 {
 	//ENEMIES
 	enemies.clear(); //Clear this out for new game instances
@@ -146,8 +148,27 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-3.3f, 0, -.8f), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
 		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
 	//Signs
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-3.5f, 0, -1), XMFLOAT3(0, -XM_PIDIV4, 0), XMFLOAT3(1, 1, 1)),
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-8.0f, 0, -1), XMFLOAT3(0, -XM_PIDIV4, 0), XMFLOAT3(1, 1, 1)),
 		asset->GetMesh("Sign"), asset->GetMaterial("BrownMat"), "Obstacle"));
+
+	//Fire
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(2.0f, 0.2f, -2), XMFLOAT3(0, -XM_PIDIV4, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Campfire"), asset->GetMaterial("CampfireMaterial"), "Fire"));
+	campfireEmitter = new Emitter(
+		100,
+		20,
+		0.4,
+		0.1f,
+		1.0f,
+		XMFLOAT4(1, 0.1f, 0.1f, 1.0f),	// Start color
+		XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
+		XMFLOAT3(0, .5, 0),				// Start velocity
+		XMFLOAT3(2.0f, 0.2f, -2),				// Start position
+		XMFLOAT3(0, -.01, 0),				// Start acceleration
+		asset->GetVShader("ParticleShader"),
+		asset->GetPShader("ParticleShader"),
+		asset->GetTexture("FireParticleTexture"),
+		device);
 }
 
 void GameManager::InitSpatialPartition()
@@ -277,6 +298,8 @@ void GameManager::OnLeftClick()
 
 void GameManager::GameUpdate(float deltaTime)
 {
+	campfireEmitter->Update(deltaTime);
+
 	//1. Make sure game is has not ended
 	if (!isGameOver()) {
 		player.UpdatePhysics(deltaTime);
@@ -346,6 +369,8 @@ void GameManager::GameDraw(Renderer* renderer)
 	//Draw all projectiles
 	projectileManager->DrawProjectiles(renderer);
 
+	renderer->Render(campfireEmitter);
+
 	//Display game stats
 	std::string score = "Score: ";
 	score += to_string(GetGameScore());
@@ -390,6 +415,7 @@ void GameManager::ResetGame()
 	score = 0; //sets score to 0
 
 	ClearObjects();
+	delete campfireEmitter;
 }
 
 int GameManager::GetGameScore()

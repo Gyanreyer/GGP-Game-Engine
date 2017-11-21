@@ -66,9 +66,8 @@ Engine::~Engine()
 	bloomSRV->Release();
 	ppSRV->Release();
 
-	particleBlendState->Release();
-	particleDepthState->Release();
-	delete emitter;
+
+	//delete emitter;
 	//Don't forget to delete the renderer
 	delete renderer;
 }
@@ -93,45 +92,25 @@ void Engine::Init()
 	CreateMaterials();
 	CreateMeshes();
 
-	// A depth state for the particles
-	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
-	dsDesc.DepthEnable = true;
-	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
-	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+	
 
+	//emitter = new Emitter(
+	//	80,
+	//	5, 
+	//	.5, 
+	//	0.1f, 
+	//	2.0f,
+	//	XMFLOAT4(1, 0.1f, 0.1f, 1.0f),	// Start color
+	//	XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
+	//	XMFLOAT3(0, 0, 0),				// Start velocity
+	//	XMFLOAT3(2.0f, 0.0f, -2),				// Start position
+	//	XMFLOAT3(0, .05f, 0),				// Start acceleration
+	//	assetManager->GetVShader("ParticleShader"),
+	//	assetManager->GetPShader("ParticleShader"),
+	//	assetManager->GetTexture("ParticleTexture"),
+	//	device);
 
-	// Blend for particles (additive)
-	D3D11_BLEND_DESC blend = {};
-	blend.AlphaToCoverageEnable = false;
-	blend.IndependentBlendEnable = false;
-	blend.RenderTarget[0].BlendEnable = true;
-	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	device->CreateBlendState(&blend, &particleBlendState);
-
-	emitter = new Emitter(
-		1000,
-		100, 
-		5, 
-		0.1f, 
-		5.0f,
-		XMFLOAT4(1, 0.1f, 0.1f, 0.2f),	// Start color
-		XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
-		XMFLOAT3(-2, 2, 0),				// Start velocity
-		XMFLOAT3(2, 1, 0),				// Start position
-		XMFLOAT3(0, -1, 0),				// Start acceleration
-		assetManager->GetVShader("ParticleShader"),
-		assetManager->GetPShader("ParticleShader"),
-		assetManager->GetTexture("ParticleTexture"),
-		device);
-
-	gameManager->StartGame(assetManager, (float)width, (float)height, context); //starts the game
+	gameManager->StartGame(assetManager, (float)width, (float)height, context, device); //starts the game
 	
 	//----------Skybox DX States ---------------//
 	//rasterizer state that allows us to draw inside of cube
@@ -283,6 +262,7 @@ void Engine::CreateMeshes()
 	assetManager->ImportMesh("Sign", "../../DX11Starter/Assets/Models/sign.obj", device, BOX, false);
 	assetManager->ImportMesh("Lamp", "../../DX11Starter/Assets/Models/lamp.obj", device, BOX, false);
 	assetManager->ImportMesh("Barrel", "../../DX11Starter/Assets/Models/barrel.obj", device, SPHERE, false);
+	assetManager->ImportMesh("Campfire", "../../DX11Starter/Assets/Models/campfire.obj", device,ColliderType::NONE, false);
 }
 
 ///Loads in textures and makes them into materials
@@ -352,10 +332,13 @@ void Engine::CreateMaterials()
 	assetManager->CreateMaterial("LampMat", "BaseVertexShader", "BasePixelShader", "Lamp", "BasicSampler");
 	assetManager->ImportTexture("BarrelTexture", L"../../DX11Starter/Assets/Textures/barrel.png", device, context);
 	assetManager->CreateMaterial("BarrelMaterial", "BaseVertexShader", "BasePixelShader", "BarrelTexture", "BasicSampler");
+	assetManager->ImportTexture("Campfire", L"../../DX11Starter/Assets/Textures/Tx_Bonfire.jpg", device, context);
+	assetManager->CreateMaterial("CampfireMaterial", "BaseVertexShader", "BasePixelShader", "Campfire", "BasicSampler");
+
 
 	//import particle texture
 	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
-
+	assetManager->ImportTexture("FireParticleTexture", L"../../DX11Starter/Assets/Textures/fireParticle.jpg", device, context);
 	//import skybox Texture
 	assetManager->ImportCubeMapTexture("NightSkybox", L"../../DX11Starter/Assets/Textures/NightSkybox.dds", device);
 }
@@ -388,7 +371,7 @@ void Engine::Update(float deltaTime, float totalTime)
 		Quit();
 
 	//Temp
-	emitter->Update(deltaTime);
+	//emitter->Update(deltaTime);
 
 	//Engine update Loop
 	gameManager->GameUpdate(deltaTime);
@@ -475,19 +458,6 @@ void Engine::Draw(float deltaTime, float totalTime)
 	gameManager->GameDraw(renderer);
 	//END GAME DRAWING
 
-	// Particle states
-	float blend[4] = { 1,1,1,1 };
-	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
-	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
-
-	// Draw the emitter
-	assetManager->GetPShader("ParticleShader")->SetSamplerState("trilinear", assetManager->GetSampler("ParticleSampler"));
-	emitter->Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
-
-	// Reset to default states for next frame
-	context->OMSetBlendState(0, blend, 0xffffffff);
-	context->OMSetDepthStencilState(0, 0);
-
 	//Begin post processing
 	//Start by calculating brightness, then blur and bloom
 	context->OMSetRenderTargets(1, &backBufferRTV, 0); //Set the back buffer as the render target
@@ -548,7 +518,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 		if (ImGui::Button("Restart Game"))
 		{
 			gameManager->ResetGame(); //Clean up memory
-			gameManager->StartGame(assetManager, (float)(width), (float)(height), context);
+			gameManager->StartGame(assetManager, (float)(width), (float)(height), context, device);
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
