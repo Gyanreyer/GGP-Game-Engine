@@ -19,7 +19,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float brightPixelBrightness = dot(brightPixelSample.rgb, float3(0.299f, 0.587f, 0.114f)); //Get the dot product of the bright pixel sample
 
 	//Determine if the pixel is bright enough for bloom
-	if (brightPixelBrightness < .9f) //brightPixelBrightness is a 0-1 value
+	if (brightPixelBrightness < .15f) //brightPixelBrightness is a 0-1 value
 		return float4(0, 0, 0, 0);
 
 	return brightPixelSample;
