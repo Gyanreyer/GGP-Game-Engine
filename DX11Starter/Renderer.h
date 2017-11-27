@@ -3,6 +3,8 @@
 #include "GameObject.h"
 #include "Lights.h"
 #include "Player.h"
+#include "Emitter.h"
+#include "AssetManager.h"
 
 class Player;
 class Renderer
@@ -13,7 +15,8 @@ public:
 	void CreateLights();
 	void SetViewProjMatrix(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat);
 	void Render(GameObject* gameObject);
-
+	void Render(Emitter* emitter);
+	ID3D11DeviceContext* GetRenderContext();
 private:
 	Player* player;
 
@@ -26,4 +29,8 @@ private:
 
 	vector<DirectionalLight> directionalLights;
 	vector<PointLight> pointLights;
+
+	//Particle Stuff
+	ID3D11DepthStencilState* particleDepthState;
+	ID3D11BlendState* particleBlendState;
 };

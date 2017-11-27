@@ -123,10 +123,20 @@ void Player::SetVelocity(XMFLOAT3 vel)
 
 void Player::Accelerate(float fwdMagnitude, float sideMagnitude, float vertMagnitude)
 {
-	XMStoreFloat3(&velocity, XMLoadFloat3(&velocity) +
-		XMLoadFloat3(&transform.GetForwardXZ())*fwdMagnitude +
+	XMFLOAT3 accelVec;
+
+	XMStoreFloat3(&accelVec, XMLoadFloat3(&transform.GetForwardXZ())*fwdMagnitude +
 		XMLoadFloat3(&transform.GetRight())*sideMagnitude +
 		XMVectorSet(0, 1, 0, 0)*vertMagnitude);
+
+	Accelerate(accelVec);
+}
+
+void Player::Accelerate(XMFLOAT3 accelVec)
+{
+	XMStoreFloat3(&velocity, 
+		XMLoadFloat3(&velocity) +
+		XMLoadFloat3(&accelVec));
 
 	XMStoreFloat3(&velocity,
 		XMVectorSet(0, velocity.y, 0, 0) +
@@ -137,8 +147,8 @@ void Player::UpdatePhysics(float deltaTime)
 {
 	transform.Move(XMLoadFloat3(&velocity)*deltaTime);
 
-	velocity.x *= 0.25f;
-	velocity.z *= 0.25f;
+	velocity.x *= deltaTime*.5f;
+	velocity.z *= deltaTime*.5f;
 }
 
 void Player::Jump()
@@ -209,7 +219,8 @@ byte Player::GetHealth()
 //Decrement the player's health when they are hit
 void Player::DecrementHealth()
 {
-	health--;
+	if(health > 0)
+		health--;
 }
 
 bool Player::CheckProjectileCollisions(GameObject other)

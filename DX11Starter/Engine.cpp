@@ -36,6 +36,10 @@ Engine::Engine(HINSTANCE hInstance)
 	ShowCursor(false);
 	freeMouse = false;
 
+	/*
+	ShowCursor(true);
+	freeMouse = true;*/
+
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
 	CreateConsoleWindow(500, 120, 32, 120);
@@ -63,9 +67,8 @@ Engine::~Engine()
 	bloomSRV->Release();
 	ppSRV->Release();
 
-	particleBlendState->Release();
-	particleDepthState->Release();
-	delete emitter;
+
+	//delete emitter;
 	//Don't forget to delete the renderer
 	delete renderer;
 }
@@ -90,45 +93,25 @@ void Engine::Init()
 	CreateMaterials();
 	CreateMeshes();
 
-	// A depth state for the particles
-	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
-	dsDesc.DepthEnable = true;
-	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
-	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+	
 
+	//emitter = new Emitter(
+	//	80,
+	//	5, 
+	//	.5, 
+	//	0.1f, 
+	//	2.0f,
+	//	XMFLOAT4(1, 0.1f, 0.1f, 1.0f),	// Start color
+	//	XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
+	//	XMFLOAT3(0, 0, 0),				// Start velocity
+	//	XMFLOAT3(2.0f, 0.0f, -2),				// Start position
+	//	XMFLOAT3(0, .05f, 0),				// Start acceleration
+	//	assetManager->GetVShader("ParticleShader"),
+	//	assetManager->GetPShader("ParticleShader"),
+	//	assetManager->GetTexture("ParticleTexture"),
+	//	device);
 
-	// Blend for particles (additive)
-	D3D11_BLEND_DESC blend = {};
-	blend.AlphaToCoverageEnable = false;
-	blend.IndependentBlendEnable = false;
-	blend.RenderTarget[0].BlendEnable = true;
-	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	device->CreateBlendState(&blend, &particleBlendState);
-
-	emitter = new Emitter(
-		1000,
-		100, 
-		5, 
-		0.1f, 
-		5.0f,
-		XMFLOAT4(1, 0.1f, 0.1f, 0.2f),	// Start color
-		XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
-		XMFLOAT3(-2, 2, 0),				// Start velocity
-		XMFLOAT3(2, 1, 0),				// Start position
-		XMFLOAT3(0, -1, 0),				// Start acceleration
-		assetManager->GetVShader("ParticleShader"),
-		assetManager->GetPShader("ParticleShader"),
-		assetManager->GetTexture("ParticleTexture"),
-		device);
-
-	gameManager->StartGame(assetManager, (float)width, (float)height, context); //starts the game
+	gameManager->StartGame(assetManager, (float)width, (float)height, context, device); //starts the game
 	
 	//----------Skybox DX States ---------------//
 	//rasterizer state that allows us to draw inside of cube
@@ -275,10 +258,12 @@ void Engine::CreateMeshes()
 	assetManager->ImportMesh("PurpleGhost", "../../DX11Starter/Assets/Models/ghost.obj", device, BOX, false);
 	assetManager->ImportMesh("Plane", "../../DX11Starter/Assets/Models/Quad.obj", device, BOX, false);
 	assetManager->ImportMesh("SphereHP", "../../DX11Starter/Assets/Models/sphereHP.obj", device, SPHERE, false);
-	assetManager->ImportMesh("Skeleton", "../../DX11Starter/Assets/Models/skeleton.obj", device, BOX, false);
+	assetManager->ImportMesh("Skeleton", "../../DX11Starter/Assets/Models/skeleton.obj", device, BOX, true);
 	assetManager->ImportMesh("PineTree", "../../DX11Starter/Assets/Models/pineTree.obj", device, BOX, false);
 	assetManager->ImportMesh("Sign", "../../DX11Starter/Assets/Models/sign.obj", device, BOX, false);
 	assetManager->ImportMesh("Lamp", "../../DX11Starter/Assets/Models/lamp.obj", device, BOX, false);
+	assetManager->ImportMesh("Barrel", "../../DX11Starter/Assets/Models/barrel.obj", device, SPHERE, false);
+	assetManager->ImportMesh("Campfire", "../../DX11Starter/Assets/Models/campfire.obj", device,ColliderType::NONE, false);
 }
 
 ///Loads in textures and makes them into materials
@@ -346,10 +331,15 @@ void Engine::CreateMaterials()
 	assetManager->CreateMaterial("BrownMat", "BaseVertexShader", "BasePixelShader", "brown", "BasicSampler");
 	assetManager->ImportTexture("Lamp", L"../../DX11Starter/Assets/Textures/lamp.png", device, context);
 	assetManager->CreateMaterial("LampMat", "BaseVertexShader", "BasePixelShader", "Lamp", "BasicSampler");
+	assetManager->ImportTexture("BarrelTexture", L"../../DX11Starter/Assets/Textures/barrel.png", device, context);
+	assetManager->CreateMaterial("BarrelMaterial", "BaseVertexShader", "BasePixelShader", "BarrelTexture", "BasicSampler");
+	assetManager->ImportTexture("Campfire", L"../../DX11Starter/Assets/Textures/Tx_Bonfire.jpg", device, context);
+	assetManager->CreateMaterial("CampfireMaterial", "BaseVertexShader", "BasePixelShader", "Campfire", "BasicSampler");
+
 
 	//import particle texture
 	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
-
+	assetManager->ImportTexture("FireParticleTexture", L"../../DX11Starter/Assets/Textures/fireParticle.jpg", device, context);
 	//import skybox Texture
 	assetManager->ImportCubeMapTexture("NightSkybox", L"../../DX11Starter/Assets/Textures/NightSkybox.dds", device);
 }
@@ -382,7 +372,7 @@ void Engine::Update(float deltaTime, float totalTime)
 		Quit();
 
 	//Temp
-	emitter->Update(deltaTime);
+	//emitter->Update(deltaTime);
 
 	//Engine update Loop
 	gameManager->GameUpdate(deltaTime);
@@ -453,30 +443,21 @@ void Engine::Draw(float deltaTime, float totalTime)
 	// 1. Show a simple window
 	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
 	{
-		static float f = 0.0f;
+		static float f[3];
+		static int arrayPos = 0;
 		static char testText = char();
+		ImGui::InputInt("ArrayPos", &arrayPos);
 		ImGui::Text("Hello, world!");
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		ImGui::InputFloat3("gameobj Pos", f);
+		gameManager->gameObjects[arrayPos]->GetTransform()->SetPosition(XMFLOAT3(f[0], f[1], f[2]));
 		ImGui::ColorEdit3("clear color", (float*)&clear_color);
 		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	}
 
+	
 	gameManager->GameDraw(renderer);
 	//END GAME DRAWING
-
-	// Particle states
-	float blend[4] = { 1,1,1,1 };
-	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
-	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
-
-	// Draw the emitter
-	assetManager->GetPShader("ParticleShader")->SetSamplerState("trilinear", assetManager->GetSampler("ParticleSampler"));
-	emitter->Render(context, gameManager->GetPlayer()->GetViewMatrix(), gameManager->GetPlayer()->GetProjectionMatrix());
-
-	// Reset to default states for next frame
-	context->OMSetBlendState(0, blend, 0xffffffff);
-	context->OMSetDepthStencilState(0, 0);
 
 	//Begin post processing
 	//Start by calculating brightness, then blur and bloom
@@ -492,24 +473,11 @@ void Engine::Draw(float deltaTime, float totalTime)
 	ppVS->SetShader();
 	ppPS->SetShader();
 
-	//ppPS->CopyAllBufferData();
+	//ppPS->CopyAllBufferData(); //Don't need to do this, since no data has been added
 
 	ppPS->SetShaderResourceView("Pixels", bloomSRV); //Pass in a copy of the rendered texture to pick bright pixels from for bloom calculations
 	ppPS->SetSamplerState("Sampler", sampler);
 	//END BRIGHTNESS
-
-	//Begin blur
-	//ppPS = assetManager->GetPShader("BlurPShader");
-	//
-	////Set the shaders
-	//ppPS->SetShader();
-
-	//Send some extra data to the pixel shader
-	//ppPS->SetFloat("pixelWidth", 1.0f / width);
-	//ppPS->SetFloat("pixelHeight", 1.0f / height);
-	//ppPS->SetInt("blurAmount", 50); //Adjust number for more/less blur/framerate
-	//ppPS->CopyAllBufferData();
-	//END BLUR
 
 	//Begin bloom
 	//Includes blur
@@ -519,8 +487,6 @@ void Engine::Draw(float deltaTime, float totalTime)
 	ppPS->SetShader();
 
 	//Send some extra data to the pixel shader
-	//ppPS->CopyAllBufferData();
-
 	ppPS->SetFloat("pixelWidth", 1.0f / width);
 	ppPS->SetFloat("pixelHeight", 1.0f / height);
 	ppPS->SetInt("blurAmount", 1); //Adjust number for more/less blur/framerate
@@ -552,11 +518,16 @@ void Engine::Draw(float deltaTime, float totalTime)
 		ImGui::Text(finalScore.c_str());
 		if (ImGui::Button("Restart Game"))
 		{
-			gameManager->StartGame(assetManager, (float)(width), (float)(height), context);
+			gameManager->ResetGame(); //Clean up memory
+			gameManager->StartGame(assetManager, (float)(width), (float)(height), context, device);
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
 	}
+
+	ImGui::Begin("UI Instructions", (bool*)1);
+	ImGui::Text("Right click to free the mouse for interacting with UI");
+	ImGui::End();
 
 	ImGui::Render();
 
@@ -606,7 +577,7 @@ void Engine::OnMouseMove(int x, int y)
 	if (freeMouse) return;
 
 	//Rotate player
-	gameManager->GetPlayer()->UpdateMouseInput(x, y);
+	gameManager->GetPlayer()->UpdateMouseInput((float)x, (float)y);
 
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
 }

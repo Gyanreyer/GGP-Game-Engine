@@ -75,8 +75,24 @@ bool Collision::CheckCollisionSphereBox(Collider * sphere, Collider * box)
 	float y = fmaxf(box->center.y - box->dimensions.y, fminf(sphere->center.y, box->center.y + box->dimensions.y));
 	float z = fmaxf(box->center.z - box->dimensions.z, fminf(sphere->center.z, box->center.z + box->dimensions.z));
 
+
 	//We don't sqrt here, since using pow later is more efficient
 	//If the distance squared is greater than the sphere's radius squared, there is no collision
 	return (float)pow(x - sphere->center.x, 2) + (float)pow(y - sphere->center.y, 2) + (float)pow(z - sphere->center.z, 2) <
 		pow(sphereRadius, 2);
+}
+
+XMFLOAT3 Collision::GetNearestPointOnBox(Collider * box, XMFLOAT3 pt)
+{
+	XMFLOAT3 nearestPt;
+
+	XMVECTOR boxCenter = XMLoadFloat3(&box->center);
+	XMVECTOR boxDim = XMLoadFloat3(&box->dimensions);
+
+	XMStoreFloat3(&nearestPt,
+		XMVectorMax(
+			XMVectorMin(XMLoadFloat3(&pt),boxCenter-boxDim),
+			boxCenter + boxDim));
+
+	return nearestPt;
 }

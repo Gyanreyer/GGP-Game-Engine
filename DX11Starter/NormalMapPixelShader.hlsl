@@ -43,6 +43,7 @@ cbuffer externalData : register(b0)
 	DirectionalLight dLight1;
 	DirectionalLight dLight2;
 	PointLight pLight1;
+	PointLight pLight2;
 
 	float4 ambientLight; //The amount of ambient light in the scene
 	float3 cameraPosition; //For specular (reflection) calculation
@@ -105,8 +106,8 @@ float getFogFactor(float3 pos, float3 cameraPos)
 {
 	float dist = distance(pos, cameraPos); //Get dist from camera
 
-	const float minDist = 5; //Min dist before fog is applied
-	const float maxDist = 20; //Max dist before fog fully obscures object
+	const float minDist = 3; //Min dist before fog is applied
+	const float maxDist = 15; //Max dist before fog fully obscures object
 
 	//Return how strong the fog should be as a percentage 0-1
 	return saturate(1 - (maxDist - dist) / (maxDist - minDist));
@@ -145,10 +146,10 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	float4 finalColor = textureColor *
 		(ambientLight + //Ambient light in the scene
-			calculateDirectionalLight(dLight1, input.normal) + calculateDirectionalLight(dLight2, input.normal) + //Directional lights
-			calculateBlinnPhongPointLight(pLight1, input, cameraPosition) //Point lights
+			calculateDirectionalLight(dLight1, input.normal) + //Directional lights
+			calculateLambertPointLight(pLight1, input) + calculateLambertPointLight(pLight2, input) //Point lights calculateBlinnPhongPointLight(pLight1, input, cameraPosition) + calculateBlinnPhongPointLight(pLight2, input, cameraPosition)
 			);
 
 	//Lerp final color with fog factor to apply fog
-	return lerp(finalColor, float4(0.2, 0.2, 0.2, 1), getFogFactor(input.worldPos, cameraPosition));
+	return lerp(finalColor, float4(0.1f, 0.1f, 0.1f, 1), getFogFactor(input.worldPos, cameraPosition));
 }

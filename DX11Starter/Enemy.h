@@ -29,6 +29,10 @@ public:
 	//Return how many points this enemy is worth
 	int GetPoints();
 
+	//Get times for shooting
+	time_t * GetNowTime();
+	tm* GetLastShotTime();
+
 private:
 	//Enemy Shoot Timer
 	time_t nowTime;

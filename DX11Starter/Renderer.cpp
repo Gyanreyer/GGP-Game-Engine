@@ -10,10 +10,34 @@ Renderer::Renderer(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat, 
 	this->context = context;
 
 	CreateLights();
+
+	// A depth state for the particles
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+
+
+	// Blend for particles (additive)
+	D3D11_BLEND_DESC blend = {};
+	blend.AlphaToCoverageEnable = false;
+	blend.IndependentBlendEnable = false;
+	blend.RenderTarget[0].BlendEnable = true;
+	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blend, &particleBlendState);
 }
 
 Renderer::~Renderer()
 {
+	particleBlendState->Release();
+	particleDepthState->Release();
 }
 
 void Renderer::CreateLights()
@@ -24,16 +48,16 @@ void Renderer::CreateLights()
 	//Create directional lights
 	//Diffuse
 	//Direction
-	DirectionalLight dLight1 = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, -1.0f, 0.5f) };
-	DirectionalLight dLight2 = { XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.5f, -0.5f, 0.25f) };
+	DirectionalLight dLight1 = { XMFLOAT4(.4f, .4f, .4f, 1.0f), XMFLOAT3(-10.0f, -10.0f, -4.0f) };
 	directionalLights.push_back(dLight1);
-	directionalLights.push_back(dLight2);
 
 	//Point lights
 	//Diffuse
 	//Position
-	PointLight pLight1 = { XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(0, 2, 0) };
+	PointLight pLight1 = { XMFLOAT4(.6f, .6f, 0.0f, 1.0f), XMFLOAT3(3.225f, 1.65f, 0) };
+	PointLight pLight2 = { XMFLOAT4(.6f, .6f, 0.0f, 1.0f), XMFLOAT3(-4.725f, 1.65f, -3.5f) };
 	pointLights.push_back(pLight1);
+	pointLights.push_back(pLight2);
 }
 
 void Renderer::SetViewProjMatrix(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat)
@@ -71,15 +95,14 @@ void Renderer::Render(GameObject * gameObject)
 		"dLight1",
 		&directionalLights[0],
 		sizeof(DirectionalLight));
-	
-	pixelShader->SetData(
-		"dLight2",
-		&directionalLights[1],
-		sizeof(DirectionalLight));
 
 	pixelShader->SetData(
 		"pLight1",
 		&pointLights[0],
+		sizeof(PointLight));
+	pixelShader->SetData(
+		"pLight2",
+		&pointLights[1],
 		sizeof(PointLight));
 
 	pixelShader->SetFloat4("ambientLight", XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -92,4 +115,25 @@ void Renderer::Render(GameObject * gameObject)
 	pixelShader->SetShader();
 
 	context->DrawIndexed(goMesh->GetIndexCount(), 0, 0);
+}
+
+void Renderer::Render(Emitter * emitter)
+{
+	// Particle states
+	float blend[4] = { 1,1,1,1 };
+	context->OMSetBlendState(particleBlendState, blend, 0xffffffff);  // Additive blending
+	context->OMSetDepthStencilState(particleDepthState, 0);			// No depth WRITING
+
+																	// Draw the emitter
+	AssetManager::getInstance().GetPShader("ParticleShader")->SetSamplerState("trilinear",AssetManager::getInstance().GetSampler("ParticleSampler"));
+	emitter->Render(context, viewMatrix, projectionMatrix);
+
+	// Reset to default states for next frame
+	context->OMSetBlendState(0, blend, 0xffffffff);
+	context->OMSetDepthStencilState(0, 0);
+}
+
+ID3D11DeviceContext * Renderer::GetRenderContext()
+{
+	return context;
 }

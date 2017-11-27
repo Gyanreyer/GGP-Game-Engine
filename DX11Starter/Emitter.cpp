@@ -199,9 +199,9 @@ void Emitter::SpawnParticle()
 	particles[firstDeadParticle].color = startColor;
 	particles[firstDeadParticle].position = emitterPosition;
 	particles[firstDeadParticle].startVel = initialVelocity;
-	particles[firstDeadParticle].startVel.x += ((float)rand() / RAND_MAX) * 0.4f - 2.0f;
-	particles[firstDeadParticle].startVel.y += ((float)rand() / RAND_MAX) * 0.4f - 2.0f;
-	particles[firstDeadParticle].startVel.z += ((float)rand() / RAND_MAX) * 0.4f - 2.0f;
+	//particles[firstDeadParticle].startVel.x += ((float)rand() / RAND_MAX) * 0.4f - 2.0f;
+	particles[firstDeadParticle].startVel.y += ((float)rand() / RAND_MAX) * 0.4f + 2.0f;
+	//particles[firstDeadParticle].startVel.z += ((float)rand() / RAND_MAX) * 0.4f - 2.0f;
 
 	//increment and wrap
 	firstDeadParticle++;

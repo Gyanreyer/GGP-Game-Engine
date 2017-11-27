@@ -23,24 +23,26 @@ GameManager & GameManager::getInstance()
 GameManager::~GameManager()
 {
 	ClearObjects();
+	delete campfireEmitter;
+
 }
 
-void GameManager::StartGame(AssetManager * asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context)
+void GameManager::StartGame(AssetManager * asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context, ID3D11Device* device)
 {
 	time(&nowTime); //gets current time when game is launched
 	gameStartTime = *localtime(&nowTime); //assigns that time to gameStartTime to keep track of the time when game first started
-	timeInMatch = 99; //intializes how much time is in a game
+	timeInMatch = 20; //intializes how much time is in a game
 	score = 0; //sets score to 0
 
-	spacePartitionHead = OctreeNode(XMFLOAT3(0, -20, 0), 500, nullptr);//Will have to discuss size of play area, for now 1000x1000
+	spacePartitionHead = new OctreeNode(XMFLOAT3(0, -20, 0), 500, nullptr);//Will have to discuss size of play area, for now 1000x1000
 	//Experimenting but I set y to -20 so that stuff on the ground won't be interpreted as on an edge
 	
 	//PROJECTILE MANAGER
-	projectileManager = ProjectileManager(asset->GetMesh("Sphere"),
+	projectileManager = new ProjectileManager(asset->GetMesh("Sphere"),
 		asset->GetMaterial("HazardCrateMat"), //Placeholder until make new mats for bullets
 		asset->GetMaterial("PurpleGhost"),
 		context,
-		&spacePartitionHead);
+		spacePartitionHead);
 
 	//PLAYER
 	player = Player(
@@ -48,9 +50,9 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 			XMFLOAT3(0, 0, 0),//Init rot
 			XMFLOAT3(0.5f, 1, 0.5f)),//Init scale
 		(unsigned int)screenWidth, (unsigned int)screenHeight,//Screen dimensions for projection matrix
-		&projectileManager);//Reference to proj manager for shooting
+		projectileManager);//Reference to proj manager for shooting
 
-	CreateGameObjects(asset, context);
+	CreateGameObjects(asset, context, device);
 	InitSpatialPartition();
 }
 
@@ -58,7 +60,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 // Creates the GameObjects we will draw in the scene and
 // stores references to them in an array
 // --------------------------------------------------------
-void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context)
+void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context, ID3D11Device* device)
 {
 	//ENEMIES
 	enemies.clear(); //Clear this out for new game instances
@@ -71,50 +73,123 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	);
 
 	//Create enemies
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::moveX, 20, &projectileManager));
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::moveX, 20, projectileManager));
 	enemyTransform.SetPosition(-2, 2, 0);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), EnemyType::moveY, 30, &projectileManager));
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), EnemyType::moveY, 30, projectileManager));
 	enemyTransform.SetPosition(0, 0, -2);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::noMove, 10, &projectileManager));
-	enemyTransform.SetPosition(0, 0, 5);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::noMove, 10, &projectileManager));
-	enemyTransform.SetPosition(0, 1, 0);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("SphereHP"), asset->GetMaterial("RockMaterial"), EnemyType::moveX, 20, &projectileManager)); //DIRTY BUBBLE!
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::noMove, 10, projectileManager));
+	enemyTransform.SetPosition(1, 0, 5);
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::noMove, 10, projectileManager));
+
 	///OTHER GAMEOBJECTS
 	gameObjects.clear(); //Clear this out for new game instances
 
 	//Store references to all GOs in vector
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(0,0,0),XMFLOAT3(0,0,0),XMFLOAT3(40, 0.001f, 40)),
-		asset->GetMesh("Plane"), asset->GetMaterial("GroundMat"),"Floor"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4,0.5f,-2),XMFLOAT3(0,0,0),XMFLOAT3(1,1,1)),
-		asset->GetMesh("Cube"), asset->GetMaterial("RockMaterial"),"Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(6, 0.5f, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(30, 0.001f, 30)),
+		asset->GetMesh("Plane"), asset->GetMaterial("GroundMat"), "Floor"));
+
+	//Large trees (6)
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-2, 1.25f, 12), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
 		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-3,1.0f, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("Sign"), asset->GetMaterial("BrownMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-7, 0.0f, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(10, 1.25f, 7), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-5, 1.25f, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-4, 1.25f, -14), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4, 1.25f, -10), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(6, 1.25f, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	//Medium trees (8)
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-7, 1, -7), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-7.5f, 1, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(11, 1, -4), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(9, 1, -8), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-11, 1, -3), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(12, 1, 1), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4, 1, 10), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-2, 1, 12), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	//Small trees (9)
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-.5f, .55f, 5), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(5, .55f, 3), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(0, .55f, -13), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-3, .55f, -8), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(2, .55f, -6), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(6, .55f, -6), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-6, .55f, 7), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-7, .55f, 9), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	//Lamps (2)
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
 		asset->GetMesh("Lamp"), asset->GetMaterial("LampMat"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-5.5f, 0, -3.5f), XMFLOAT3(0, XM_PI, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Lamp"), asset->GetMaterial("LampMat"), "Obstacle"));
+	//Barrels
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(3.9f, 0, -.4f), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-3.9f, 0, -1), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-3.3f, 0, -.8f), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
+	//Signs
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-8.0f, 0, -1), XMFLOAT3(0, -XM_PIDIV4, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Sign"), asset->GetMaterial("BrownMat"), "Obstacle"));
+
+	//Fire
+	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(2.0f, 0.2f, -2), XMFLOAT3(0, -XM_PIDIV4, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Campfire"), asset->GetMaterial("CampfireMaterial"), "Fire"));
+	campfireEmitter = new Emitter(
+		100,
+		20,
+		0.4,
+		0.1f,
+		1.0f,
+		XMFLOAT4(1, 0.1f, 0.1f, 1.0f),	// Start color
+		XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
+		XMFLOAT3(0, .5, 0),				// Start velocity
+		XMFLOAT3(2.0f, 0.2f, -2),				// Start position
+		XMFLOAT3(0, -.01, 0),				// Start acceleration
+		asset->GetVShader("ParticleShader"),
+		asset->GetPShader("ParticleShader"),
+		asset->GetTexture("FireParticleTexture"),
+		device);
 }
 
 void GameManager::InitSpatialPartition()
 {
 	for (int i = 0; i < gameObjects.size(); i++)
 	{
-		spacePartitionHead.AddObject(gameObjects[i]);
+		spacePartitionHead->AddObject(gameObjects[i]);
 	}
 
 	for (int i = 0; i < enemies.size(); i++)
 	{
-		spacePartitionHead.AddObject(enemies[i]);
+		spacePartitionHead->AddObject(enemies[i]);
 	}
 
-	spacePartitionHead.AddObject(&player);
+	spacePartitionHead->AddObject(&player);
 }
 
 void GameManager::CheckObjectCollisions(float deltaTime)
 {
 	//Check collisions for projectiles with everything
-	vector<Projectile *> projs = projectileManager.GetProjectiles();
+	vector<Projectile *> projs = projectileManager->GetProjectiles();
 
 	for (vector<Projectile *>::iterator projIter = projs.begin(); projIter != projs.end(); ++projIter)
 	{
@@ -129,7 +204,7 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 			//Ignore collision with other projectiles
 			if (strcmp(tag, "Projectile") != 0 && Collision::CheckCollision((*otherIter)->GetCollider(), (*projIter)->GetCollider()))
 			{
-				projectileManager.RemoveProjectile(*projIter); //Destroy projectile
+				projectileManager->RemoveProjectile(*projIter); //Destroy projectile
 
 				//Check tag to determine what else to do
 				if (strcmp(tag, "Player") == 0)
@@ -209,18 +284,7 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 			}
 			else
 			{
-				//This doesn't work properly yet, still trying to figure out why
-
-				//Get a projection of the opposite of the player's velocity onto the normal from the object
-				XMFLOAT3 accel;
-				XMStoreFloat3(&accel,
-					XMLoadFloat3(&vecToPlayer) * XMVector3Dot(-XMLoadFloat3(&playerVelocity), XMLoadFloat3(&vecToPlayer)));//Projection
-
-				XMFLOAT3 newVel;
-				XMStoreFloat3(&newVel, XMLoadFloat3(&playerVelocity) + XMLoadFloat3(&accel));
-				
-				player.SetVelocity(newVel);
-				
+				//This doesn't work properly yet will figure out later
 			}
 		}	
 	}
@@ -228,11 +292,14 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 
 void GameManager::OnLeftClick()
 {
-	player.Shoot();
+	if(!isGameOver())
+		player.Shoot();
 }
 
 void GameManager::GameUpdate(float deltaTime)
 {
+	campfireEmitter->Update(deltaTime);
+
 	//1. Make sure game is has not ended
 	if (!isGameOver()) {
 		player.UpdatePhysics(deltaTime);
@@ -241,16 +308,39 @@ void GameManager::GameUpdate(float deltaTime)
 		player.Update(deltaTime);
 
 		//Update all projectiles
-		projectileManager.UpdateProjectiles(deltaTime);
+		projectileManager->UpdateProjectiles(deltaTime);
+
+		//Get the player position now
+		XMFLOAT3 playerPos = player.GetTransform()->GetPosition();
 
 		//Get and update enemies
 		for (int i = 0; i < enemies.size(); i++)
 		{
-			enemies[i]->Update(deltaTime);
+			enemies[i]->Update(deltaTime); //Update enemies
+
+			//Enemy shooting
+			XMFLOAT3 enemyPos = enemies[i]->GetTransform()->GetPosition(); //Get the enemy position
+
+			float distance = sqrt(pow((playerPos.x - enemyPos.x), 2) + pow((playerPos.y - enemyPos.y), 2) + pow((playerPos.z - enemyPos.z), 2)); //Distance from the player to the enemy
+
+			time(enemies[i]->GetNowTime()); //get current time in game
+			double seconds = difftime(*enemies[i]->GetNowTime(), mktime(enemies[i]->GetLastShotTime()));
+
+			if (distance < 10) //If the enemy should shoot and the player is in range
+			{
+				XMFLOAT3 vecToPlayer;
+
+				XMStoreFloat3(&vecToPlayer, XMVector3Normalize(XMLoadFloat3(&player.GetCollider()->center) - XMLoadFloat3(&enemies[i]->GetCollider()->center)));
+
+				enemies[i]->GetTransform()->SetForward(vecToPlayer);
+
+				if(seconds >= 4)
+					enemies[i]->Shoot();
+			}
 		}
 
 		//Update what nodes objects are stored in, delete unnecessary ones
-		spacePartitionHead.UpdateAll();
+		spacePartitionHead->UpdateAll();
 
 		CheckObjectCollisions(deltaTime);//Check all collisions		
 	}
@@ -277,7 +367,9 @@ void GameManager::GameDraw(Renderer* renderer)
 	}
 
 	//Draw all projectiles
-	projectileManager.DrawProjectiles(renderer);
+	projectileManager->DrawProjectiles(renderer);
+
+	renderer->Render(campfireEmitter);
 
 	//Display game stats
 	std::string score = "Score: ";
@@ -295,9 +387,7 @@ void GameManager::GameDraw(Renderer* renderer)
 
 bool GameManager::isGameOver()
 {
-	if (getTimeLeft() <= 0)
-		return true;
-	return false;
+	return getTimeLeft() <= 0 || player.GetHealth() == 0 || enemies.size() == 0;
 }
 
 Player * GameManager::GetPlayer()
@@ -308,7 +398,7 @@ Player * GameManager::GetPlayer()
 double GameManager::getTimeLeft()
 {
 	time(&nowTime);
-
+	
 	double seconds = difftime(nowTime, mktime(&gameStartTime));
 	return timeInMatch - seconds;
 }
@@ -325,6 +415,7 @@ void GameManager::ResetGame()
 	score = 0; //sets score to 0
 
 	ClearObjects();
+	delete campfireEmitter;
 }
 
 int GameManager::GetGameScore()
@@ -334,17 +425,27 @@ int GameManager::GetGameScore()
 
 void GameManager::ClearObjects()
 {
-	for (int i = 0; i < enemies.size(); i++)
+	for (byte i = 0; i < enemies.size(); i++)
 	{
 		delete enemies[i];
 	}
 
 	enemies.clear();
 
-	for (int i = 0; i < gameObjects.size(); i++)
+	for (byte i = 0; i < gameObjects.size(); i++)
 	{
 		delete gameObjects[i];
 	}
 
 	gameObjects.clear();
+
+	delete projectileManager;
+	delete spacePartitionHead;
+	
+	/*for (byte i = 0; i < spacePartitionHead.GetChildren().size(); i++)
+	{
+		spacePartitionHead.GetChildren()[i]->~OctreeNode();
+	}*/
+
+	//spacePartitionHead.~OctreeNode();
 }

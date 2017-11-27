@@ -47,14 +47,15 @@ void Enemy::Update(float deltaTime)
 		movePositive = transform.GetPosition().y <= (originPos.y + offset.y*sign);
 	}
 
-	time(&nowTime); //get current time in game
+	//Old shoot code, moved to GameManager
+	//time(&nowTime); //get current time in game
 
-	double seconds = difftime(nowTime, mktime(&lastShotTime));
+	//double seconds = difftime(nowTime, mktime(&lastShotTime));
 
-	/*if (seconds >= 4)
-	{
-		Shoot();
-	}*/
+	//if (seconds >= 4)
+	//{
+	//	Shoot();
+	//}
 }
 
 void Enemy::Shoot()
@@ -69,6 +70,10 @@ void Enemy::ShootDirection(XMFLOAT3 dir)
 	if (collider.isOffset)
 		shootPos.y += halfHeight;
 
+	//shootPos.z += (collider.dimensions.z / 2); //Adjust the Z position so enemies don't merk themselves
+
+	XMStoreFloat3(&shootPos, XMLoadFloat3(&shootPos) + XMLoadFloat3(&transform.GetForward()));
+
 	projManager->SpawnEnemyProjectile(shootPos, dir);
 
 	//This is theoretically pointless if we're using a timer to determine when shots should be fired - we already got the time
@@ -81,5 +86,17 @@ void Enemy::ShootDirection(XMFLOAT3 dir)
 int Enemy::GetPoints()
 {
 	return points;
+}
+
+//Get the time
+time_t * Enemy::GetNowTime()
+{
+	return &nowTime;
+}
+
+//Get the last time the enemy shot
+tm * Enemy::GetLastShotTime()
+{
+	return &lastShotTime;
 }
 
