@@ -68,5 +68,6 @@ private:
 	void CheckObjectCollisions(float deltaTime);
 
 	void ClearObjects();
+	void UpdateObjectsForRenderer(Renderer* renderer);
 };
 

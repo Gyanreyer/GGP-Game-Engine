@@ -83,13 +83,16 @@ void Engine::Init()
 	ImGui_ImplDX11_Init(hWnd, device, context);
 
 	gameManager = &GameManager::getInstance();
-	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device, GameManager::getInstance().GetPlayer());
+	
 
 	//Default prevMousePos to center of screen
 	/*prevMousePos.x = width / 2;
 	prevMousePos.y = height / 2;*/
 
 	LoadShaders();
+	
+	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device, width, height, GameManager::getInstance().GetPlayer());
+
 	CreateMaterials();
 	CreateMeshes();
 
@@ -226,6 +229,9 @@ void Engine::LoadShaders()
 	SimplePixelShader* particlePShader = new SimplePixelShader(device, context);
 	particlePShader->LoadShaderFile(L"ParticlePixelShader.cso");
 
+	SimpleVertexShader* shadowVS = new SimpleVertexShader(device, context);
+	shadowVS->LoadShaderFile(L"ShadowVertexShader.cso");
+
 	//Store Vertex and Pixel Shaders into the AssetManager
 	assetManager->StoreVShader("BaseVertexShader", baseVertexShader);
 	assetManager->StorePShader("BasePixelShader", basePixelShader);
@@ -239,6 +245,7 @@ void Engine::LoadShaders()
 	assetManager->StorePShader("BloomPShader", bloomPShader);
 	assetManager->StoreVShader("ParticleShader", particleVShader);
 	assetManager->StorePShader("ParticleShader", particlePShader);
+	assetManager->StoreVShader("ShadowShader", shadowVS);
 }
 
 // ---------------------------------------------------------
@@ -383,6 +390,9 @@ void Engine::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Engine::Draw(float deltaTime, float totalTime)
 {
+	//Get Shadow Map from light's viewpoint
+	renderer->RenderShadowMap();
+
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w };
 

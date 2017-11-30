@@ -354,6 +354,8 @@ void GameManager::GameDraw(Renderer* renderer)
 {
 	renderer->SetViewProjMatrix(player.GetViewMatrix(), player.GetProjectionMatrix());
 
+	UpdateObjectsForRenderer(renderer);
+
 	//Loop through GameObjects and draw them
 	for (byte i = 0; i < gameObjects.size(); i++)
 	{
@@ -448,4 +450,33 @@ void GameManager::ClearObjects()
 	}*/
 
 	//spacePartitionHead.~OctreeNode();
+}
+
+void GameManager::UpdateObjectsForRenderer(Renderer* renderer)
+{
+	vector<GameObject*> objects;
+	vector<Projectile*> projectiles = projectileManager->GetProjectiles();
+
+	////store projectiles into object vector
+	//for (int i = 0; i < projectiles.size(); i++)
+	//{
+	//	objects.push_back(projectiles[i]);
+	//}
+
+	//store enemies into object array
+	for (int i = 0; i < enemies.size(); i++) 
+	{
+		GameObject* enemy = enemies[i];
+		objects.push_back(enemy);
+	}
+
+	//store gameobjects into object array
+	for (int i = 0; i < gameObjects.size(); i++) 
+	{
+		GameObject* object = gameObjects[i];
+		objects.push_back(object);
+	}
+
+	//Set renderer objects
+	renderer->SetSceneObjects(objects);
 }
