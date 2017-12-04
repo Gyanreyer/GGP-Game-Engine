@@ -9,6 +9,9 @@
 #include "AssetManager.h"
 #include "GameManager.h"
 #include "Emitter.h"
+#include "SpriteBatch.h"
+#include "SpriteFont.h"
+#include "CommonStates.h"
 
 using std::to_string; //Alternative to atoi
 
@@ -68,5 +71,9 @@ private:
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	bool freeMouse;
+
+	//Stuff for drawing sprites/text to UI
+	SpriteFont* font;
+	SpriteBatch* spriteBatch;
 };
 

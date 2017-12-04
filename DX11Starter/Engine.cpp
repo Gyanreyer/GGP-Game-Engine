@@ -71,6 +71,9 @@ Engine::~Engine()
 	//delete emitter;
 	//Don't forget to delete the renderer
 	delete renderer;
+
+	delete font;
+	delete spriteBatch;
 }
 
 // --------------------------------------------------------
@@ -88,6 +91,9 @@ void Engine::Init()
 	//Default prevMousePos to center of screen
 	/*prevMousePos.x = width / 2;
 	prevMousePos.y = height / 2;*/
+
+	spriteBatch = new SpriteBatch(context);
+	font = new SpriteFont(device, L"../../DX11Starter/Assets/Fonts/Arial.spritefont");
 
 	LoadShaders();
 	CreateMaterials();
@@ -336,6 +342,8 @@ void Engine::CreateMaterials()
 	assetManager->ImportTexture("Campfire", L"../../DX11Starter/Assets/Textures/Tx_Bonfire.jpg", device, context);
 	assetManager->CreateMaterial("CampfireMaterial", "BaseVertexShader", "BasePixelShader", "Campfire", "BasicSampler");
 
+	//import crosshair texture
+	assetManager->ImportTexture("Crosshairs", L"../../DX11Starter/Assets/Textures/crosshairs.png", device, context);
 
 	//import particle texture
 	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
@@ -439,7 +447,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
 	//END SKYBOX
-
+	
 	// 1. Show a simple window
 	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
 	{
@@ -530,6 +538,70 @@ void Engine::Draw(float deltaTime, float totalTime)
 	ImGui::End();
 
 	ImGui::Render();
+
+	//Draw UI with sprite fonts/crosshair
+	//Get font texture
+	ID3D11ShaderResourceView* fontTexture;
+	font->GetSpriteSheet(&fontTexture);
+
+	//Construct strings based on game data
+	std::wstring timeString = L"Time: " + std::to_wstring((int)gameManager->getTimeLeft());
+	std::wstring healthString = L"Health: " + std::to_wstring(gameManager->GetPlayer()->GetHealth());
+	std::wstring scoreString = L"Score: " + std::to_wstring(gameManager->GetGameScore());
+
+	//Origin for score text so that it's on the upper right corner
+	XMFLOAT2 scoreOrigin;
+	XMStoreFloat2(&scoreOrigin,font->MeasureString(scoreString.c_str()));
+	scoreOrigin.y = 0;
+
+	float crosshairSize = 24;//Crosshair is 24px x 24px
+
+	//Get coords to draw crosshair so it's centered
+	float crosshairLeft = (width - crosshairSize) / 2;
+	float crosshairTop = (height - crosshairSize) / 2;
+
+	//Rect for bounds where crosshair will be drawn
+	RECT crosshairRect = { crosshairLeft, crosshairTop, crosshairLeft + crosshairSize, crosshairTop + crosshairSize };
+	
+	CommonStates states(device);
+
+	spriteBatch->Begin(SpriteSortMode_Deferred, states.NonPremultiplied());//Non-premultiplied blend state allows us to use transparency in pngs
+
+	spriteBatch->Draw(assetManager->GetTexture("Crosshairs"), crosshairRect);//Draw crosshair
+	
+	//Draw text
+	font->DrawString(
+		spriteBatch,
+		timeString.c_str(),
+		XMFLOAT2(10, 10),
+		Colors::White,
+		0,
+		XMFLOAT2(0, 0),
+		XMFLOAT2(.7f, .7f)
+	);
+	font->DrawString(
+		spriteBatch,
+		healthString.c_str(),
+		XMFLOAT2(10, 35),
+		Colors::White,
+		0,
+		XMFLOAT2(0,0),
+		XMFLOAT2(.7f,.7f)
+	);
+	font->DrawString(
+		spriteBatch,
+		scoreString.c_str(),
+		XMFLOAT2(width-10,10),
+		Colors::White,
+		0,
+		scoreOrigin,
+		XMFLOAT2(.7f,.7f)
+	);
+
+	//End UI drawing
+	spriteBatch->End();
+
+	fontTexture->Release();
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
