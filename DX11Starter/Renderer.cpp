@@ -37,7 +37,7 @@ Renderer::Renderer(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat, 
 	device->CreateBlendState(&blend, &particleBlendState);
 
 	//Create Shadow Map Setup
-	shadowMapSize = 1024;
+	shadowMapSize = 2048;
 
 	//Create the actual texture that will be the shadow map
 	D3D11_TEXTURE2D_DESC shadowDesc = {};
@@ -161,7 +161,7 @@ void Renderer::Render(GameObject * gameObject)
 	// We need to pass the shadow "creation" matrices in here
 	// so we can reconstruct the shadow map position
 	vertexShader->SetMatrix4x4("shadowView", shadowViewMatrix);
-	vertexShader->SetMatrix4x4("ShadowProj", shadowProjectionMatrix);
+	vertexShader->SetMatrix4x4("shadowProj", shadowProjectionMatrix);
 
 	vertexShader->CopyAllBufferData();
 	vertexShader->SetShader();
@@ -222,12 +222,12 @@ void Renderer::SetSceneObjects(vector<GameObject*> objects)
 	sceneObjects = objects;
 }
 
-void Renderer::RenderShadowMap()
+void Renderer::RenderShadowMap(ID3D11RenderTargetView* oldRenderTargetView, ID3D11DepthStencilView* oldDepthStencilView)
 {
-	ID3D11RenderTargetView* oldRenderTargetView;
-	ID3D11DepthStencilView* oldDepthStencilView;
+	//ID3D11RenderTargetView* oldRenderTargetView;
+	//ID3D11DepthStencilView* oldDepthStencilView;
 
-	context->OMGetRenderTargets(1, &oldRenderTargetView, &oldDepthStencilView);
+	//context->OMGetRenderTargets(1, &oldRenderTargetView, &oldDepthStencilView);
 
 	//Change which depth buffer we are rendering into
 	context->OMSetRenderTargets(0, 0, shadowDSV);
@@ -300,4 +300,8 @@ void Renderer::RenderShadowMap()
 	shadowViewport.Width = width;
 	shadowViewport.Height = height;
 	context->RSSetViewports(1, &shadowViewport);
+
+	////Release old Render states
+	//oldDepthStencilView->Release();
+	//oldRenderTargetView->Release();
 }

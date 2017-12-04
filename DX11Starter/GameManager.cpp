@@ -296,7 +296,7 @@ void GameManager::OnLeftClick()
 		player.Shoot();
 }
 
-void GameManager::GameUpdate(float deltaTime)
+void GameManager::GameUpdate(float deltaTime, Renderer* renderer)
 {
 	campfireEmitter->Update(deltaTime);
 
@@ -343,6 +343,8 @@ void GameManager::GameUpdate(float deltaTime)
 		spacePartitionHead->UpdateAll();
 
 		CheckObjectCollisions(deltaTime);//Check all collisions		
+
+		UpdateObjectsForRenderer(renderer);
 	}
 	else {
 		ImGui::OpenPopup("EndGame");
@@ -353,8 +355,6 @@ void GameManager::GameUpdate(float deltaTime)
 void GameManager::GameDraw(Renderer* renderer)
 {
 	renderer->SetViewProjMatrix(player.GetViewMatrix(), player.GetProjectionMatrix());
-
-	UpdateObjectsForRenderer(renderer);
 
 	//Loop through GameObjects and draw them
 	for (byte i = 0; i < gameObjects.size(); i++)

@@ -382,7 +382,7 @@ void Engine::Update(float deltaTime, float totalTime)
 	//emitter->Update(deltaTime);
 
 	//Engine update Loop
-	gameManager->GameUpdate(deltaTime);
+	gameManager->GameUpdate(deltaTime, renderer);
 }
 
 // --------------------------------------------------------
@@ -391,7 +391,7 @@ void Engine::Update(float deltaTime, float totalTime)
 void Engine::Draw(float deltaTime, float totalTime)
 {
 	//Get Shadow Map from light's viewpoint
-	renderer->RenderShadowMap();
+	renderer->RenderShadowMap(ppRTV, depthStencilView);
 
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w };

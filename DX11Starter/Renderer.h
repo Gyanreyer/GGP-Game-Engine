@@ -14,7 +14,7 @@ public:
 	~Renderer();
 	void CreateLights();
 	void SetViewProjMatrix(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat);
-	void RenderShadowMap();
+	void RenderShadowMap(ID3D11RenderTargetView* oldRenderTargetView, ID3D11DepthStencilView* oldDepthStencilView);
 	void Render(GameObject* gameObject);
 	void Render(Emitter* emitter);
 	ID3D11DeviceContext* GetRenderContext();

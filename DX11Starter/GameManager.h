@@ -23,7 +23,7 @@ public:
 
 	void StartGame(AssetManager* asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context, ID3D11Device* device);
 	void CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context, ID3D11Device* device); //Initializes GameObjects
-	void GameUpdate(float deltaTime);
+	void GameUpdate(float deltaTime, Renderer* renderer);
 	void GameDraw(Renderer* renderer);
 	bool isGameOver();
 
