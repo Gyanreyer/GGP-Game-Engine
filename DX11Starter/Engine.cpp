@@ -33,12 +33,8 @@ Engine::Engine(HINSTANCE hInstance)
 	//Hide cursor
 	GetWindowRect(GetDesktopWindow(), &screen); //Get the dimensions of the desktop
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
-	ShowCursor(false);
-	freeMouse = false;
-
-	/*
 	ShowCursor(true);
-	freeMouse = true;*/
+	freeMouse = true;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -379,11 +375,27 @@ void Engine::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	//Temp
-	//emitter->Update(deltaTime);
-
 	//Engine update Loop
 	gameManager->GameUpdate(deltaTime);
+
+	if (gameManager->state == GameState::playing && gameManager->IsGameOver())
+	{
+		gameManager->state = GameState::end;
+		ShowCursor(true);
+		freeMouse = true;
+	}
+	else if (GetAsyncKeyState(VK_RETURN) & 0x8000)
+	{
+		if (gameManager->state == GameState::end)
+		{
+			gameManager->ResetGame();
+			gameManager->StartGame(assetManager, (float)(width), (float)(height), context, device);
+		}
+
+		gameManager->state = GameState::playing;
+		ShowCursor(false);
+		freeMouse = false;	
+	}
 }
 
 // --------------------------------------------------------
@@ -541,72 +553,153 @@ void Engine::Draw(float deltaTime, float totalTime)
 
 	//Draw UI with sprite fonts/crosshair
 	//Get font texture
-	ID3D11ShaderResourceView* fontTexture;
-	font->GetSpriteSheet(&fontTexture);
-
-	//Construct strings based on game data
-	std::wstring timeString = L"Time: " + std::to_wstring((int)gameManager->getTimeLeft());
-	std::wstring healthString = L"Health: " + std::to_wstring(gameManager->GetPlayer()->GetHealth());
-	std::wstring scoreString = L"Score: " + std::to_wstring(gameManager->GetGameScore());
-
-	//Origin for score text so that it's on the upper right corner
-	XMFLOAT2 scoreOrigin;
-	XMStoreFloat2(&scoreOrigin,font->MeasureString(scoreString.c_str()));
-	scoreOrigin.y = 0;
-
-	float crosshairSize = 24;//Crosshair is 24px x 24px
-
-	//Get coords to draw crosshair so it's centered
-	float crosshairLeft = (width - crosshairSize) / 2;
-	float crosshairTop = (height - crosshairSize) / 2;
-
-	//Rect for bounds where crosshair will be drawn
-	RECT crosshairRect = { crosshairLeft, crosshairTop, crosshairLeft + crosshairSize, crosshairTop + crosshairSize };
-	
-	CommonStates states(device);
-
-	spriteBatch->Begin(SpriteSortMode_Deferred, states.NonPremultiplied());//Non-premultiplied blend state allows us to use transparency in pngs
-
-	spriteBatch->Draw(assetManager->GetTexture("Crosshairs"), crosshairRect);//Draw crosshair
-	
-	//Draw text
-	font->DrawString(
-		spriteBatch,
-		timeString.c_str(),
-		XMFLOAT2(10, 10),
-		Colors::White,
-		0,
-		XMFLOAT2(0, 0),
-		XMFLOAT2(.7f, .7f)
-	);
-	font->DrawString(
-		spriteBatch,
-		healthString.c_str(),
-		XMFLOAT2(10, 35),
-		Colors::White,
-		0,
-		XMFLOAT2(0,0),
-		XMFLOAT2(.7f,.7f)
-	);
-	font->DrawString(
-		spriteBatch,
-		scoreString.c_str(),
-		XMFLOAT2(width-10,10),
-		Colors::White,
-		0,
-		scoreOrigin,
-		XMFLOAT2(.7f,.7f)
-	);
-
-	//End UI drawing
-	spriteBatch->End();
-
-	fontTexture->Release();
+	DrawUI();
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
 	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
 	swapChain->Present(0, 0);
+}
+
+void Engine::DrawUI()
+{
+	ID3D11ShaderResourceView* fontTexture;
+	font->GetSpriteSheet(&fontTexture);
+
+	CommonStates states(device);
+
+	spriteBatch->Begin(SpriteSortMode_Deferred, states.NonPremultiplied());//Non-premultiplied blend state allows us to use transparency in pngs
+
+	if (gameManager->state == GameState::playing)
+	{
+		//Construct strings based on game data
+		std::wstring timeString = L"Time: " + std::to_wstring((int)gameManager->getTimeLeft());
+		std::wstring healthString = L"Health: " + std::to_wstring(gameManager->GetPlayer()->GetHealth());
+		std::wstring scoreString = L"Score: " + std::to_wstring(gameManager->GetGameScore());
+
+		//Origin for score text so that it's on the upper right corner
+		XMFLOAT2 scoreOrigin;
+		XMStoreFloat2(&scoreOrigin, font->MeasureString(scoreString.c_str()));
+		scoreOrigin.y = 0;
+
+		float crosshairSize = 24;//Crosshair is 24px x 24px
+
+		//Get coords to draw crosshair so it's centered
+		float crosshairLeft = (width - crosshairSize) / 2;
+		float crosshairTop = (height - crosshairSize) / 2;
+
+		//Rect for bounds where crosshair will be drawn
+		RECT crosshairRect = { crosshairLeft, crosshairTop, crosshairLeft + crosshairSize, crosshairTop + crosshairSize };
+
+		spriteBatch->Draw(assetManager->GetTexture("Crosshairs"), crosshairRect);//Draw crosshair
+
+		//Draw text
+		font->DrawString(
+			spriteBatch,
+			timeString.c_str(),
+			XMFLOAT2(10, 10),
+			Colors::White,
+			0,
+			XMFLOAT2(0, 0),
+			XMFLOAT2(.7f, .7f)
+		);
+		font->DrawString(
+			spriteBatch,
+			healthString.c_str(),
+			XMFLOAT2(10, 35),
+			Colors::White,
+			0,
+			XMFLOAT2(0, 0),
+			XMFLOAT2(.7f, .7f)
+		);
+		font->DrawString(
+			spriteBatch,
+			scoreString.c_str(),
+			XMFLOAT2(width - 10, 10),
+			Colors::White,
+			0,
+			scoreOrigin,
+			XMFLOAT2(.7f, .7f)
+		);
+	}
+	else if (gameManager->state == GameState::end)
+	{
+		std::wstring gameOverString = L"Game Over!";
+		XMFLOAT2 gameOverOrigin;
+		XMStoreFloat2(&gameOverOrigin, font->MeasureString(gameOverString.c_str())/2);
+
+		std::wstring scoreString = L"Final score:" + std::to_wstring(gameManager->GetGameScore());
+		XMFLOAT2 scoreOrigin;
+		XMStoreFloat2(&scoreOrigin, font->MeasureString(scoreString.c_str())/2);
+
+		std::wstring restartString = L"Press enter to restart";
+		XMFLOAT2 restartOrigin;
+		XMStoreFloat2(&restartOrigin, font->MeasureString(restartString.c_str())/2);
+
+		font->DrawString(
+			spriteBatch,
+			gameOverString.c_str(),
+			XMFLOAT2(width/2, height/2 -70),
+			Colors::White,
+			0,
+			gameOverOrigin,
+			XMFLOAT2(1.25f,1.25f)
+		);
+
+		font->DrawString(
+			spriteBatch,
+			scoreString.c_str(),
+			XMFLOAT2(width/2,height/2 - 30),
+			Colors::White,
+			0,
+			scoreOrigin
+		);
+
+		font->DrawString(
+			spriteBatch,
+			restartString.c_str(),
+			XMFLOAT2(width / 2, height / 2 + 20),
+			Colors::White,
+			0,
+			restartOrigin,
+			XMFLOAT2(.7f, .7f)
+		);
+	}
+	else
+	{
+		std::wstring titleString = L"Spook 'em Up";
+		XMFLOAT2 titleOrigin;
+		XMStoreFloat2(&titleOrigin, font->MeasureString(titleString.c_str()) / 2);
+
+		std::wstring startString = L"Press enter to start";
+		XMFLOAT2 startOrigin;
+		XMStoreFloat2(&startOrigin, font->MeasureString(startString.c_str()) / 2);
+
+		font->DrawString(
+			spriteBatch,
+			titleString.c_str(),
+			XMFLOAT2(width / 2, height/2 - 100),
+			Colors::White,
+			0,
+			titleOrigin,
+			XMFLOAT2(1.25f, 1.25f)
+		);
+
+		font->DrawString(
+			spriteBatch,
+			startString.c_str(),
+			XMFLOAT2(width / 2, height / 2 + 20),
+			Colors::White,
+			0,
+			startOrigin,
+			XMFLOAT2(.7f, .7f)
+		);
+	}
+
+	//End UI drawing
+	spriteBatch->End();
+
+	fontTexture->Release();
 }
 
 
@@ -648,8 +741,9 @@ void Engine::OnMouseMove(int x, int y)
 {
 	if (freeMouse) return;
 
-	//Rotate player
-	gameManager->GetPlayer()->UpdateMouseInput((float)x, (float)y);
+	if (gameManager->state == GameState::playing) {
+		gameManager->GetPlayer()->UpdateMouseInput((float)x, (float)y);//Rotate player
+	}
 
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
 }

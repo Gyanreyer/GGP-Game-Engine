@@ -57,7 +57,6 @@ private:
 	GameManager* gameManager;
 	Renderer* renderer;
 
-
 	//Skybox DX Render States 
 	ID3D11RasterizerState* skyBoxRasterState;
 	ID3D11DepthStencilState* skyboxDepthStencilState;
@@ -75,5 +74,7 @@ private:
 	//Stuff for drawing sprites/text to UI
 	SpriteFont* font;
 	SpriteBatch* spriteBatch;
+
+	void DrawUI();
 };
 

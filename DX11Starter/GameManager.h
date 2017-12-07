@@ -9,8 +9,17 @@
 #include "AssetManager.h"
 #include "Renderer.h"
 #include "OctreeNode.h"
+#include "SpriteBatch.h"
+#include "SpriteFont.h"
+#include "CommonStates.h"
 
 using std::to_string; //Alternative to atoi
+
+enum GameState {
+	start,
+	playing,
+	end
+};
 
 class GameManager
 {
@@ -25,10 +34,11 @@ public:
 	void CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context, ID3D11Device* device); //Initializes GameObjects
 	void GameUpdate(float deltaTime);
 	void GameDraw(Renderer* renderer);
-	bool isGameOver();
 
 	void AddScore(int addAmount);
 	void ResetGame();
+
+	bool IsGameOver();
 
 	//Engine Get Methods
 	Player* GetPlayer();//We shouldn't need this, at some point need to do some housekeeping on Engine.cpp
@@ -38,6 +48,8 @@ public:
 	void OnLeftClick();
 
 	vector<GameObject *> gameObjects;
+
+	GameState state;
 
 private:
 	GameManager();

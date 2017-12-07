@@ -12,6 +12,7 @@
 GameManager::GameManager()
 {
 	score = 0;
+	state = GameState::start;
 }
 
 GameManager & GameManager::getInstance()
@@ -292,16 +293,16 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 
 void GameManager::OnLeftClick()
 {
-	if(!isGameOver())
+	if(state == GameState::playing)
 		player.Shoot();
 }
 
 void GameManager::GameUpdate(float deltaTime)
 {
-	campfireEmitter->Update(deltaTime);
-
 	//1. Make sure game is has not ended
-	if (!isGameOver()) {
+	if (state == GameState::playing) {
+		campfireEmitter->Update(deltaTime);
+
 		player.UpdatePhysics(deltaTime);
 
 		//Update the player
@@ -344,9 +345,6 @@ void GameManager::GameUpdate(float deltaTime)
 
 		CheckObjectCollisions(deltaTime);//Check all collisions		
 	}
-	else {
-		ImGui::OpenPopup("EndGame");
-	}
 }
 
 
@@ -371,6 +369,7 @@ void GameManager::GameDraw(Renderer* renderer)
 
 	renderer->Render(campfireEmitter);
 
+	/*
 	//Display game stats
 	std::string score = "Score: ";
 	score += to_string(GetGameScore());
@@ -383,11 +382,7 @@ void GameManager::GameDraw(Renderer* renderer)
 	ImGui::Text(health.c_str());
 	ImGui::Text(score.c_str());
 	ImGui::End();
-}
-
-bool GameManager::isGameOver()
-{
-	return getTimeLeft() <= 0 || player.GetHealth() == 0 || enemies.size() == 0;
+	*/
 }
 
 Player * GameManager::GetPlayer()
@@ -418,6 +413,11 @@ void GameManager::ResetGame()
 	delete campfireEmitter;
 }
 
+bool GameManager::IsGameOver()
+{
+	return getTimeLeft() <= 0 || player.GetHealth() == 0 || enemies.size() == 0;
+}
+
 int GameManager::GetGameScore()
 {
 	return score;
@@ -441,11 +441,6 @@ void GameManager::ClearObjects()
 
 	delete projectileManager;
 	delete spacePartitionHead;
-	
-	/*for (byte i = 0; i < spacePartitionHead.GetChildren().size(); i++)
-	{
-		spacePartitionHead.GetChildren()[i]->~OctreeNode();
-	}*/
-
-	//spacePartitionHead.~OctreeNode();
 }
+
+
