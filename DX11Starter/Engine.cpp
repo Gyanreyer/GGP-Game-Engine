@@ -33,7 +33,7 @@ Engine::Engine(HINSTANCE hInstance)
 	//Hide cursor
 	GetWindowRect(GetDesktopWindow(), &screen); //Get the dimensions of the desktop
 	SetCursorPos(screen.right / 2, screen.bottom / 2);
-	ShowCursor(true);
+	//ShowCursor(true);
 	freeMouse = true;
 
 #if defined(DEBUG) || defined(_DEBUG)
@@ -94,24 +94,6 @@ void Engine::Init()
 	LoadShaders();
 	CreateMaterials();
 	CreateMeshes();
-
-	
-
-	//emitter = new Emitter(
-	//	80,
-	//	5, 
-	//	.5, 
-	//	0.1f, 
-	//	2.0f,
-	//	XMFLOAT4(1, 0.1f, 0.1f, 1.0f),	// Start color
-	//	XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
-	//	XMFLOAT3(0, 0, 0),				// Start velocity
-	//	XMFLOAT3(2.0f, 0.0f, -2),				// Start position
-	//	XMFLOAT3(0, .05f, 0),				// Start acceleration
-	//	assetManager->GetVShader("ParticleShader"),
-	//	assetManager->GetPShader("ParticleShader"),
-	//	assetManager->GetTexture("ParticleTexture"),
-	//	device);
 
 	gameManager->StartGame(assetManager, (float)width, (float)height, context, device); //starts the game
 	
@@ -378,12 +360,18 @@ void Engine::Update(float deltaTime, float totalTime)
 	//Engine update Loop
 	gameManager->GameUpdate(deltaTime);
 
-	if (gameManager->state == GameState::playing && gameManager->IsGameOver())
+	//Update game state
+	if (gameManager->state == GameState::playing)
 	{
-		gameManager->state = GameState::end;
-		ShowCursor(true);
-		freeMouse = true;
+		//If game is playing but end conditions have been reached, switch to end state
+		if (gameManager->IsGameOver())
+		{
+			gameManager->state = GameState::end;
+			freeMouse = true;
+			ShowCursor(true);
+		}
 	}
+	//If not in play state and player hits enter, switch to play state and reset if necessary
 	else if (GetAsyncKeyState(VK_RETURN) & 0x8000)
 	{
 		if (gameManager->state == GameState::end)
@@ -393,8 +381,8 @@ void Engine::Update(float deltaTime, float totalTime)
 		}
 
 		gameManager->state = GameState::playing;
+		freeMouse = false;
 		ShowCursor(false);
-		freeMouse = false;	
 	}
 }
 
@@ -712,11 +700,11 @@ void Engine::DrawUI()
 // --------------------------------------------------------
 void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-	if (buttonState & MK_RBUTTON)
+	/*if (buttonState & MK_RBUTTON)
 	{
 		freeMouse = !freeMouse;
 		ShowCursor(freeMouse);
-	}
+	}*/
 
 	if (!freeMouse && buttonState & MK_LBUTTON)
 	{

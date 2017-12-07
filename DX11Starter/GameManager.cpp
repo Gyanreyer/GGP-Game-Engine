@@ -204,13 +204,17 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 			//Check collision and destory projectile if it hits anything
 			//Ignore collision with other projectiles
 			if (strcmp(tag, "Projectile") != 0 && Collision::CheckCollision((*otherIter)->GetCollider(), (*projIter)->GetCollider()))
-			{
-				projectileManager->RemoveProjectile(*projIter); //Destroy projectile
-
+			{	
 				//Check tag to determine what else to do
 				if (strcmp(tag, "Player") == 0)
 				{
-					player.DecrementHealth();//Do other checks here in future?
+					player.DecrementHealth();
+
+					XMFLOAT3 hitForce = (*projIter)->GetTransform()->GetForward();
+
+					hitForce.y = 1;
+
+					player.Accelerate(hitForce);
 				}
 				else if (strcmp(tag, "Enemy") == 0)
 				{
@@ -221,6 +225,8 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 					enemies.erase(enemyIter); //Remove enemy from the vector
 					delete *otherIter; //Destroy the enemy
 				}
+
+				projectileManager->RemoveProjectile(*projIter); //Destroy projectile
 
 				break; //Break out of the loop, otherwise errors arise from destroying the projectile
 			}

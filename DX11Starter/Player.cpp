@@ -24,8 +24,6 @@ Player::Player(Transform trans, unsigned int projectionWidth, unsigned int proje
 
 	projManager = pm;
 
-	maxVel = 3;
-
 	velocity = XMFLOAT3(0, 0, 0);
 }
 
@@ -140,15 +138,18 @@ void Player::Accelerate(XMFLOAT3 accelVec)
 
 	XMStoreFloat3(&velocity,
 		XMVectorSet(0, velocity.y, 0, 0) +
-		XMVector3ClampLength(XMVectorSet(velocity.x, 0, velocity.z, 0), 0, maxVel));
+		XMVector3ClampLength(XMVectorSet(velocity.x, 0, velocity.z, 0), 0, movementSpeed));
 }
 
 void Player::UpdatePhysics(float deltaTime)
 {
 	transform.Move(XMLoadFloat3(&velocity)*deltaTime);
 
-	velocity.x *= deltaTime*.5f;
-	velocity.z *= deltaTime*.5f;
+	if (isOnGameObject)
+	{
+		velocity.x *= deltaTime*.5f;
+		velocity.z *= deltaTime*.5f;
+	}
 }
 
 void Player::Jump()
