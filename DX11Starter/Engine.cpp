@@ -63,7 +63,6 @@ Engine::~Engine()
 	bloomSRV->Release();
 	ppSRV->Release();
 
-
 	//delete emitter;
 	//Don't forget to delete the renderer
 	delete renderer;
@@ -204,11 +203,16 @@ void Engine::LoadShaders()
 	SimplePixelShader* bloomPShader = new SimplePixelShader(device, context);
 	bloomPShader->LoadShaderFile(L"BloomPixelShader.cso");
 
+	//Load particle shaders
 	SimpleVertexShader* particleVShader = new SimpleVertexShader(device, context);
 	particleVShader->LoadShaderFile(L"ParticleVertexShader.cso");
 
 	SimplePixelShader* particlePShader = new SimplePixelShader(device, context);
 	particlePShader->LoadShaderFile(L"ParticlePixelShader.cso");
+
+	//Load instancing shaders
+	SimpleVertexShader* instancingVShader = new SimpleVertexShader(device, context);
+	instancingVShader->LoadShaderFile(L"InstancingVertexShader.cso");
 
 	//Store Vertex and Pixel Shaders into the AssetManager
 	assetManager->StoreVShader("BaseVertexShader", baseVertexShader);
@@ -223,6 +227,7 @@ void Engine::LoadShaders()
 	assetManager->StorePShader("BloomPShader", bloomPShader);
 	assetManager->StoreVShader("ParticleShader", particleVShader);
 	assetManager->StorePShader("ParticleShader", particlePShader);
+	assetManager->StoreVShader("InstancingVShader", instancingVShader);
 }
 
 // ---------------------------------------------------------
@@ -410,7 +415,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 	//Sampler has to be passed into other shaders, so get it here once
 	ID3D11SamplerState* sampler = assetManager->GetSampler("BasicSampler");
 
-	//Draw Skybox Last
+	//Draw Skybox first
 	//only keeps pixels that haven't been drawn to yet (ones that have a depth of 1.0)
 	ID3D11Buffer* skyVB = assetManager->GetMesh("Cube")->GetVertexBuffer();
 	ID3D11Buffer* skyIB = assetManager->GetMesh("Cube")->GetIndexBuffer();
@@ -447,7 +452,8 @@ void Engine::Draw(float deltaTime, float totalTime)
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
 	//END SKYBOX
-	
+
+	//Game drawing
 	// 1. Show a simple window
 	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
 	{
@@ -457,13 +463,12 @@ void Engine::Draw(float deltaTime, float totalTime)
 		ImGui::InputInt("ArrayPos", &arrayPos);
 		ImGui::Text("Hello, world!");
 		ImGui::InputFloat3("gameobj Pos", f);
-		gameManager->gameObjects[arrayPos]->GetTransform()->SetPosition(XMFLOAT3(f[0], f[1], f[2]));
+		//gameManager->gameObjects[arrayPos]->GetTransform()->SetPosition(XMFLOAT3(f[0], f[1], f[2])); //gameObjects is now private
 		ImGui::ColorEdit3("clear color", (float*)&clear_color);
 		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	}
 
-	
 	gameManager->GameDraw(renderer);
 	//END GAME DRAWING
 
@@ -497,7 +502,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 	//Send some extra data to the pixel shader
 	ppPS->SetFloat("pixelWidth", 1.0f / width);
 	ppPS->SetFloat("pixelHeight", 1.0f / height);
-	ppPS->SetInt("blurAmount", 1); //Adjust number for more/less blur/framerate
+	ppPS->SetInt("blurAmount", 2); //Adjust number for more/less blur/framerate
 	ppPS->CopyAllBufferData();
 
 	ppPS->SetShaderResourceView("Render", ppSRV);

@@ -47,8 +47,6 @@ public:
 
 	void OnLeftClick();
 
-	vector<GameObject *> gameObjects;
-
 	GameState state;
 
 private:
@@ -64,12 +62,16 @@ private:
 	tm gameStartTime;
 	int score;
 
-	//Array of GameObjects so we can draw them in an easy loop
-	//Not pointers, just do these directly
-	//vector<GameObject *> gameObjects;
+	//Vector of GameObjects so we can draw them in an easy loop
+	vector<GameObject *> gameObjects;
 
-	//Array of Enemies so we can draw them in an easy loop
-	//Not pointers, just do these directly
+	//Vectors for instanced GameObjects
+	//Each different mesh needs it's own vector for instancing
+	vector<GameObject *> trees;
+	vector<GameObject *> lamps;
+	vector<GameObject *> barrels;
+
+	//Vector of Enemies so we can draw them in an easy loop
 	vector<Enemy *> enemies;
 	Emitter* campfireEmitter;
 	Player player;

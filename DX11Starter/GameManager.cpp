@@ -25,7 +25,6 @@ GameManager::~GameManager()
 {
 	ClearObjects();
 	delete campfireEmitter;
-
 }
 
 void GameManager::StartGame(AssetManager * asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context, ID3D11Device* device)
@@ -85,72 +84,87 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	///OTHER GAMEOBJECTS
 	gameObjects.clear(); //Clear this out for new game instances
 
+	//Clear instanced GameObjects out for new game instances
+	trees.clear();
+	lamps.clear();
+	barrels.clear();
+
 	//Store references to all GOs in vector
 	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(30, 0.001f, 30)),
 		asset->GetMesh("Plane"), asset->GetMaterial("GroundMat"), "Floor"));
-
-	//Large trees (6)
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-2, 1.25f, 12), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(10, 1.25f, 7), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-5, 1.25f, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-4, 1.25f, -14), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4, 1.25f, -10), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(6, 1.25f, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	//Medium trees (8)
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-7, 1, -7), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-7.5f, 1, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(11, 1, -4), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(9, 1, -8), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-11, 1, -3), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(12, 1, 1), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4, 1, 10), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-2, 1, 12), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	//Small trees (9)
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-.5f, .55f, 5), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(5, .55f, 3), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(0, .55f, -13), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-3, .55f, -8), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(2, .55f, -6), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(6, .55f, -6), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-6, .55f, 7), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-7, .55f, 9), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
-		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
-	//Lamps (2)
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(4, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("Lamp"), asset->GetMaterial("LampMat"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-5.5f, 0, -3.5f), XMFLOAT3(0, XM_PI, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("Lamp"), asset->GetMaterial("LampMat"), "Obstacle"));
-	//Barrels
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(3.9f, 0, -.4f), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-3.9f, 0, -1), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
-	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-3.3f, 0, -.8f), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
-		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
 	//Signs
 	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(-8.0f, 0, -1), XMFLOAT3(0, -XM_PIDIV4, 0), XMFLOAT3(1, 1, 1)),
 		asset->GetMesh("Sign"), asset->GetMaterial("BrownMat"), "Obstacle"));
+
+	//Large trees (6)
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-2, 1.25f, 12), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(10, 1.25f, 7), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-5, 1.25f, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-4, 1.25f, -14), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(4, 1.25f, -10), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(6, 1.25f, -2), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	//Medium trees (12)
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-7, 1, -7), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-7.5f, 1, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(11, 1, -4), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(9, 1, -8), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-11, 1, -3), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(12, 1, 1), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(4, 1, 10), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-2, 1, 12), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(9, 1, 2.5f), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-9, 1, 4), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-12, 1, -12), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-1, 1, -10), XMFLOAT3(0, 0, 0), XMFLOAT3(.75f, .75f, .75f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	//Small trees (9)
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-.5f, .55f, 5), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(5, .55f, 3), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(0, .55f, -13), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-3, .55f, -8), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(2, .55f, -6), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(6, .55f, -6), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-6, .55f, 7), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(-7, .55f, 9), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	trees.push_back(new GameObject(Transform(XMFLOAT3(10, .55f, 10), XMFLOAT3(0, 0, 0), XMFLOAT3(.4f, .4f, .4f)),
+		asset->GetMesh("PineTree"), asset->GetMaterial("pineTreeMat"), "Obstacle"));
+	//Lamps (2)
+	lamps.push_back(new GameObject(Transform(XMFLOAT3(4, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Lamp"), asset->GetMaterial("LampMat"), "Obstacle"));
+	lamps.push_back(new GameObject(Transform(XMFLOAT3(-5.5f, 0, -3.5f), XMFLOAT3(0, XM_PI, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Lamp"), asset->GetMaterial("LampMat"), "Obstacle"));
+	//Barrels (3)
+	barrels.push_back(new GameObject(Transform(XMFLOAT3(3.9f, 0, -.4f), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
+	barrels.push_back(new GameObject(Transform(XMFLOAT3(-3.9f, 0, -1), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
+	barrels.push_back(new GameObject(Transform(XMFLOAT3(-3.3f, 0, -.8f), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1)),
+		asset->GetMesh("Barrel"), asset->GetMaterial("BarrelMaterial"), "Obstacle"));
 
 	//Fire
 	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(2.0f, 0.2f, -2), XMFLOAT3(0, -XM_PIDIV4, 0), XMFLOAT3(1, 1, 1)),
@@ -353,10 +367,14 @@ void GameManager::GameUpdate(float deltaTime)
 	}
 }
 
-
 void GameManager::GameDraw(Renderer* renderer)
 {
 	renderer->SetViewProjMatrix(player.GetViewMatrix(), player.GetProjectionMatrix());
+
+	//Render instanced gameobjects
+	renderer->RenderInstanced(trees);
+	renderer->RenderInstanced(lamps);
+	renderer->RenderInstanced(barrels);
 
 	//Loop through GameObjects and draw them
 	for (byte i = 0; i < gameObjects.size(); i++)
@@ -431,6 +449,7 @@ int GameManager::GetGameScore()
 
 void GameManager::ClearObjects()
 {
+	//Delete enemies
 	for (byte i = 0; i < enemies.size(); i++)
 	{
 		delete enemies[i];
@@ -438,12 +457,35 @@ void GameManager::ClearObjects()
 
 	enemies.clear();
 
+	//Delete gameobjects
 	for (byte i = 0; i < gameObjects.size(); i++)
 	{
 		delete gameObjects[i];
 	}
 
 	gameObjects.clear();
+
+	//Delete instanced gameobjects
+	for (byte i = 0; i < trees.size(); i++)
+	{
+		delete trees[i];
+	}
+
+	trees.clear();
+
+	for (byte i = 0; i < lamps.size(); i++)
+	{
+		delete lamps[i];
+	}
+
+	lamps.clear();
+
+	for (byte i = 0; i < barrels.size(); i++)
+	{
+		delete barrels[i];
+	}
+
+	barrels.clear();
 
 	delete projectileManager;
 	delete spacePartitionHead;
