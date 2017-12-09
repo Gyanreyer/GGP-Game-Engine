@@ -111,6 +111,8 @@ VertexToPixel main(VertexShaderInput input)
 
 	output.normal = normalize(mul(input.normal, (float3x3)input.instanceWorld));
 
+	output.tangent = normalize(input.tangent);
+
 	output.uv = input.uv; //Pass UV through
 
 	// Whatever we return will make its way through the pipeline to the
