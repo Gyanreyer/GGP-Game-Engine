@@ -31,7 +31,7 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 {
 	time(&nowTime); //gets current time when game is launched
 	gameStartTime = *localtime(&nowTime); //assigns that time to gameStartTime to keep track of the time when game first started
-	timeInMatch = 20; //intializes how much time is in a game
+	timeInMatch = 99; //intializes how much time is in a game
 	score = 0; //sets score to 0
 
 	spacePartitionHead = new OctreeNode(XMFLOAT3(0, -20, 0), 500, nullptr);//Will have to discuss size of play area, for now 1000x1000
@@ -317,7 +317,7 @@ void GameManager::OnLeftClick()
 		player.Shoot();
 }
 
-void GameManager::GameUpdate(float deltaTime)
+void GameManager::GameUpdate(float deltaTime, Renderer* renderer)
 {
 	//1. Make sure game is has not ended
 	if (state == GameState::playing) {
@@ -364,6 +364,8 @@ void GameManager::GameUpdate(float deltaTime)
 		spacePartitionHead->UpdateAll();
 
 		CheckObjectCollisions(deltaTime);//Check all collisions		
+
+		UpdateObjectsForRenderer(renderer);
 	}
 }
 
@@ -427,13 +429,14 @@ void GameManager::AddScore(int addAmount)
 	score += addAmount;
 }
 
-void GameManager::ResetGame()
+void GameManager::ResetGame(Renderer* renderer)
 {
 	time(&nowTime); //gets current time when game is launched
 	gameStartTime = *localtime(&nowTime); //assigns that time to gameStartTime to keep track of the time when game first started
 	score = 0; //sets score to 0
 
 	ClearObjects();
+	UpdateObjectsForRenderer(renderer);
 	delete campfireEmitter;
 }
 
@@ -492,3 +495,46 @@ void GameManager::ClearObjects()
 }
 
 
+void GameManager::UpdateObjectsForRenderer(Renderer* renderer)
+{
+	vector<GameObject*> objects;
+	vector<Projectile*> projectiles = projectileManager->GetProjectiles();
+
+	////store projectiles into object vector
+	//for (int i = 0; i < projectiles.size(); i++)
+	//{
+	//	objects.push_back(projectiles[i]);
+	//}
+
+	//store enemies into object array
+	for (int i = 0; i < enemies.size(); i++) 
+	{
+		GameObject* enemy = enemies[i];
+		objects.push_back(enemy);
+	}
+
+	//store gameobjects into object array
+	for (int i = 0; i < gameObjects.size(); i++) 
+	{
+		GameObject* object = gameObjects[i];
+		objects.push_back(object);
+	}
+
+	for (int i = 0; i < trees.size(); i++)
+	{
+		GameObject* object = trees[i];
+		objects.push_back(object);
+	}
+	for (int i = 0; i < lamps.size(); i++)
+	{
+		GameObject* object = lamps[i];
+		objects.push_back(object);
+	}
+	for (int i = 0; i < barrels.size(); i++)
+	{
+		GameObject* object = barrels[i];
+		objects.push_back(object);
+	}
+	//Set renderer objects
+	renderer->SetSceneObjects(objects);
+}

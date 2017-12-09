@@ -81,7 +81,7 @@ void Engine::Init()
 	ImGui_ImplDX11_Init(hWnd, device, context);
 
 	gameManager = &GameManager::getInstance();
-	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device, GameManager::getInstance().GetPlayer());
+	
 
 	//Default prevMousePos to center of screen
 	/*prevMousePos.x = width / 2;
@@ -91,6 +91,9 @@ void Engine::Init()
 	font = new SpriteFont(device, L"../../DX11Starter/Assets/Fonts/Arial.spritefont");
 
 	LoadShaders();
+	
+	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device, width, height, GameManager::getInstance().GetPlayer());
+
 	CreateMaterials();
 	CreateMeshes();
 
@@ -210,9 +213,12 @@ void Engine::LoadShaders()
 	SimplePixelShader* particlePShader = new SimplePixelShader(device, context);
 	particlePShader->LoadShaderFile(L"ParticlePixelShader.cso");
 
+
 	//Load instancing shaders
 	SimpleVertexShader* instancingVShader = new SimpleVertexShader(device, context);
 	instancingVShader->LoadShaderFile(L"InstancingVertexShader.cso");
+	SimpleVertexShader* shadowVS = new SimpleVertexShader(device, context);
+	shadowVS->LoadShaderFile(L"ShadowVertexShader.cso");
 
 	//Store Vertex and Pixel Shaders into the AssetManager
 	assetManager->StoreVShader("BaseVertexShader", baseVertexShader);
@@ -228,6 +234,7 @@ void Engine::LoadShaders()
 	assetManager->StoreVShader("ParticleShader", particleVShader);
 	assetManager->StorePShader("ParticleShader", particlePShader);
 	assetManager->StoreVShader("InstancingVShader", instancingVShader);
+	assetManager->StoreVShader("ShadowShader", shadowVS);
 }
 
 // ---------------------------------------------------------
@@ -363,7 +370,7 @@ void Engine::Update(float deltaTime, float totalTime)
 		Quit();
 
 	//Engine update Loop
-	gameManager->GameUpdate(deltaTime);
+	gameManager->GameUpdate(deltaTime, renderer);
 
 	//Update game state
 	if (gameManager->state == GameState::playing)
@@ -381,7 +388,7 @@ void Engine::Update(float deltaTime, float totalTime)
 	{
 		if (gameManager->state == GameState::end)
 		{
-			gameManager->ResetGame();
+			gameManager->ResetGame(renderer);
 			gameManager->StartGame(assetManager, (float)(width), (float)(height), context, device);
 		}
 
@@ -389,6 +396,7 @@ void Engine::Update(float deltaTime, float totalTime)
 		freeMouse = false;
 		ShowCursor(false);
 	}
+
 }
 
 // --------------------------------------------------------
@@ -396,6 +404,9 @@ void Engine::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Engine::Draw(float deltaTime, float totalTime)
 {
+	//Get Shadow Map from light's viewpoint
+	renderer->RenderShadowMap(ppRTV, depthStencilView);
+
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w };
 
@@ -531,7 +542,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 		ImGui::Text(finalScore.c_str());
 		if (ImGui::Button("Restart Game"))
 		{
-			gameManager->ResetGame(); //Clean up memory
+			gameManager->ResetGame(renderer); //Clean up memory
 			gameManager->StartGame(assetManager, (float)(width), (float)(height), context, device);
 			ImGui::CloseCurrentPopup();
 		}

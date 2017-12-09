@@ -1,5 +1,6 @@
 #pragma once
 #include "GameObject.h"
+#include "Emitter.h"
 
 class Projectile :
 	public GameObject
@@ -16,7 +17,7 @@ public:
 private:
 	float moveSpeed;
 	XMFLOAT3 startPosition;
-
+	Emitter* trail;
 	float timeAlive;
 };
 
