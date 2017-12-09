@@ -365,8 +365,9 @@ void GameManager::GameUpdate(float deltaTime, Renderer* renderer)
 
 		CheckObjectCollisions(deltaTime);//Check all collisions		
 
-		UpdateObjectsForRenderer(renderer);
+	
 	}
+	UpdateObjectsForRenderer(renderer);
 }
 
 void GameManager::GameDraw(Renderer* renderer)
