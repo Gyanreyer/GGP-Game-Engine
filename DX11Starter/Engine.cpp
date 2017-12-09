@@ -379,11 +379,8 @@ void Engine::Update(float deltaTime, float totalTime)
 	//If not in play state and player hits enter, switch to play state and reset if necessary
 	else if (GetAsyncKeyState(VK_RETURN) & 0x8000)
 	{
-		if (gameManager->state == GameState::end)
-		{
-			gameManager->ResetGame();
-			gameManager->StartGame(assetManager, (float)(width), (float)(height), context, device);
-		}
+		gameManager->ResetGame();
+		gameManager->StartGame(assetManager, (float)(width), (float)(height), context, device);
 
 		gameManager->state = GameState::playing;
 		freeMouse = false;
