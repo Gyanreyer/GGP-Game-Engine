@@ -215,7 +215,7 @@ void Renderer::Render(GameObject * gameObject)
 //Render instanced objects
 void Renderer::RenderInstanced(vector<GameObject *> instancedGameObjects)
 {
-	unsigned int numInstances = instancedGameObjects.size(); //Number of instances to draw in a single call (should be cubed root to match Update)
+	unsigned int numInstances = (UINT)instancedGameObjects.size(); //Number of instances to draw in a single call (should be cubed root to match Update)
 
 	XMFLOAT4X4* localInstanceData = new XMFLOAT4X4[numInstances]; //Buffer to hold data before copying
 
@@ -359,8 +359,8 @@ void Renderer::RenderShadowMap(ID3D11RenderTargetView* oldRenderTargetView, ID3D
 	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shadowView));
 
 	XMMATRIX shadowProj = XMMatrixOrthographicLH(
-		10.0f,		// Width of the projection in world units
-		10.0f,		// Height of the projection in world units
+		30.0f,		// Width of the projection in world units
+		30.0f,		// Height of the projection in world units
 		0.1f,		// Near clip
 		100.0f);	// Far clip
 
@@ -401,8 +401,8 @@ void Renderer::RenderShadowMap(ID3D11RenderTargetView* oldRenderTargetView, ID3D
 	context->OMSetRenderTargets(1, &oldRenderTargetView, oldDepthStencilView);
 	context->RSSetState(0);
 
-	shadowViewport.Width = width;
-	shadowViewport.Height = height;
+	shadowViewport.Width = (float)width;
+	shadowViewport.Height = (float)height;
 	context->RSSetViewports(1, &shadowViewport);
 
 	////Release old Render states
