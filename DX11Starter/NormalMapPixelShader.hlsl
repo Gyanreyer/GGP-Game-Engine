@@ -41,7 +41,6 @@ struct PointLight
 cbuffer externalData : register(b0)
 {
 	DirectionalLight dLight1;
-	DirectionalLight dLight2;
 	PointLight pLight1;
 	PointLight pLight2;
 

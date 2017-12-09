@@ -215,13 +215,13 @@ void Renderer::Render(GameObject * gameObject)
 //Render instanced objects
 void Renderer::RenderInstanced(vector<GameObject *> instancedGameObjects)
 {
-	unsigned int numInstances = instancedGameObjects.size(); //Number of instances to draw in a single call (should be cubed root to match Update)
+	unsigned int numInstances = (unsigned int)instancedGameObjects.size(); //Number of instances to draw in a single call (should be cubed root to match Update)
 
 	XMFLOAT4X4* localInstanceData = new XMFLOAT4X4[numInstances]; //Buffer to hold data before copying
 
 	//This data doesn't change in the case of objects like trees (most trees that I've seen don't move)
 	//Ideally, this would be set once and that's it
-	for (byte i = 0; i < instancedGameObjects.size(); i++)
+	for (unsigned int i = 0; i < numInstances; i++)
 	{
 		localInstanceData[i] = instancedGameObjects[i]->GetWorldMatrix(); //Store the gameobject's world matrix
 	}
@@ -262,9 +262,14 @@ void Renderer::RenderInstanced(vector<GameObject *> instancedGameObjects)
 	context->IASetIndexBuffer(instancedGameObjects[0]->GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
 	//Set up vertex shader data
-	//instancingVS->SetMatrix4x4("world", instancedGameObjects[0]->GetWorldMatrix()); //Set vertex shader's world matrix to this object's world matrix
 	instancingVS->SetMatrix4x4("view", viewMatrix);
 	instancingVS->SetMatrix4x4("projection", projectionMatrix);
+
+	// We need to pass the shadow "creation" matrices in here
+	// so we can reconstruct the shadow map position
+	instancingVS->SetMatrix4x4("shadowView", shadowViewMatrix);
+	instancingVS->SetMatrix4x4("shadowProj", shadowProjectionMatrix);
+
 	instancingVS->CopyAllBufferData();
 	instancingVS->SetShader();
 
@@ -288,8 +293,9 @@ void Renderer::RenderInstanced(vector<GameObject *> instancedGameObjects)
 	basePS->SetFloat3("cameraPosition", player->GetTransform()->GetPosition()); //Set the player position in the pixel shader for point light specular calculations
 
 	basePS->SetShaderResourceView("diffuseTexture", instancedGameObjects[0]->GetMaterial()->GetSRV()); //Texture
-	basePS->SetShaderResourceView("normalMap", instancedGameObjects[0]->GetMaterial()->GetNormalSRV()); //Normal map, not every object has one right now, but they all probably should
+	basePS->SetShaderResourceView("ShadowMap", shadowSRV);
 	basePS->SetSamplerState("basicSampler", instancedGameObjects[0]->GetMaterial()->GetSampler()); //Sampler
+	basePS->SetSamplerState("ShadowSampler", shadowSampler);
 	basePS->CopyAllBufferData();
 	basePS->SetShader();
 
@@ -350,17 +356,18 @@ void Renderer::RenderShadowMap(ID3D11RenderTargetView* oldRenderTargetView, ID3D
 	shadowViewport.MaxDepth = 1.0f;
 	context->RSSetViewports(1, &shadowViewport);
 
+	XMFLOAT3 playerPos = player->GetTransform()->GetPosition();
 	// Create my shadow map matrices
 	XMMATRIX shadowView = XMMatrixLookAtLH(
 		XMVectorSet(0, 20, -20, 0), // Eye position
-		XMVectorSet(0, 0, 0, 0),	// Looking at (0,0,0)
+		XMVectorSet(playerPos.x, playerPos.y, playerPos.z, 0),	// Looking at (0,0,0)
 		XMVectorSet(0, 1, 0, 0));	// Up (0,1,0)
 
 	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shadowView));
 
 	XMMATRIX shadowProj = XMMatrixOrthographicLH(
-		10.0f,		// Width of the projection in world units
-		10.0f,		// Height of the projection in world units
+		30.0f,		// Width of the projection in world units
+		30.0f,		// Height of the projection in world units
 		0.1f,		// Near clip
 		100.0f);	// Far clip
 
@@ -401,8 +408,8 @@ void Renderer::RenderShadowMap(ID3D11RenderTargetView* oldRenderTargetView, ID3D
 	context->OMSetRenderTargets(1, &oldRenderTargetView, oldDepthStencilView);
 	context->RSSetState(0);
 
-	shadowViewport.Width = width;
-	shadowViewport.Height = height;
+	shadowViewport.Width = (float)width;
+	shadowViewport.Height = (float)height;
 	context->RSSetViewports(1, &shadowViewport);
 
 	////Release old Render states
