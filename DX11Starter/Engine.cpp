@@ -556,7 +556,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 
 void Engine::DrawUI()
 {
-	ID3D11ShaderResourceView* fontTexture;
+ 	ID3D11ShaderResourceView* fontTexture;
 	font->GetSpriteSheet(&fontTexture);
 
 	CommonStates states(device);
@@ -693,6 +693,13 @@ void Engine::DrawUI()
 	spriteBatch->End();
 
 	fontTexture->Release();
+
+	// Reset any and all render states that sprite batch has changed
+	// Reset any states we've changed for the next frame!
+	float blendFactors[4] = { 1,1,1,1 };
+	context->OMSetBlendState(0, blendFactors, 0xFFFFFFFF);
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
 }
 
 
