@@ -3,6 +3,7 @@
 //Calculates normal map information
 //Calculates directional and point lights
 //Fog
+//Shadow mapping
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -21,6 +22,7 @@ struct VertexToPixel
 	float2 uv			: TEXCOORD;
 	float3 tangent		: TANGENT; //Tangent of the surface for normal maps, U direction
 	float3 worldPos		: POSITION; //World position of this vertex
+	float4 shadowMapPosition : POSITION1;
 };
 
 //DirectionalLight struct
@@ -146,7 +148,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 finalColor = textureColor *
 		(ambientLight + //Ambient light in the scene
 			calculateDirectionalLight(dLight1, input.normal) + //Directional lights
-			calculateLambertPointLight(pLight1, input) + calculateLambertPointLight(pLight2, input) //Point lights calculateBlinnPhongPointLight(pLight1, input, cameraPosition) + calculateBlinnPhongPointLight(pLight2, input, cameraPosition)
+			calculateLambertPointLight(pLight1, input) + calculateLambertPointLight(pLight2, input) //Point lights (These have a flat lighting effect)
+			//calculateBlinnPhongPointLight(pLight1, input, cameraPosition) + calculateBlinnPhongPointLight(pLight2, input, cameraPosition) (This would make the object look wet)
 			);
 
 	//Lerp final color with fog factor to apply fog

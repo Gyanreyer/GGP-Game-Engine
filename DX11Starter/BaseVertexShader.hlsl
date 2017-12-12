@@ -1,6 +1,9 @@
 //Base vertex shader
 //Calculates texture information
 //Calculates directional and point lights
+//Sets up shadow mapping
+//Can set up for normal mapping
+//Can set up for instanced rendering
 
 // Constant Buffer
 // - Allows us to define a buffer of individual variables 
@@ -10,7 +13,7 @@
 // - The name of the cbuffer itself is unimportant
 cbuffer externalData : register(b0)
 {
-	matrix world;
+	//matrix world;
 	matrix view;
 	matrix projection;
 
@@ -30,10 +33,27 @@ struct VertexShaderInput
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float3 position		: POSITION;     // XYZ position
+	float3 position		: POSITION; //XYZ position
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
 	float3 tangent		: TANGENT; //Unused, but keeps consistiency with the C++ side
+
+	//Part of our vertex input will be coming from a separate buffer
+	//which requires us to set up a very specific ID3D11InputLayout, 
+	//which describes where to get each piece of vertex data.
+	//
+	//However, SimpleShader has no way of knowing which data should
+	//come from which buffer by just looking at the shader, since 
+	//the input struct here doesn't know/care where the data comes from.
+	//
+	//To mark individual data as being "per instance" rather than
+	//"per vertex", I set up SimpleShader to check the semantic name, 
+	//looking for any that end with "_PER_INSTANCE".
+	//
+	//This is NOT a built-in DirectX semantic or idea - it's something
+	//I had to do so that SimpleShader could correctly determine
+	//how I wanted to set up the input layout.
+	matrix instanceWorld : WORLD_PER_INSTANCE;
 };
 
 // Struct representing the data we're sending down the pipeline
@@ -75,7 +95,7 @@ VertexToPixel main(VertexShaderInput input)
 	//
 	// First we multiply them together to get a single matrix which represents
 	// all of those transformations (world to view to projection space)
-	matrix worldViewProj = mul(mul(world, view), projection);
+	matrix worldViewProj = mul(mul(input.instanceWorld, view), projection);
 
 	// Then we convert our 3-component position vector to a 4-component vector
 	// and multiply it by our final 4x4 matrix.
@@ -85,18 +105,18 @@ VertexToPixel main(VertexShaderInput input)
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
 
 	//Shadows: Calculate where this vertex ended up in the Shadow map itself
-	matrix shadowWVP = mul(mul(world, shadowView), shadowProj);
+	matrix shadowWVP = mul(mul(input.instanceWorld, shadowView), shadowProj);
 	output.shadowMapPosition = mul(float4(input.position, 1.0f), shadowWVP);
 
 	//World position of this vertex
 	//Used for point/spot lights
-	output.worldPos = mul(float4(input.position, 1.0f), world).xyz;
+	output.worldPos = mul(float4(input.position, 1.0f), input.instanceWorld).xyz;
 
-	output.normal = normalize(mul(input.normal, (float3x3)world));
+	//Normal has to be in world space, normalized
+	output.normal = normalize(mul(input.normal, (float3x3)input.instanceWorld));
 
-	//Make sure tangent is in world space and a unit vector
-	output.tangent = normalize(mul(input.tangent, (float3x3)world));
-
+	//Tangent has to be in world space, normalized
+	output.tangent = normalize(mul(input.tangent, (float3x3)input.instanceWorld));
 
 	output.uv = input.uv; //Pass UV through
 
