@@ -62,6 +62,7 @@ Engine::~Engine()
 	ppRTV->Release();
 	bloomSRV->Release();
 	ppSRV->Release();
+	dmgSRV->Release();
 
 	//delete emitter;
 	//Don't forget to delete the renderer
@@ -151,6 +152,7 @@ void Engine::Init()
 	device->CreateRenderTargetView(postProcessingTexture, &rtvDescription, &ppRTV);
 	device->CreateShaderResourceView(postProcessingTexture, &srvDescription, &bloomSRV);
 	device->CreateShaderResourceView(postProcessingTexture, &srvDescription, &ppSRV);
+	device->CreateShaderResourceView(postProcessingTexture, &srvDescription, &dmgSRV);
 
 	//Release the texture since it's no longer needed
 	postProcessingTexture->Release();
@@ -200,8 +202,11 @@ void Engine::LoadShaders()
 	SimplePixelShader* blurPShader = new SimplePixelShader(device, context);
 	blurPShader->LoadShaderFile(L"BlurPixelShader.cso");
 
-	SimplePixelShader* bloomPShader = new SimplePixelShader(device, context);
-	bloomPShader->LoadShaderFile(L"BloomPixelShader.cso");
+	SimplePixelShader* postProcessPShader = new SimplePixelShader(device, context);
+	postProcessPShader->LoadShaderFile(L"PostProcessPixelShader.cso");
+
+	SimplePixelShader* damagePShader = new SimplePixelShader(device, context);
+	damagePShader->LoadShaderFile(L"DamagePixelShader.cso");
 
 	//Load particle shaders
 	SimpleVertexShader* particleVShader = new SimpleVertexShader(device, context);
@@ -223,7 +228,8 @@ void Engine::LoadShaders()
 	assetManager->StoreVShader("PostProcessVShader", ppVShader);
 	assetManager->StorePShader("BrightnessPShader", brightnessPShader);
 	assetManager->StorePShader("BlurPShader", blurPShader);
-	assetManager->StorePShader("BloomPShader", bloomPShader);
+	assetManager->StorePShader("PostProcessPShader", postProcessPShader);
+	assetManager->StorePShader("DamagePShader", damagePShader);
 	assetManager->StoreVShader("ParticleShader", particleVShader);
 	assetManager->StorePShader("ParticleShader", particlePShader);
 	assetManager->StoreVShader("ShadowShader", shadowVS);
@@ -362,7 +368,7 @@ void Engine::Update(float deltaTime, float totalTime)
 		Quit();
 
 	//Engine update Loop
-	gameManager->GameUpdate(deltaTime, renderer);
+	gameManager->GameUpdate(deltaTime, totalTime, renderer);
 
 	//Update game state
 	if (gameManager->state == GameState::playing)
@@ -456,20 +462,6 @@ void Engine::Draw(float deltaTime, float totalTime)
 	//END SKYBOX
 
 	//Game drawing
-	// 1. Show a simple window
-	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-	{
-		static float f[3];
-		static int arrayPos = 0;
-		static char testText = char();
-		ImGui::InputInt("ArrayPos", &arrayPos);
-		ImGui::Text("Hello, world!");
-		ImGui::InputFloat3("gameobj Pos", f);
-		//gameManager->gameObjects[arrayPos]->GetTransform()->SetPosition(XMFLOAT3(f[0], f[1], f[2])); //gameObjects is now private
-		ImGui::ColorEdit3("clear color", (float*)&clear_color);
-		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	}
 
 	gameManager->GameDraw(renderer);
 	//END GAME DRAWING
@@ -496,7 +488,7 @@ void Engine::Draw(float deltaTime, float totalTime)
 
 	//Begin bloom
 	//Includes blur
-	ppPS = assetManager->GetPShader("BloomPShader");
+	ppPS = assetManager->GetPShader("PostProcessPShader");
 
 	//Set the shaders
 	ppPS->SetShader();
@@ -505,6 +497,8 @@ void Engine::Draw(float deltaTime, float totalTime)
 	ppPS->SetFloat("pixelWidth", 1.0f / width);
 	ppPS->SetFloat("pixelHeight", 1.0f / height);
 	ppPS->SetInt("blurAmount", 2); //Adjust number for more/less blur/framerate
+	//Time since player last took damage determines how red to tint the screen
+	ppPS->SetFloat("timeSinceDamage", totalTime - gameManager->GetPlayer()->GetLastTimeHit());
 	ppPS->CopyAllBufferData();
 
 	ppPS->SetShaderResourceView("Render", ppSRV);
@@ -526,29 +520,28 @@ void Engine::Draw(float deltaTime, float totalTime)
 	context->PSSetShaderResources(0, 16, nullSRVs);
 	//END POST PROCESSING
 
-	if (ImGui::BeginPopup("EndGame")) {
-		ImGui::TextColored(ImVec4(1, 0, 0, 1), "Game is over");
-		std::string finalScore = "Final Score: ";
-		finalScore += to_string(gameManager->GetGameScore());
-		ImGui::Text(finalScore.c_str());
-		if (ImGui::Button("Restart Game"))
-		{
-			gameManager->ResetGame(renderer); //Clean up memory
-			gameManager->StartGame(assetManager, (float)(width), (float)(height), context, device);
-			ImGui::CloseCurrentPopup();
-		}
-		ImGui::EndPopup();
-	}
-
-	ImGui::Begin("UI Instructions", (bool*)1);
-	ImGui::Text("Right click to free the mouse for interacting with UI");
-	ImGui::End();
-
-	ImGui::Render();
+	
 
 	//Draw UI with sprite fonts/crosshair
 	//Get font texture
 	DrawUI();
+
+	// Show ImGui debug window
+	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+	{
+		static float f[3];
+		static int arrayPos = 0;
+		static char testText = char();
+		ImGui::InputInt("ArrayPos", &arrayPos);
+		ImGui::Text("Hello, world!");
+		ImGui::InputFloat3("gameobj Pos", f);
+		//gameManager->gameObjects[arrayPos]->GetTransform()->SetPosition(XMFLOAT3(f[0], f[1], f[2])); //gameObjects is now private
+		ImGui::ColorEdit3("clear color", (float*)&clear_color);
+		ImGui::InputText("Text Test", &testText, sizeof(char) * 50);
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
+
+	ImGui::Render();
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
@@ -577,11 +570,11 @@ void Engine::DrawUI()
 		XMStoreFloat2(&scoreOrigin, font->MeasureString(scoreString.c_str()));
 		scoreOrigin.y = 0;
 
-		float crosshairSize = 24; //Crosshair is 24px x 24px
+		long crosshairSize = 24;//Crosshair is 24px x 24px
 
 		//Get coords to draw crosshair so it's centered
-		float crosshairLeft = (width - crosshairSize) / 2;
-		float crosshairTop = (height - crosshairSize) / 2;
+		long crosshairLeft = (width - crosshairSize) / 2;
+		long crosshairTop = (height - crosshairSize) / 2;
 
 		//Rect for bounds where crosshair will be drawn
 		RECT crosshairRect = { (long)crosshairLeft, (long)crosshairTop, (long)(crosshairLeft + crosshairSize), (long)(crosshairTop + crosshairSize) };
@@ -714,11 +707,11 @@ void Engine::DrawUI()
 // --------------------------------------------------------
 void Engine::OnMouseDown(WPARAM buttonState, int x, int y)
 {
-	/*if (buttonState & MK_RBUTTON)
+	if (buttonState & MK_RBUTTON && gameManager->state == GameState::playing)
 	{
 		freeMouse = !freeMouse;
 		ShowCursor(freeMouse);
-	}*/
+	}
 
 	if (!freeMouse && buttonState & MK_LBUTTON)
 	{

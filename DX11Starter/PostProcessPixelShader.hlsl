@@ -13,6 +13,7 @@ cbuffer Data : register(b0)
 	float pixelWidth;
 	float pixelHeight;
 	int blurAmount;
+	float timeSinceDamage;
 }
 
 //Textures and sampler state
@@ -42,5 +43,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 		}
 	}
 
-	return saturate(Render.Sample(Sampler, input.uv) + (totalColor / numSamples)); //Add the render frame to the blurred bright frame
+	//Apply red flash effect when player is hit
+	//-5x ^ 2 + 1x + .5
+	float redAmt = saturate((-5 * timeSinceDamage * timeSinceDamage) + timeSinceDamage + .5f);
+
+	return saturate(Render.Sample(Sampler, input.uv) + (totalColor / numSamples) + float4(redAmt, 0, 0, 0)); //Add the render frame to the blurred bright frame
 }

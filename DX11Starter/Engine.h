@@ -65,6 +65,7 @@ private:
 	ID3D11RenderTargetView* ppRTV; //Allows us to render a texture
 	ID3D11ShaderResourceView* bloomSRV; //Allows us to sample from that same texture
 	ID3D11ShaderResourceView* ppSRV; //Allows us to sample from that same texture
+	ID3D11ShaderResourceView* dmgSRV;//SRV for damage post proc effect
 
 	//imgui Variables
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
