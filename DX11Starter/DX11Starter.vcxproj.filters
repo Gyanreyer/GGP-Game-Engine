@@ -207,16 +207,10 @@
     <FxCompile Include="BlurPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="BaseVertexShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="BasePixelShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="NormalMapPixelShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="NormalMapVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="SkyPixelShader.hlsl">
@@ -225,10 +219,10 @@
     <FxCompile Include="SkyVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="InstancingVertexShader.hlsl">
+    <FxCompile Include="ShadowVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ShadowVertexShader.hlsl">
+    <FxCompile Include="BaseVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="DamagePixelShader.hlsl">

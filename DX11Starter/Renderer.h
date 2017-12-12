@@ -41,6 +41,10 @@ private:
 	ID3D11DepthStencilState* particleDepthState;
 	ID3D11BlendState* particleBlendState;
 
+	//Base shaders
+	SimpleVertexShader* baseVS; //Everything uses the same vertex shader in rendering, so don't waste time pulling it from every object
+	SimplePixelShader* basePS;
+
 	//Instancing variables
 	ID3D11Buffer* instanceWorldMatrixBuffer;
 	const byte MAXBYTEWIDTH = 27; //The maximum number of instances being drawn in one call

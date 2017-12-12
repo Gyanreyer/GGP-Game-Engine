@@ -2,6 +2,7 @@
 //Calculates texture information
 //Calculates directional and point lights
 //Fog
+//Shadow mapping
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
