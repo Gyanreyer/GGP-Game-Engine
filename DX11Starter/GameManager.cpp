@@ -201,7 +201,7 @@ void GameManager::InitSpatialPartition()
 	spacePartitionHead->AddObject(&player);
 }
 
-void GameManager::CheckObjectCollisions(float deltaTime)
+void GameManager::CheckObjectCollisions(float deltaTime, float totalTime)
 {
 	//Check collisions for projectiles with everything
 	vector<Projectile *> projs = projectileManager->GetProjectiles();
@@ -222,7 +222,7 @@ void GameManager::CheckObjectCollisions(float deltaTime)
 				//Check tag to determine what else to do
 				if (strcmp(tag, "Player") == 0)
 				{
-					player.DecrementHealth();
+					player.DecrementHealth(totalTime);
 
 					XMFLOAT3 hitForce = (*projIter)->GetTransform()->GetForward();
 
@@ -317,7 +317,7 @@ void GameManager::OnLeftClick()
 		player.Shoot();
 }
 
-void GameManager::GameUpdate(float deltaTime, Renderer* renderer)
+void GameManager::GameUpdate(float deltaTime, float totalTime, Renderer* renderer)
 {
 	//1. Make sure game is has not ended
 	if (state == GameState::playing) {
@@ -363,7 +363,7 @@ void GameManager::GameUpdate(float deltaTime, Renderer* renderer)
 		//Update what nodes objects are stored in, delete unnecessary ones
 		spacePartitionHead->UpdateAll();
 
-		CheckObjectCollisions(deltaTime);//Check all collisions		
+		CheckObjectCollisions(deltaTime, totalTime);//Check all collisions		
 
 	
 	}

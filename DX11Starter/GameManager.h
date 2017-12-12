@@ -32,7 +32,7 @@ public:
 
 	void StartGame(AssetManager* asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context, ID3D11Device* device);
 	void CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* context, ID3D11Device* device); //Initializes GameObjects
-	void GameUpdate(float deltaTime, Renderer* renderer);
+	void GameUpdate(float deltaTime, float totalTime, Renderer* renderer);
 	void GameDraw(Renderer* renderer);
 
 	void AddScore(int addAmount);
@@ -43,6 +43,7 @@ public:
 	//Engine Get Methods
 	Player* GetPlayer();//We shouldn't need this, at some point need to do some housekeeping on Engine.cpp
 	double getTimeLeft();
+	double getTime();
 	int GetGameScore();
 
 	void OnLeftClick();
@@ -79,7 +80,7 @@ private:
 	OctreeNode* spacePartitionHead;
 
 	void InitSpatialPartition();
-	void CheckObjectCollisions(float deltaTime);
+	void CheckObjectCollisions(float deltaTime, float totalTime);
 
 	void ClearObjects();
 	void UpdateObjectsForRenderer(Renderer* renderer);

@@ -25,6 +25,8 @@ Player::Player(Transform trans, unsigned int projectionWidth, unsigned int proje
 	projManager = pm;
 
 	velocity = XMFLOAT3(0, 0, 0);
+
+	lastTimeHit = 0;
 }
 
 Player::~Player()
@@ -218,10 +220,17 @@ byte Player::GetHealth()
 }
 
 //Decrement the player's health when they are hit
-void Player::DecrementHealth()
+void Player::DecrementHealth(float hitTime)
 {
 	if(health > 0)
 		health--;
+
+	lastTimeHit = hitTime;
+}
+
+float Player::GetLastTimeHit()
+{
+	return lastTimeHit;
 }
 
 bool Player::CheckProjectileCollisions(GameObject other)

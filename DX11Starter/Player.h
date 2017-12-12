@@ -30,7 +30,9 @@ public:
 	XMFLOAT4X4 GetProjectionMatrix();
 
 	byte GetHealth();
-	void DecrementHealth();
+	void DecrementHealth(float hitTime);
+
+	float GetLastTimeHit();
 
 	//Check collider against all player projectile colliders
 	bool CheckProjectileCollisions(GameObject other);
@@ -49,6 +51,8 @@ private:
 	XMFLOAT4X4 projectionMatrix;
 
 	byte health;
+
+	float lastTimeHit;
 
 	//Used in next-frame collisions
 	float fwdForce; //+ forward, - backward
