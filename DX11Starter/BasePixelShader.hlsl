@@ -148,6 +148,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 		(ambientLight + //Ambient light in the scene
 			calculateDirectionalLight(dLight1, input.normal) * shadowAmount + //Directional lights
 			calculateLambertPointLight(pLight1, input) + calculateLambertPointLight(pLight2, input) //Point lights calculateBlinnPhongPointLight(pLight1, input, cameraPosition)
+			//calculateBlinnPhongPointLight(pLight1, input, cameraPosition) + calculateBlinnPhongPointLight(pLight2, input, cameraPosition) (This would make the object look wet)
 			);
 
 	//Lerp final color with fog factor to apply fog

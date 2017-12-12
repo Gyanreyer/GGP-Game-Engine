@@ -577,14 +577,14 @@ void Engine::DrawUI()
 		XMStoreFloat2(&scoreOrigin, font->MeasureString(scoreString.c_str()));
 		scoreOrigin.y = 0;
 
-		float crosshairSize = 24;//Crosshair is 24px x 24px
+		float crosshairSize = 24; //Crosshair is 24px x 24px
 
 		//Get coords to draw crosshair so it's centered
 		float crosshairLeft = (width - crosshairSize) / 2;
 		float crosshairTop = (height - crosshairSize) / 2;
 
 		//Rect for bounds where crosshair will be drawn
-		RECT crosshairRect = { crosshairLeft, crosshairTop, crosshairLeft + crosshairSize, crosshairTop + crosshairSize };
+		RECT crosshairRect = { (long)crosshairLeft, (long)crosshairTop, (long)(crosshairLeft + crosshairSize), (long)(crosshairTop + crosshairSize) };
 
 		spriteBatch->Draw(assetManager->GetTexture("Crosshairs"), crosshairRect);//Draw crosshair
 
@@ -610,7 +610,7 @@ void Engine::DrawUI()
 		font->DrawString(
 			spriteBatch,
 			scoreString.c_str(),
-			XMFLOAT2(width - 10, 10),
+			XMFLOAT2((float)(width - 10), 10),
 			Colors::White,
 			0,
 			scoreOrigin,
@@ -634,7 +634,7 @@ void Engine::DrawUI()
 		font->DrawString(
 			spriteBatch,
 			gameOverString.c_str(),
-			XMFLOAT2(width/2, height/2 -70),
+			XMFLOAT2((float)(width / 2), (float)(height / 2 -70)),
 			Colors::White,
 			0,
 			gameOverOrigin,
@@ -644,7 +644,7 @@ void Engine::DrawUI()
 		font->DrawString(
 			spriteBatch,
 			scoreString.c_str(),
-			XMFLOAT2(width/2,height/2 - 30),
+			XMFLOAT2((float)(width / 2), (float)(height / 2 - 30)),
 			Colors::White,
 			0,
 			scoreOrigin
@@ -653,7 +653,7 @@ void Engine::DrawUI()
 		font->DrawString(
 			spriteBatch,
 			restartString.c_str(),
-			XMFLOAT2(width / 2, height / 2 + 20),
+			XMFLOAT2((float)(width / 2), (float)(height / 2 + 20)),
 			Colors::White,
 			0,
 			restartOrigin,
@@ -673,7 +673,7 @@ void Engine::DrawUI()
 		font->DrawString(
 			spriteBatch,
 			titleString.c_str(),
-			XMFLOAT2(width / 2, height/2 - 100),
+			XMFLOAT2((float)(width / 2), (float)(height / 2 - 100)),
 			Colors::White,
 			0,
 			titleOrigin,
@@ -683,7 +683,7 @@ void Engine::DrawUI()
 		font->DrawString(
 			spriteBatch,
 			startString.c_str(),
-			XMFLOAT2(width / 2, height / 2 + 20),
+			XMFLOAT2((float)(width / 2), (float)(height / 2 + 20)),
 			Colors::White,
 			0,
 			startOrigin,

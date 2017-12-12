@@ -53,7 +53,9 @@ cbuffer externalData : register(b0)
 //Texture variables
 Texture2D diffuseTexture : register(t0);
 Texture2D normalMap : register(t1);
+Texture2D ShadowMap		 : register(t2);
 SamplerState basicSampler : register(s0);
+SamplerComparisonState ShadowSampler : register(s1);
 
 //Directional light diffuse calculations
 float4 calculateDirectionalLight(DirectionalLight light, float3 normal)
@@ -145,9 +147,22 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//the normal map after it's been converted to world space
 	input.normal = normalize(mul(normalFromTexture, TBN));
 
+	//Shadows: Calculate how "in shadow" this Pixel is
+	float2 shadowUV = input.shadowMapPosition.xy / input.shadowMapPosition.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y; //Flip the Y's
+
+	//Calculate this pixel's actual depth from the light
+	float depthFromLight = input.shadowMapPosition.z / input.shadowMapPosition.w;
+
+	//sample the shadow map
+	float shadowAmount = ShadowMap.SampleCmpLevelZero(
+		ShadowSampler,		// Special "comparison" sampler
+		shadowUV,			//where in the shadow map to look
+		depthFromLight);	//The depth to compare againist
+
 	float4 finalColor = textureColor *
 		(ambientLight + //Ambient light in the scene
-			calculateDirectionalLight(dLight1, input.normal) + //Directional lights
+			calculateDirectionalLight(dLight1, input.normal) * shadowAmount + //Directional lights
 			calculateLambertPointLight(pLight1, input) + calculateLambertPointLight(pLight2, input) //Point lights (These have a flat lighting effect)
 			//calculateBlinnPhongPointLight(pLight1, input, cameraPosition) + calculateBlinnPhongPointLight(pLight2, input, cameraPosition) (This would make the object look wet)
 			);

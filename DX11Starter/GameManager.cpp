@@ -172,14 +172,14 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	campfireEmitter = new Emitter(
 		100,
 		20,
-		0.4,
+		0.4f,
 		0.1f,
 		1.0f,
 		XMFLOAT4(1, 0.1f, 0.1f, 1.0f),	// Start color
 		XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
-		XMFLOAT3(0, .5, 0),				// Start velocity
+		XMFLOAT3(0, .5f, 0),				// Start velocity
 		XMFLOAT3(2.0f, 0.2f, -2),				// Start position
-		XMFLOAT3(0, -.01, 0),				// Start acceleration
+		XMFLOAT3(0, -.01f, 0),				// Start acceleration
 		asset->GetVShader("ParticleShader"),
 		asset->GetPShader("ParticleShader"),
 		asset->GetTexture("FireParticleTexture"),
