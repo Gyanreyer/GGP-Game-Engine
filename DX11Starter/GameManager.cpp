@@ -25,6 +25,7 @@ GameManager::~GameManager()
 {
 	ClearObjects();
 	delete campfireEmitter;
+	delete smokeEmitter;
 }
 
 void GameManager::StartGame(AssetManager * asset, float screenWidth, float screenHeight, ID3D11DeviceContext* context, ID3D11Device* device)
@@ -39,8 +40,9 @@ void GameManager::StartGame(AssetManager * asset, float screenWidth, float scree
 	
 	//PROJECTILE MANAGER
 	projectileManager = new ProjectileManager(asset->GetMesh("Sphere"),
-		asset->GetMaterial("HazardCrateMat"), //Placeholder until make new mats for bullets
-		asset->GetMaterial("PurpleGhost"),
+		asset->GetMaterial("CosmicMat"), //Placeholder until make new mats for bullets
+		asset->GetMaterial("HellfireMat"),
+		device,
 		context,
 		spacePartitionHead);
 
@@ -170,21 +172,42 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	//Fire
 	gameObjects.push_back(new GameObject(Transform(XMFLOAT3(2.0f, 0.2f, -2), XMFLOAT3(0, -XM_PIDIV4, 0), XMFLOAT3(1, 1, 1)),
 		asset->GetMesh("Campfire"), asset->GetMaterial("CampfireMaterial"), "Fire"));
+
+	float randX = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+	float randY = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
 	campfireEmitter = new Emitter(
 		100,
 		20,
 		0.4f,
 		0.1f,
-		1.0f,
+		2.0f,
 		XMFLOAT4(1, 0.1f, 0.1f, 1.0f),	// Start color
 		XMFLOAT4(1, 0.6f, 0.1f, 0.0f),		// End color
-		XMFLOAT3(0, .5f, 0),				// Start velocity
-		XMFLOAT3(2.0f, 0.2f, -2),				// Start position
-		XMFLOAT3(0, -.01f, 0),				// Start acceleration
+		XMFLOAT3(0.0f, 0.2f, 0.0f),				// Start velocity
+		XMFLOAT3(2.0f, 0.3f, -2),				// Start position
+		XMFLOAT3(),				// Start acceleration
 		asset->GetVShader("ParticleShader"),
 		asset->GetPShader("ParticleShader"),
 		asset->GetTexture("FireParticleTexture"),
 		device);
+
+	smokeEmitter = new Emitter(
+		80,
+		5,
+		0.9f,
+		0.1f,
+		1.0f,
+		XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f),	// Start color
+		XMFLOAT4(0.1f, 0.1f, 0.1f, 0.0f),		// End color
+		XMFLOAT3(0.0f, 1.0f, 0.0f),				// Start velocity
+		XMFLOAT3(2.0f, 0.3f, -2),				// Start position
+		XMFLOAT3(0, 1.0f, 0),				// Start acceleration
+		asset->GetVShader("ParticleShader"),
+		asset->GetPShader("ParticleShader"),
+		asset->GetTexture("SmokeParticle"),
+		device);
+	
 }
 
 void GameManager::InitSpatialPartition()
@@ -323,6 +346,7 @@ void GameManager::GameUpdate(float deltaTime, float totalTime, Renderer* rendere
 	//1. Make sure game is has not ended
 	if (state == GameState::playing) {
 		campfireEmitter->Update(deltaTime);
+		smokeEmitter->Update(deltaTime);
 
 		player.UpdatePhysics(deltaTime);
 
@@ -398,7 +422,7 @@ void GameManager::GameDraw(Renderer* renderer)
 	projectileManager->DrawProjectiles(renderer);
 
 	renderer->Render(campfireEmitter);
-
+	renderer->Render(smokeEmitter);
 	/*
 	//Display game stats
 	std::string score = "Score: ";
@@ -442,6 +466,7 @@ void GameManager::ResetGame(Renderer* renderer)
 	ClearObjects();
 	UpdateObjectsForRenderer(renderer);
 	delete campfireEmitter;
+	delete smokeEmitter;
 }
 
 bool GameManager::IsGameOver()

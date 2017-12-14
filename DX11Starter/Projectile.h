@@ -6,13 +6,14 @@ class Projectile :
 	public GameObject
 {
 public:
-	Projectile(Mesh * mesh, Material * material,
+	Projectile(Mesh * mesh, Material * material, ID3D11Device* device,
 		XMFLOAT3 startPos, XMFLOAT3 direction, float speed);
 	~Projectile();	
 
 	void Update(float deltaTime);
 
 	float GetTimeAlive();
+	Emitter* GetEmitter();
 
 private:
 	float moveSpeed;

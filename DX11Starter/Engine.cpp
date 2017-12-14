@@ -330,13 +330,18 @@ void Engine::CreateMaterials()
 	assetManager->CreateMaterial("BarrelMaterial", "BaseVertexShader", "BasePixelShader", "BarrelTexture", "BasicSampler");
 	assetManager->ImportTexture("Campfire", L"../../DX11Starter/Assets/Textures/Tx_Bonfire.jpg", device, context);
 	assetManager->CreateMaterial("CampfireMaterial", "BaseVertexShader", "BasePixelShader", "Campfire", "BasicSampler");
+	assetManager->ImportTexture("Cosmic", L"../../DX11Starter/Assets/Textures/cosmic.jpg", device, context);
+	assetManager->CreateMaterial("CosmicMat", "BaseVertexShader", "BasePixelShader", "Cosmic", "BasicSampler");
+	assetManager->ImportTexture("Hellfire", L"../../DX11Starter/Assets/Textures/Hellfire.jpg", device, context);
+	assetManager->CreateMaterial("HellfireMat", "BaseVertexShader", "BasePixelShader", "Hellfire", "BasicSampler");
 
 	//import crosshair texture
 	assetManager->ImportTexture("Crosshairs", L"../../DX11Starter/Assets/Textures/crosshairs.png", device, context);
 
 	//import particle texture
-	assetManager->ImportTexture("ParticleTexture", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
-	assetManager->ImportTexture("FireParticleTexture", L"../../DX11Starter/Assets/Textures/fireParticle.jpg", device, context);
+	assetManager->ImportTexture("SmokeParticle", L"../../DX11Starter/Assets/Textures/particle.jpg", device, context);
+	assetManager->ImportTexture("TrailParticle", L"../../DX11Starter/Assets/Textures/circleParticle.jpg", device, context);
+	assetManager->ImportTexture("FireParticleTexture", L"../../DX11Starter/Assets/Textures/fireParticle2.jpg", device, context);
 	//import skybox Texture
 	assetManager->ImportCubeMapTexture("NightSkybox", L"../../DX11Starter/Assets/Textures/NightSkybox.dds", device);
 }

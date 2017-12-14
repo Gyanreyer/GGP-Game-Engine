@@ -109,7 +109,7 @@ Emitter::~Emitter()
 void Emitter::Update(float deltaTime)
 {
 	//update all particles - check circular buffer
-	if (firstAliveParticle < firstDeadParticle) 
+	if (firstAliveParticle < firstDeadParticle && aliveParticleCount > 0) 
 	{
 		// First alive is BEFORE first dead, so the "living" particles are contiguous
 		// 
@@ -147,7 +147,7 @@ void Emitter::Update(float deltaTime)
 void Emitter::ParticleUpdate(float deltaTime, int index)
 {
 	//Check to make sure particle is not dead, because no one cares about dead particles
-	if (particles[index].age >= particleLifetime)
+	if (particles[index].age >= particleLifetime )
 		return;
 
 	///Update Particle and check to see if it should die
@@ -200,7 +200,7 @@ void Emitter::SpawnParticle()
 	particles[firstDeadParticle].position = emitterPosition;
 	particles[firstDeadParticle].startVel = initialVelocity;
 	//particles[firstDeadParticle].startVel.x += ((float)rand() / RAND_MAX) * 0.4f - 2.0f;
-	particles[firstDeadParticle].startVel.y += ((float)rand() / RAND_MAX) * 0.4f + 2.0f;
+	//particles[firstDeadParticle].startVel.y += ((float)rand() / RAND_MAX) * 0.4f + 2.0f;
 	//particles[firstDeadParticle].startVel.z += ((float)rand() / RAND_MAX) * 0.4f - 2.0f;
 
 	//increment and wrap
@@ -301,4 +301,9 @@ void Emitter::Render(ID3D11DeviceContext * context, DirectX::XMFLOAT4X4 view, Di
 		//Draw second half (alive -> max)
 		context->DrawIndexed((maxParticles - firstAliveParticle) * 6, firstAliveParticle * 6, 0 );
 	}
+}
+
+void Emitter::SetPosition(DirectX::XMFLOAT3 newPos)
+{
+	emitterPosition = newPos;
 }

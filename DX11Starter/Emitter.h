@@ -35,6 +35,8 @@ public:
 	void CopyToParticleVertex(int particleIndex);
 	void Render(ID3D11DeviceContext* context, DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj);	//renders all particles in emitter
 
+	void SetPosition(DirectX::XMFLOAT3 newPos);
+
 private:
 	//Emitter properties
 	DirectX::XMFLOAT3 initialVelocity;	//velocity to emit particles at

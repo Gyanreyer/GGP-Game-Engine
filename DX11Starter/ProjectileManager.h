@@ -8,7 +8,7 @@ class ProjectileManager
 {
 public:
 	ProjectileManager();
-	ProjectileManager(Mesh * projMesh, Material * playerProjMat, Material * enemyProjMat, ID3D11DeviceContext * ctx, OctreeNode * headNode);
+	ProjectileManager(Mesh * projMesh, Material * playerProjMat, Material * enemyProjMat, ID3D11Device* device, ID3D11DeviceContext * ctx, OctreeNode * headNode);
 	~ProjectileManager();
 
 	//Spawn projectiles
@@ -26,6 +26,7 @@ public:
 	vector<Projectile *> GetProjectiles();
 
 private:
+	ID3D11Device* device;
 	ID3D11DeviceContext * context;
 	Mesh * projectileMesh;
 	Material * playerProjectileMaterial;

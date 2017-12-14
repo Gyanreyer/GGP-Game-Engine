@@ -6,13 +6,13 @@ ProjectileManager::ProjectileManager()
 {
 }
 
-ProjectileManager::ProjectileManager(Mesh * projMesh, Material * playerProjMat, Material * enemyProjMat, ID3D11DeviceContext * ctx, OctreeNode * headNode)
+ProjectileManager::ProjectileManager(Mesh * projMesh, Material * playerProjMat, Material * enemyProjMat, ID3D11Device* device, ID3D11DeviceContext * ctx, OctreeNode * headNode)
 {
 	projectileMesh = projMesh;
 	playerProjectileMaterial = playerProjMat;
 	enemyProjectileMaterial = enemyProjMat;
 	context = ctx;
-
+	this->device = device;
 	projectileLifetime = 3.0f;
 
 	spacePartitionHead = headNode;
@@ -33,6 +33,7 @@ void ProjectileManager::SpawnPlayerProjectile(XMFLOAT3 startPt, XMFLOAT3 directi
 	//Add new player projectile
 	Projectile * newProj = new Projectile(projectileMesh,
 		playerProjectileMaterial,//Use player proj material
+		device,
 		startPt,//Point bullet will start from
 		direction,//Rotation for bullet to move in
 		7.0f);//Move at speed of 7 units/second
@@ -47,6 +48,7 @@ void ProjectileManager::SpawnEnemyProjectile(XMFLOAT3 startPt, XMFLOAT3 directio
 {
 	Projectile * newProj = new Projectile(projectileMesh,
 		enemyProjectileMaterial,//Use enemy proj material
+		device,
 		startPt,//Point buller will start from
 		direction,//Rotation for bullet to move in
 		5.0f);//Move at speed of 5 units/second, slower than player's bullets
@@ -77,8 +79,10 @@ void ProjectileManager::UpdateProjectiles(float deltaTime)
 //Iterate through and draw all projectiles
 void ProjectileManager::DrawProjectiles(Renderer* renderer)
 {
-	for (int i = 0; i < projectiles.size(); i++)
+	for (int i = 0; i < projectiles.size(); i++) {
 		renderer->Render(projectiles[i]);
+		renderer->Render(projectiles[i]->GetEmitter());
+	}
 }
 
 void ProjectileManager::RemoveProjectile(int i)

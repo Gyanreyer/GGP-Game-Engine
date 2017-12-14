@@ -75,6 +75,7 @@ private:
 	//Vector of Enemies so we can draw them in an easy loop
 	vector<Enemy *> enemies;
 	Emitter* campfireEmitter;
+	Emitter* smokeEmitter;
 	Player player;
 
 	OctreeNode* spacePartitionHead;
