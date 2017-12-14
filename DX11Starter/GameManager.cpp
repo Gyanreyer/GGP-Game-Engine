@@ -67,20 +67,21 @@ void GameManager::CreateGameObjects(AssetManager * asset, ID3D11DeviceContext* c
 	
 	//Create a transform for the enemies
 	Transform enemyTransform = Transform(
-		XMFLOAT3(2, 0, 0), //Position
-		XMFLOAT3(0, 0, 0), //Rotation
+		XMFLOAT3(1, 0, 5), //Position
+		XMFLOAT3(0, XM_PI, 0), //Rotation
 		XMFLOAT3(1, 1, 1) //Scale
 	);
 
 	//Create enemies
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::moveX, 20, projectileManager));
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::noMove, 10, projectileManager));
+	XMFLOAT3(0, 0, 0), //Reset rotation
+	enemyTransform.SetPosition(2, 0, 0);
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::moveX, 20, projectileManager));
+	enemyTransform.SetPosition(0, 0, -2);
+	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::noMove, 10, projectileManager));
 	enemyTransform.SetPosition(-2, 2, 0);
 	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("PurpleGhost"), asset->GetMaterial("PurpleGhost"), EnemyType::moveY, 30, projectileManager));
-	enemyTransform.SetPosition(0, 0, -2);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("RustyPete"), asset->GetMaterial("RustyPeteMaterial"), EnemyType::noMove, 10, projectileManager));
-	enemyTransform.SetPosition(1, 0, 5);
-	enemies.push_back(new Enemy(enemyTransform, asset->GetMesh("Skeleton"), asset->GetMaterial("SkeletonMat"), EnemyType::noMove, 10, projectileManager));
-
+	
 	///OTHER GAMEOBJECTS
 	gameObjects.clear(); //Clear this out for new game instances
 
@@ -370,14 +371,17 @@ void GameManager::GameUpdate(float deltaTime, float totalTime, Renderer* rendere
 	UpdateObjectsForRenderer(renderer);
 }
 
+//Draw everything
+//Try to order for minimal shader switching
 void GameManager::GameDraw(Renderer* renderer)
 {
 	renderer->SetViewProjMatrix(player.GetViewMatrix(), player.GetProjectionMatrix());
 
-	//Render instanced gameobjects
-	renderer->RenderInstanced(trees);
-	renderer->RenderInstanced(lamps);
-	renderer->RenderInstanced(barrels);
+	//Loop through Enemies and draw them
+	for (byte i = 0; i < enemies.size(); i++)
+	{
+		renderer->Render(enemies[i]);
+	}
 
 	//Loop through GameObjects and draw them
 	for (byte i = 0; i < gameObjects.size(); i++)
@@ -385,11 +389,10 @@ void GameManager::GameDraw(Renderer* renderer)
 		renderer->Render(gameObjects[i]);
 	}
 
-	//Loop through Enemies and draw them
-	for (byte i = 0; i < enemies.size(); i++)
-	{
-		renderer->Render(enemies[i]);
-	}
+	//Render instanced gameobjects
+	renderer->RenderInstanced(trees);
+	renderer->RenderInstanced(lamps);
+	renderer->RenderInstanced(barrels);
 
 	//Draw all projectiles
 	projectileManager->DrawProjectiles(renderer);

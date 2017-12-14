@@ -35,7 +35,6 @@ Renderer::Renderer(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat, 
 	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	device->CreateBlendState(&blend, &particleBlendState);
 
-
 	//Instancing states
 	//Vertex buffer to hold per-instance data
 	//New data is inserted at runtime
@@ -112,6 +111,9 @@ Renderer::Renderer(DirectX::XMFLOAT4X4 viewMat, DirectX::XMFLOAT4X4 projectMat, 
 	shadowVS = AssetManager::getInstance().GetVShader("ShadowShader");
 	baseVS = AssetManager::getInstance().GetVShader("BaseVertexShader");
 	basePS = AssetManager::getInstance().GetPShader("BasePixelShader");
+
+	//Grab the basic sampler from the asset manager
+	basicSampler = AssetManager::getInstance().GetSampler("BasicSampler");
 }
 
 Renderer::~Renderer()
@@ -185,6 +187,7 @@ void Renderer::Render(GameObject * gameObject)
 	//Unmap so the GPU can use the resource again
 	context->Unmap(instanceWorldMatrixBuffer, 0);
 
+	//Send data to the vertex shader
 	baseVS->SetMatrix4x4("view", viewMatrix);
 	baseVS->SetMatrix4x4("projection", projectionMatrix);
 
@@ -196,30 +199,40 @@ void Renderer::Render(GameObject * gameObject)
 	baseVS->CopyAllBufferData();
 	baseVS->SetShader();
 
-	//Set up pixel shader data
-	//Send light data
-	pixelShader->SetData(
-		"dLight1",
-		&directionalLights[0],
-		sizeof(DirectionalLight));
+	//Send data to the pixel shader
+	//Check so that we only map data to the pixel shader once
+	//The items in this statement don't USUALLY change, so this should be okay
+	//If lights moved, it might be more realistic to update them with every draw call
+	//However, this method does still work with moving lights, and any differences are probably minimal
+	if (pixelShader != prevPixelShader)
+	{
+		//Send light data
+		pixelShader->SetData(
+			"dLight1",
+			&directionalLights[0],
+			sizeof(DirectionalLight));
 
-	pixelShader->SetData(
-		"pLight1",
-		&pointLights[0],
-		sizeof(PointLight));
-	pixelShader->SetData(
-		"pLight2",
-		&pointLights[1],
-		sizeof(PointLight));
+		pixelShader->SetData(
+			"pLight1",
+			&pointLights[0],
+			sizeof(PointLight));
+		pixelShader->SetData(
+			"pLight2",
+			&pointLights[1],
+			sizeof(PointLight));
 
-	pixelShader->SetFloat4("ambientLight", XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f));
+		pixelShader->SetFloat4("ambientLight", XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f));
+		pixelShader->SetSamplerState("ShadowSampler", shadowSampler);
+		pixelShader->SetSamplerState("basicSampler", basicSampler); //Every GameObject uses the same sampler, so we get this once. Otherwise, we'd use goMaterial->GetSampler()
+
+		prevPixelShader = pixelShader;
+	}
+	
 	pixelShader->SetFloat3("cameraPosition", player->GetTransform()->GetPosition()); //Set the player position in the pixel shader for point light specular calculations
 
 	pixelShader->SetShaderResourceView("diffuseTexture", goMaterial->GetSRV()); //Texture
 	pixelShader->SetShaderResourceView("normalMap", goMaterial->GetNormalSRV()); //Normal map, not every object has one right now, but they all probably should
-	pixelShader->SetShaderResourceView("ShadowMap", shadowSRV);
-	pixelShader->SetSamplerState("basicSampler", goMaterial->GetSampler()); //Sampler
-	pixelShader->SetSamplerState("ShadowSampler", shadowSampler);
+	pixelShader->SetShaderResourceView("ShadowMap", shadowSRV); //This does update, which is why it isn't in the check above
 	pixelShader->CopyAllBufferData();
 	pixelShader->SetShader();
 
@@ -272,6 +285,7 @@ void Renderer::RenderInstanced(vector<GameObject *> instancedGameObjects)
 	context->IASetVertexBuffers(0, 2, vertexBuffers, strides, offsets);
 	context->IASetIndexBuffer(instancedGameObjects[0]->GetMesh()->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
 
+	//Send data to the vertex shader
 	//Set up vertex shader data
 	baseVS->SetMatrix4x4("view", viewMatrix);
 	baseVS->SetMatrix4x4("projection", projectionMatrix);
@@ -284,29 +298,40 @@ void Renderer::RenderInstanced(vector<GameObject *> instancedGameObjects)
 	baseVS->CopyAllBufferData();
 	baseVS->SetShader();
 
-	//Set up pixel shader data
-	//Send light data
-	basePS->SetData(
-		"dLight1",
-		&directionalLights[0],
-		sizeof(DirectionalLight));
+	//Send data to the pixel shader
+	//Check so that we only map data to the pixel shader once
+	//The items in this statement don't USUALLY change, so this should be okay
+	//If lights moved, it might be more realistic to update them with every draw call
+	//However, this method does still work with moving lights, and any differences are probably minimal
+	if (basePS != prevPixelShader)
+	{
+		//Set up pixel shader data
+		//Send light data
+		basePS->SetData(
+			"dLight1",
+			&directionalLights[0],
+			sizeof(DirectionalLight));
 
-	basePS->SetData(
-		"pLight1",
-		&pointLights[0],
-		sizeof(PointLight));
-	basePS->SetData(
-		"pLight2",
-		&pointLights[1],
-		sizeof(PointLight));
+		basePS->SetData(
+			"pLight1",
+			&pointLights[0],
+			sizeof(PointLight));
+		basePS->SetData(
+			"pLight2",
+			&pointLights[1],
+			sizeof(PointLight));
 
-	basePS->SetFloat4("ambientLight", XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f));
+		basePS->SetFloat4("ambientLight", XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f));
+		basePS->SetSamplerState("ShadowSampler", shadowSampler);
+		basePS->SetSamplerState("basicSampler", basicSampler); //Every GameObject uses the same sampler, so we get this once. Otherwise, we'd use goMaterial->GetSampler()
+
+		prevPixelShader = basePS;
+	}
+	
 	basePS->SetFloat3("cameraPosition", player->GetTransform()->GetPosition()); //Set the player position in the pixel shader for point light specular calculations
 
 	basePS->SetShaderResourceView("diffuseTexture", instancedGameObjects[0]->GetMaterial()->GetSRV()); //Texture
-	basePS->SetShaderResourceView("ShadowMap", shadowSRV);
-	basePS->SetSamplerState("basicSampler", instancedGameObjects[0]->GetMaterial()->GetSampler()); //Sampler
-	basePS->SetSamplerState("ShadowSampler", shadowSampler);
+	basePS->SetShaderResourceView("ShadowMap", shadowSRV); //This does update, which is why it isn't in the check above
 	basePS->CopyAllBufferData();
 	basePS->SetShader();
 

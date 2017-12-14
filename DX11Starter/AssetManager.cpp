@@ -588,7 +588,7 @@ ID3D11ShaderResourceView * AssetManager::GetTexture(char * textureName)
 
 ID3D11SamplerState * AssetManager::GetSampler(char * samplerName)
 {
-	if(textureSamplerLibrary.count(samplerName) == 1)  //Checks to make sure that SamplerhKey is in library
+	if(textureSamplerLibrary.count(samplerName) == 1)  //Checks to make sure that Sampler Key is in library
 		return textureSamplerLibrary[samplerName];
 	else
 	{
@@ -602,7 +602,7 @@ ID3D11SamplerState * AssetManager::GetSampler(char * samplerName)
 
 Material * AssetManager::GetMaterial(char * materialName)
 {
-	if(materialLibrary.count(materialName)==1)  //Checks to make sure that meshKey is in library
+	if(materialLibrary.count(materialName) == 1)  //Checks to make sure that meshKey is in library
 		return materialLibrary[materialName];
 	else
 	{

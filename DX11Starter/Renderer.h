@@ -45,6 +45,12 @@ private:
 	SimpleVertexShader* baseVS; //Everything uses the same vertex shader in rendering, so don't waste time pulling it from every object
 	SimplePixelShader* basePS;
 
+	//Basic sampler
+	ID3D11SamplerState* basicSampler; //Every GameObject uses the same sampler when drawing, so just get it once
+
+	//Previous pixel shader, for optimization
+	SimplePixelShader* prevPixelShader;
+
 	//Instancing variables
 	ID3D11Buffer* instanceWorldMatrixBuffer;
 	const byte MAXBYTEWIDTH = 27; //The maximum number of instances being drawn in one call

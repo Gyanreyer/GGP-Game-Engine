@@ -91,12 +91,12 @@ void Engine::Init()
 	spriteBatch = new SpriteBatch(context);
 	font = new SpriteFont(device, L"../../DX11Starter/Assets/Fonts/Arial.spritefont");
 
+	//Do these first, since the renderer takes things from the asset manager, which stores items when these functions are called
 	LoadShaders();
-	
-	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device, width, height, GameManager::getInstance().GetPlayer());
-
 	CreateMaterials();
 	CreateMeshes();
+
+	renderer = new Renderer(GameManager::getInstance().GetPlayer()->GetViewMatrix(), GameManager::getInstance().GetPlayer()->GetProjectionMatrix(), context, device, width, height, GameManager::getInstance().GetPlayer());
 
 	gameManager->StartGame(assetManager, (float)width, (float)height, context, device); //starts the game
 	
@@ -298,6 +298,7 @@ void Engine::CreateMaterials()
 	if (sampleResult != S_OK) {
 		printf("Sample State could not be created");
 	}
+
 	//Create the sampler object
 	assetManager->StoreSampler("BasicSampler", sample);
 	assetManager->StoreSampler("ParticleSampler", particleSample);
